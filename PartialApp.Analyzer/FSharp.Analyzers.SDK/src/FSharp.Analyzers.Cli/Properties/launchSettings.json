@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "ReadMeSample": {
-      "commandName": "Project",
-      "commandLineArgs": "--project ./samples/OptionAnalyzer/OptionAnalyzer.fsproj --analyzers-path ./samples/OptionAnalyzer/bin/Release --verbose"
-    }
-  }
-}
