@@ -1,0 +1,4 @@
+[submodule "PartialApp.Analyzer"]
+	path = PartialApp.Analyzer
+	url = https://github.com/dawedawe/FSharp.Analyzers.SDK.git
+	branch = add_partialappanalyzer_to_samples
