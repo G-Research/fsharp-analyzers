@@ -8,37 +8,40 @@ open NUnit.Framework
 open FSharp.Analyzers.SDK
 open FSharp.Analyzers.SDK.Testing
 
-let writeActual sourceFile messages =
-    let actualFile = $"%s{sourceFile}.actual"
-
-    messages
-    |> List.map (fun (m : Message) ->
-        $"%s{m.Code} | %A{m.Severity} | (%i{m.Range.StartLine},%i{m.Range.StartColumn} - %i{m.Range.EndLine},%i{m.Range.EndColumn}) | %s{m.Message}"
-    )
-    |> String.concat "\n"
-    |> fun contents -> File.WriteAllTextAsync (actualFile, contents)
-
 let shouldUpdateBaseline () =
     System.Environment.GetEnvironmentVariable "TEST_UPDATE_BSL"
     |> Option.ofObj
     |> Option.map (fun v -> v.Trim () = "1")
     |> Option.defaultValue false
 
-let assertExpected sourceFile =
+let assertExpected sourceFile messages =
     task {
-        let! actual = File.ReadAllTextAsync $"{sourceFile}.actual"
+        let actualContents =
+            messages
+            |> List.map (fun (m : Message) ->
+                $"%s{m.Code} | %A{m.Severity} | (%i{m.Range.StartLine},%i{m.Range.StartColumn} - %i{m.Range.EndLine},%i{m.Range.EndColumn}) | %s{m.Message}"
+            )
+            |> String.concat "\n"
+
         let expectedFile = $"%s{sourceFile}.expected"
+        let actualFile = $"%s{sourceFile}.actual"
 
-        if shouldUpdateBaseline () then
-            do! File.WriteAllTextAsync (expectedFile, actual)
-
-        let! expected =
+        let! expectedContents =
             if File.Exists expectedFile then
                 File.ReadAllTextAsync expectedFile
             else
                 Task.FromResult "No baseline was found"
 
-        Assert.AreEqual (expected, actual)
+        let areEqual = expectedContents = actualContents
+
+        if shouldUpdateBaseline () then
+            do! File.WriteAllTextAsync (expectedFile, actualContents)
+        elif not areEqual then
+            do! File.WriteAllTextAsync (actualFile, actualContents)
+        elif File.Exists actualFile then
+            File.Delete actualFile
+
+        Assert.AreEqual (expectedContents, actualContents)
     }
 
 let mutable projectOptions : FSharpProjectOptions = FSharpProjectOptions.zero
@@ -75,6 +78,5 @@ let EndsWithTests (fileName : string) =
             |> getContext projectOptions
             |> StringAnalyzers.endsWithAnalyzer
 
-        do! writeActual fileName messages
-        do! assertExpected fileName
+        do! assertExpected fileName messages
     }
