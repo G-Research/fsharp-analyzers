@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4700ED11-EBEB-4622-925F-B799F508CAE3}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Analyzers", "src\FSharp.Analyzers\FSharp.Analyzers.fsproj", "{728A9BE2-2606-4095-912F-F43BDA5D2946}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D2A77BEF-7A90-4CDC-B116-06D699F69C32}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Analyzers.Tests", "tests\FSharp.Analyzers.Tests\FSharp.Analyzers.Tests.fsproj", "{87AB24AC-E762-4E94-8049-A7051BFD7E2D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{728A9BE2-2606-4095-912F-F43BDA5D2946}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{728A9BE2-2606-4095-912F-F43BDA5D2946}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{728A9BE2-2606-4095-912F-F43BDA5D2946}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{728A9BE2-2606-4095-912F-F43BDA5D2946}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87AB24AC-E762-4E94-8049-A7051BFD7E2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87AB24AC-E762-4E94-8049-A7051BFD7E2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87AB24AC-E762-4E94-8049-A7051BFD7E2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87AB24AC-E762-4E94-8049-A7051BFD7E2D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{728A9BE2-2606-4095-912F-F43BDA5D2946} = {4700ED11-EBEB-4622-925F-B799F508CAE3}
+		{87AB24AC-E762-4E94-8049-A7051BFD7E2D} = {D2A77BEF-7A90-4CDC-B116-06D699F69C32}
+	EndGlobalSection
+EndGlobal
