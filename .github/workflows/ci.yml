@@ -14,6 +14,15 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout ionide/FSharp.Analyzers.SDK
+        uses: actions/checkout@v3
+        with:
+          repository: ionide/FSharp.Analyzers.SDK
+          path: FSharp.Analyzers.SDK
+          ref: master
+      - name: Build ionide/FSharp.Analyzers.SDK
+        working-directory: FSharp.Analyzers.SDK
+        run: dotnet fsi build.fsx
       - uses: actions/checkout@v3
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
