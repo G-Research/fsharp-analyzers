@@ -1,0 +1,42 @@
+﻿name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      # Ionide SDK
+      - name: Checkout ionide/FSharp.Analyzers.SDK
+        uses: actions/checkout@v3
+        with:
+          repository: ionide/FSharp.Analyzers.SDK
+          path: FSharp.Analyzers.SDK
+          ref: master
+      - name: Setup .NET for ionide/FSharp.Analyzers.SDK
+        uses: actions/setup-dotnet@v3
+        with: 
+          global-json-file: FSharp.Analyzers.SDK/global.json
+      - name: Build ionide/FSharp.Analyzers.SDK
+        working-directory: FSharp.Analyzers.SDK
+        run: dotnet fsi build.fsx
+
+      # G-Research analyzers
+      - uses: actions/checkout@v3
+        with:
+          path: g-research-fsharp-analyzers
+      - name: Setup .NET for ionide/FSharp.Analyzers.SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          global-json-file: g-research-fsharp-analyzers/global.json
+      - name: Build
+        run: dotnet fsi build.fsx
+        working-directory: g-research-fsharp-analyzers

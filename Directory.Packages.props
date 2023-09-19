@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- locking the version of F# Core as FCS does this anyway and in practise all will be using the same version -->
+    <PackageVersion Include="FSharp.Core" Version="[7.0.400]" />
+    <PackageVersion Include="FSharp.Compiler.Service" Version="[43.7.400]" />
+    <PackageVersion Include="Ionide.KeepAChangelog.Tasks" Version="0.1.8" />
+    <PackageVersion Include="DotNet.ReproducibleBuilds" Version="1.1.1" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageVersion Include="NUnit" Version="3.13.3" />
+    <PackageVersion Include="NUnit.Analyzers" Version="3.6.1" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.0" />
+  </ItemGroup>
+</Project>

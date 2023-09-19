@@ -1,0 +1,1 @@
+"foo".EndsWith("p")

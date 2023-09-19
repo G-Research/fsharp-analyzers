@@ -1,0 +1,40 @@
+<Project>
+    <PropertyGroup>
+        <!-- Set up version and package release note generation from this changelog. -->
+        <ChangelogFile>$(MSBuildThisFileDirectory)CHANGELOG.md</ChangelogFile>
+        <!-- Common packaging properties for all packages in this repo -->
+        <Authors>Florian Verdonck, David Schaefer</Authors>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <Description>
+F# analyzers used within G-Research.
+</Description>
+        <Copyright>Copyright G-Research © $([System.DateTime]::UtcNow.Year)</Copyright>
+        <PackageTags>F# fsharp analyzers</PackageTags>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <DebugType>embedded</DebugType>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageProjectUrl>https://g-research.github.io/fsharp-analyzers/</PackageProjectUrl>
+        <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+        <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+        <WarningsAsErrors>FS0025</WarningsAsErrors>
+        <WarnOn>1182;3390;$(WarnOn)</WarnOn>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <RestoreLockedMode>true</RestoreLockedMode>
+        <NoWarn>NU1603;NETSDK1057</NoWarn>
+        <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+        <!-- https://www.gresearch.co.uk/blog/article/improve-nuget-restores-with-static-graph-evaluation/ -->
+        <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+        <ServerGarbageCollection>true</ServerGarbageCollection>
+        <LangVersion>preview</LangVersion>
+        <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen</OtherFlags>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(IsPackable)' == 'true'">
+        <None Include="$(MSBuildThisFileDirectory)README.md" Visible="false" Pack="true" PackagePath="" />
+        <PackageReference Include="Ionide.KeepAChangelog.Tasks" PrivateAssets="all" />
+        <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all" />
+    </ItemGroup>
+</Project>

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <IsTestProject>true</IsTestProject>
+    <AssemblyName>G-Research.FSharp.Analyzers.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="StringAnalyzerTests.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FSharp.Analyzers\FSharp.Analyzers.fsproj" />
+  </ItemGroup>
+
+</Project>
