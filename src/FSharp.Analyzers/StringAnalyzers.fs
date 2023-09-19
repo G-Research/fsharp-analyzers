@@ -1,6 +1,7 @@
 ﻿namespace GR.FSharp.Analyzers
 
 open FSharp.Analyzers.SDK
+open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
@@ -18,9 +19,9 @@ module StringAnalyzers =
         List.tryLast lid.LongIdent
         |> Option.bind (fun ident -> if ident.idText = name then Some ident.idRange else None)
 
-    let rec (|SingleArgumentExpr|_|) =
+    let rec (|SingleStringArgumentExpr|_|) =
         function
-        | SynExpr.Paren (expr = SingleArgumentExpr)
+        | SynExpr.Paren (expr = SingleStringArgumentExpr)
         // ""
         | SynExpr.Const (constant = SynConst.String _)
         // a.b
@@ -29,23 +30,28 @@ module StringAnalyzers =
         | SynExpr.Ident _ -> Some ()
         | _ -> None
 
-    let findAllInvocations (functionName : string) (ast : ParsedInput) : range list =
+    let findAllInvocations
+        (parameterPredicate : SynExpr -> bool)
+        (functionName : string)
+        (ast : ParsedInput)
+        : range list
+        =
         let collector = ResizeArray<range> ()
 
         let walker =
             { new SyntaxCollectorBase() with
                 override _.WalkExpr (expr : SynExpr) =
                     match expr with
-                    // "".EndsWith("a")
+                    // "".FunctionName arg
                     | SynExpr.App (
                         isInfix = false
                         funcExpr = SynExpr.DotGet (longDotId = SingleNameInSynLongIdent functionName mFunctionName)
-                        argExpr = SingleArgumentExpr)
+                        argExpr = argExpr)
 
-                    // w.EndsWith("a")
+                    // w.FunctionName arg
                     | SynExpr.App (
                         funcExpr = SynExpr.LongIdent (longDotId = SynLongIdentEndsWith functionName mFunctionName)
-                        argExpr = SingleArgumentExpr) -> collector.Add mFunctionName
+                        argExpr = argExpr) when parameterPredicate argExpr -> collector.Add mFunctionName
 
                     | _ -> ()
             }
@@ -54,18 +60,26 @@ module StringAnalyzers =
 
         collector |> Seq.toList
 
-    [<CliAnalyzer>]
-    let endsWithAnalyzer (ctx : CliContext) : Async<Message list> =
+    let invalidStringFunctionUseAnalyzer
+        functionName
+        code
+        message
+        severity
+        (sourceText : ISourceText)
+        (untypedTree : ParsedInput)
+        (checkFileResults : FSharpCheckFileResults)
+        (parameterPredicate : SynExpr -> bool)
+        =
         async {
-            let invocations = findAllInvocations "EndsWith" ctx.ParseFileResults.ParseTree
+            let invocations = findAllInvocations parameterPredicate functionName untypedTree
 
             return
                 invocations
                 |> List.choose (fun mEndsWith ->
-                    let lineText = ctx.SourceText.GetLineString (mEndsWith.EndLine - 1)
+                    let lineText = sourceText.GetLineString (mEndsWith.EndLine - 1)
 
                     let symbolUseOpt =
-                        ctx.CheckFileResults.GetSymbolUseAtLocation (
+                        checkFileResults.GetSymbolUseAtLocation (
                             mEndsWith.EndLine,
                             mEndsWith.EndColumn,
                             lineText,
@@ -92,15 +106,29 @@ module StringAnalyzers =
                         | _ -> None
                     )
                 )
-                |> List.map (fun mEndsWith ->
+                |> List.map (fun mFunctionName ->
                     {
-                        Type = "String.EndsWith analyzer"
-                        Message =
-                            "The usage of String.EndsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
-                        Code = EndsWithCode
-                        Severity = Warning
-                        Range = mEndsWith
+                        Type = $"String.{functionName} analyzer"
+                        Message = message
+                        Code = code
+                        Severity = severity
+                        Range = mFunctionName
                         Fixes = []
                     }
                 )
         }
+
+    [<CliAnalyzer>]
+    let endsWithAnalyzer (ctx : CliContext) : Async<Message list> =
+        invalidStringFunctionUseAnalyzer
+            "EndsWith"
+            EndsWithCode
+            "The usage of String.EndsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
+            Warning
+            ctx.SourceText
+            ctx.ParseFileResults.ParseTree
+            ctx.CheckFileResults
+            (function
+            | SingleStringArgumentExpr _ -> true
+            | _ -> false
+            )
