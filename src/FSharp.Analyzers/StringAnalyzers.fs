@@ -59,13 +59,10 @@ module StringAnalyzers =
         async {
             let invocations = findAllInvocations "EndsWith" ctx.ParseFileResults.ParseTree
 
-            if invocations.Length > 0 then
-                printfn "%i for %s" invocations.Length ctx.FileName
-
             return
                 invocations
                 |> List.choose (fun mEndsWith ->
-                    let lineText = ctx.SourceText.GetLineString mEndsWith.EndLine
+                    let lineText = ctx.SourceText.GetLineString (mEndsWith.EndLine - 1)
 
                     let symbolUseOpt =
                         ctx.CheckFileResults.GetSymbolUseAtLocation (
