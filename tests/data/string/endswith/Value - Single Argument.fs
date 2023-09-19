@@ -1,2 +1,2 @@
-﻿let a = "a"
+let a = "a"
 a.EndsWith("a")

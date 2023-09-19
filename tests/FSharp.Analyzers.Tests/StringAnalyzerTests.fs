@@ -22,6 +22,7 @@ let assertExpected sourceFile messages =
                 $"%s{m.Code} | %A{m.Severity} | (%i{m.Range.StartLine},%i{m.Range.StartColumn} - %i{m.Range.EndLine},%i{m.Range.EndColumn}) | %s{m.Message}"
             )
             |> String.concat "\n"
+            |> fun contents -> System.String.Concat (contents, "\n")
 
         let expectedFile = $"%s{sourceFile}.expected"
         let actualFile = $"%s{sourceFile}.actual"
@@ -79,4 +80,31 @@ let EndsWithTests (fileName : string) =
             |> StringAnalyzers.endsWithAnalyzer
 
         do! assertExpected fileName messages
+    }
+
+type NegativeTestCases() =
+
+    interface IEnumerable with
+        member _.GetEnumerator () : IEnumerator =
+            let endsWithTests =
+                Path.Combine (TestCases.DataFolder, "string", "endswith", "negative")
+
+            Directory.EnumerateFiles (endsWithTests, "*.fs")
+            |> Seq.map (fun f ->
+                let fileName = Path.GetRelativePath (TestCases.DataFolder, f)
+                [| fileName :> obj |]
+            )
+            |> fun s -> s.GetEnumerator ()
+
+[<TestCaseSource(typeof<NegativeTestCases>)>]
+let NegativeEndsWithTests (fileName : string) =
+    task {
+        let fileName = Path.Combine (TestCases.DataFolder, fileName)
+
+        let! messages =
+            File.ReadAllText fileName
+            |> getContext projectOptions
+            |> StringAnalyzers.endsWithAnalyzer
+
+        Assert.IsEmpty messages
     }
