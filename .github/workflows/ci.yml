@@ -1,0 +1,21 @@
+﻿name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+      - name: Build
+        run: dotnet fsi build.fsx
