@@ -140,9 +140,10 @@ module StringAnalyzers =
             else
                 fsharpType.GenericArguments |> Seq.map visit |> String.concat " -> "
 
-        visit mfv.FullType = expectedSignature
+        let actualSignature = visit mfv.FullType
+        actualSignature = expectedSignature
 
-    [<CliAnalyzer>]
+    [<CliAnalyzer "String.EndsWith Analyzer">]
     let endsWithAnalyzer (ctx : CliContext) : Async<Message list> =
         invalidStringFunctionUseAnalyzer
             "EndsWith"
@@ -157,7 +158,7 @@ module StringAnalyzers =
             | _ -> false)
             (hasMatchingSignature "System.String -> System.Boolean")
 
-    [<CliAnalyzer>]
+    [<CliAnalyzer "String.StartsWith Analyzer">]
     let startsWithAnalyzer (ctx : CliContext) : Async<Message list> =
         invalidStringFunctionUseAnalyzer
             "StartsWith"
@@ -171,3 +172,18 @@ module StringAnalyzers =
             | SingleStringArgumentExpr _ -> true
             | _ -> false)
             (hasMatchingSignature "System.String -> System.Boolean")
+
+    [<CliAnalyzer "String.IndexOf Analyzer">]
+    let indexOfAnalyzer (ctx : CliContext) : Async<Message list> =
+        invalidStringFunctionUseAnalyzer
+            "IndexOf"
+            Codes.StringIndexOf
+            "The usage of String.IndexOf with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
+            Warning
+            ctx.SourceText
+            ctx.ParseFileResults.ParseTree
+            ctx.CheckFileResults
+            (function
+            | SingleStringArgumentExpr _ -> true
+            | _ -> false)
+            (hasMatchingSignature "System.String -> System.Int32")

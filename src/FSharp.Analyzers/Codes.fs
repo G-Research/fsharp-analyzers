@@ -5,3 +5,6 @@ let StringEndsWith = "GRA-001"
 
 [<Literal>]
 let StringStartsWith = "GRA-002"
+
+[<Literal>]
+let StringIndexOf = "GRA-003"
