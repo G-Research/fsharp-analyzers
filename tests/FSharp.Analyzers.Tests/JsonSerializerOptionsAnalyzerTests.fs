@@ -17,11 +17,11 @@ module JsonSerializerOptionsAnalyzerTests =
         task {
             let! options =
                 mkOptionsFromProject
-                    "net7.0"
+                    "net6.0"
                     [
                         {
                             Name = "System.Text.Json"
-                            Version = "7.0.3"
+                            Version = "6.0.8"
                         }
                     ]
 
