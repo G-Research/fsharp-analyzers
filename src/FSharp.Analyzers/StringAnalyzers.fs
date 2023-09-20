@@ -133,6 +133,15 @@ module StringAnalyzers =
                 )
         }
 
+    let hasMatchingSignature (expectedSignature : string) (mfv : FSharpMemberOrFunctionOrValue) : bool =
+        let rec visit (fsharpType : FSharpType) =
+            if fsharpType.GenericArguments.Count = 0 then
+                fsharpType.ErasedType.BasicQualifiedName
+            else
+                fsharpType.GenericArguments |> Seq.map visit |> String.concat " -> "
+
+        visit mfv.FullType = expectedSignature
+
     [<CliAnalyzer>]
     let endsWithAnalyzer (ctx : CliContext) : Async<Message list> =
         invalidStringFunctionUseAnalyzer
@@ -146,11 +155,7 @@ module StringAnalyzers =
             (function
             | SingleStringArgumentExpr _ -> true
             | _ -> false)
-            (fun mfv ->
-                mfv.CurriedParameterGroups.Count = 1
-                && mfv.CurriedParameterGroups.[0].Count = 1
-                && mfv.CurriedParameterGroups.[0].[0].Type.ErasedType.BasicQualifiedName = "System.String"
-            )
+            (hasMatchingSignature "System.String -> System.Boolean")
 
     [<CliAnalyzer>]
     let startsWithAnalyzer (ctx : CliContext) : Async<Message list> =
@@ -165,8 +170,4 @@ module StringAnalyzers =
             (function
             | SingleStringArgumentExpr _ -> true
             | _ -> false)
-            (fun mfv ->
-                mfv.CurriedParameterGroups.Count = 1
-                && mfv.CurriedParameterGroups.[0].Count = 1
-                && mfv.CurriedParameterGroups.[0].[0].Type.ErasedType.BasicQualifiedName = "System.String"
-            )
+            (hasMatchingSignature "System.String -> System.Boolean")
