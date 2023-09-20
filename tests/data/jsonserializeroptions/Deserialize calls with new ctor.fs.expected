@@ -1,0 +1,3 @@
+GRA-002 | Warning | (6,12 - 6,82) | JsonSerializerOptions instances should be cached.
+GRA-002 | Warning | (7,12 - 7,93) | JsonSerializerOptions instances should be cached.
+GRA-002 | Warning | (8,12 - 8,103) | JsonSerializerOptions instances should be cached.
