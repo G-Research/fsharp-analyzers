@@ -7,9 +7,6 @@ open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 
 module StringAnalyzers =
-    [<Literal>]
-    let EndsWithCode = "GRA-001"
-
     let (|SingleNameInSynLongIdent|_|) name (lid : SynLongIdent) =
         match lid with
         | SynLongIdent (id = [ ident ]) when ident.idText = name -> Some ident.idRange
@@ -21,14 +18,35 @@ module StringAnalyzers =
 
     let rec (|SingleStringArgumentExpr|_|) =
         function
-        | SynExpr.Paren (expr = SingleStringArgumentExpr)
-        // ""
-        | SynExpr.Const (constant = SynConst.String _)
-        // a.b
-        | SynExpr.LongIdent _
-        // a
-        | SynExpr.Ident _ -> Some ()
-        | _ -> None
+        // Strip parentheses
+        | SynExpr.Paren (expr = SingleStringArgumentExpr) -> Some ()
+        // Only allow ""
+        | SynExpr.Const (constant = constant) ->
+            match constant with
+            | SynConst.String _ -> Some ()
+            | _ -> None
+        // Don't allow tuples and any other obvious non value expression
+        | SynExpr.Tuple _
+        | SynExpr.Lambda _
+        | SynExpr.MatchLambda _
+        | SynExpr.MatchBang _
+        | SynExpr.LetOrUseBang _
+        | SynExpr.AnonRecd _
+        | SynExpr.ArrayOrList _
+        | SynExpr.ArrayOrListComputed _
+        | SynExpr.Assert _
+        | SynExpr.DoBang _
+        | SynExpr.DotSet _
+        | SynExpr.For _
+        | SynExpr.ForEach _
+        | SynExpr.Lazy _
+        | SynExpr.Record _
+        | SynExpr.Set _
+        | SynExpr.While _
+        | SynExpr.YieldOrReturn _
+        | SynExpr.YieldOrReturnFrom _ -> None
+        // Allow pretty much any expression
+        | _ -> Some ()
 
     let findAllInvocations
         (parameterPredicate : SynExpr -> bool)
@@ -68,10 +86,12 @@ module StringAnalyzers =
         (sourceText : ISourceText)
         (untypedTree : ParsedInput)
         (checkFileResults : FSharpCheckFileResults)
-        (parameterPredicate : SynExpr -> bool)
+        (unTypedArgumentPredicate : SynExpr -> bool)
+        (typedArgumentPredicate : FSharpMemberOrFunctionOrValue -> bool)
         =
         async {
-            let invocations = findAllInvocations parameterPredicate functionName untypedTree
+            let invocations =
+                findAllInvocations unTypedArgumentPredicate functionName untypedTree
 
             return
                 invocations
@@ -92,14 +112,9 @@ module StringAnalyzers =
                         | :? FSharpMemberOrFunctionOrValue as mfv ->
                             if mfv.Assembly.SimpleName <> "netstandard" then
                                 None
-                            elif mfv.CurriedParameterGroups.Count <> 1 then
+                            elif not (mfv.FullName = $"System.String.%s{functionName}") then
                                 None
-                            elif mfv.CurriedParameterGroups.[0].Count <> 1 then
-                                None
-                            elif
-                                mfv.CurriedParameterGroups.[0].[0].Type.ErasedType.BasicQualifiedName
-                                <> "System.String"
-                            then
+                            elif not (typedArgumentPredicate mfv) then
                                 None
                             else
                                 Some mEndsWith
@@ -122,7 +137,7 @@ module StringAnalyzers =
     let endsWithAnalyzer (ctx : CliContext) : Async<Message list> =
         invalidStringFunctionUseAnalyzer
             "EndsWith"
-            EndsWithCode
+            Codes.StringEndsWith
             "The usage of String.EndsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
             Warning
             ctx.SourceText
@@ -130,5 +145,28 @@ module StringAnalyzers =
             ctx.CheckFileResults
             (function
             | SingleStringArgumentExpr _ -> true
-            | _ -> false
+            | _ -> false)
+            (fun mfv ->
+                mfv.CurriedParameterGroups.Count = 1
+                && mfv.CurriedParameterGroups.[0].Count = 1
+                && mfv.CurriedParameterGroups.[0].[0].Type.ErasedType.BasicQualifiedName = "System.String"
+            )
+
+    [<CliAnalyzer>]
+    let startsWithAnalyzer (ctx : CliContext) : Async<Message list> =
+        invalidStringFunctionUseAnalyzer
+            "StartsWith"
+            Codes.StringStartsWith
+            "The usage of String.StartsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
+            Warning
+            ctx.SourceText
+            ctx.ParseFileResults.ParseTree
+            ctx.CheckFileResults
+            (function
+            | SingleStringArgumentExpr _ -> true
+            | _ -> false)
+            (fun mfv ->
+                mfv.CurriedParameterGroups.Count = 1
+                && mfv.CurriedParameterGroups.[0].Count = 1
+                && mfv.CurriedParameterGroups.[0].[0].Type.ErasedType.BasicQualifiedName = "System.String"
             )
