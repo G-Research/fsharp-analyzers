@@ -30,6 +30,12 @@
           "System.Runtime.CompilerServices.Unsafe": "6.0.0"
         }
       },
+      "FSharp.Core": {
+        "type": "Direct",
+        "requested": "[7.0.400, 7.0.400]",
+        "resolved": "7.0.400",
+        "contentHash": "kJQ7TBQqd1d2VoODSgwFSAaApaBN0Fuu8mZt2XExmd3UzUxLjUsMn5Y5XhpsUWdnxOL8amp7VFg7cwhPllR4Qw=="
+      },
       "Ionide.KeepAChangelog.Tasks": {
         "type": "Direct",
         "requested": "[0.1.8, )",
@@ -152,12 +158,6 @@
           "FSharp.Core": "[7.0.400, )",
           "McMaster.NETCore.Plugins": "[1.4.0, )"
         }
-      },
-      "FSharp.Core": {
-        "type": "CentralTransitive",
-        "requested": "[7.0.400, 7.0.400]",
-        "resolved": "7.0.400",
-        "contentHash": "kJQ7TBQqd1d2VoODSgwFSAaApaBN0Fuu8mZt2XExmd3UzUxLjUsMn5Y5XhpsUWdnxOL8amp7VFg7cwhPllR4Qw=="
       }
     }
   }
