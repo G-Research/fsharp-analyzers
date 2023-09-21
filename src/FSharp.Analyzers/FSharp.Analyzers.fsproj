@@ -10,6 +10,7 @@
 
     <ItemGroup>
         <Compile Include="ASTCollecting.fs"/>
+        <Compile Include="TASTCollecting.fs" />
         <Compile Include="StringAnalyzers.fs"/>
     </ItemGroup>
 
