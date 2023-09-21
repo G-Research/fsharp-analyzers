@@ -137,12 +137,19 @@ module JsonSerializerOptionsAnalyzer =
                         args
                         |> List.exists (
                             function
-                            | NewObject (objType, _, _) when objType.FullName = "System.Text.Json.JsonSerializerOptions" ->
+                            | NewObject (objType, _, _) when
+                                objType.FullName = "System.Text.Json.JsonSerializerOptions"
+                                && objType.Assembly.SimpleName = "System.Text.Json"
+                                ->
                                 true
                             | _ -> false
                         )
 
-                    if Array.contains name namesToWarnAbount && containsSerOptsCtorCall then
+                    if
+                        m.Assembly.SimpleName = "System.Text.Json"
+                        && Array.contains name namesToWarnAbount
+                        && containsSerOptsCtorCall
+                    then
                         state.Add range
 
                 match ctx.TypedTree with
