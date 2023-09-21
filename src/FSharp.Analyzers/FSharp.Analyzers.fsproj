@@ -10,6 +10,7 @@
 
     <ItemGroup>
         <Compile Include="ASTCollecting.fs"/>
+        <Compile Include="TASTCollection.fs" />
         <Compile Include="StringAnalyzers.fs"/>
         <Compile Include="JsonSerializerOptionsAnalyzer.fs" />
     </ItemGroup>
