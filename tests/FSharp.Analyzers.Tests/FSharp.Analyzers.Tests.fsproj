@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Testing.fs" />
     <Compile Include="StringAnalyzerTests.fs" />
   </ItemGroup>
 
@@ -24,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FSharp.Analyzers\FSharp.Analyzers.fsproj" />
+    <ProjectReference Include="..\..\..\FSharp.Analyzers.SDK\src\FSharp.Analyzers.SDK.Testing\FSharp.Analyzers.SDK.Testing.fsproj"/>
   </ItemGroup>
 
 </Project>
