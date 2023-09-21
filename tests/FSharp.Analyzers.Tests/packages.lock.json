@@ -8,12 +8,6 @@
         "resolved": "6.0.0",
         "contentHash": "tW3lsNS+dAEII6YGUX/VMoJjBS1QvsxqJeqLaJXub08y1FSjasFPtQ4UBUsudE9PNrzLjooClMsPtY2cZLdXpQ=="
       },
-      "FSharp.Core": {
-        "type": "Direct",
-        "requested": "[7.0.400, 7.0.400]",
-        "resolved": "7.0.400",
-        "contentHash": "kJQ7TBQqd1d2VoODSgwFSAaApaBN0Fuu8mZt2XExmd3UzUxLjUsMn5Y5XhpsUWdnxOL8amp7VFg7cwhPllR4Qw=="
-      },
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
         "requested": "[17.7.2, )",
@@ -458,8 +452,7 @@
         "type": "Project",
         "dependencies": {
           "FSharp.Analyzers.SDK": "[1.0.0, )",
-          "FSharp.Compiler.Service": "[43.7.400, 43.7.400]",
-          "FSharp.Core": "[7.0.400, 7.0.400]"
+          "FSharp.Compiler.Service": "[43.7.400, 43.7.400]"
         }
       },
       "FSharp.Compiler.Service": {
@@ -477,6 +470,12 @@
           "System.Reflection.Metadata": "7.0.0",
           "System.Runtime.CompilerServices.Unsafe": "6.0.0"
         }
+      },
+      "FSharp.Core": {
+        "type": "CentralTransitive",
+        "requested": "[7.0.400, 7.0.400]",
+        "resolved": "7.0.400",
+        "contentHash": "kJQ7TBQqd1d2VoODSgwFSAaApaBN0Fuu8mZt2XExmd3UzUxLjUsMn5Y5XhpsUWdnxOL8amp7VFg7cwhPllR4Qw=="
       }
     }
   }
