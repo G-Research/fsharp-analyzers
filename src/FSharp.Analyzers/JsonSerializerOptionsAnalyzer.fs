@@ -19,17 +19,18 @@ module JsonSerializerOptionsAnalyzer =
                 let state = ResizeArray<range> ()
 
                 let namesToWarnAbount =
-                    [|
-                        "System.Text.Json.JsonSerializer.Deserialize"
-                        "System.Text.Json.JsonSerializer.DeserializeAsync"
-                        "System.Text.Json.JsonSerializer.DeserializeAsyncEnumerable"
-                        "System.Text.Json.JsonSerializer.Serialize"
-                        "System.Text.Json.JsonSerializer.SerializeAsync"
-                        "System.Text.Json.JsonSerializer.SerializeToDocument"
-                        "System.Text.Json.JsonSerializer.SerializeToElement"
-                        "System.Text.Json.JsonSerializer.SerializeToNode"
-                        "System.Text.Json.JsonSerializer.SerializeToUtf8Bytes"
-                    |]
+                    set
+                        [
+                            "System.Text.Json.JsonSerializer.Deserialize"
+                            "System.Text.Json.JsonSerializer.DeserializeAsync"
+                            "System.Text.Json.JsonSerializer.DeserializeAsyncEnumerable"
+                            "System.Text.Json.JsonSerializer.Serialize"
+                            "System.Text.Json.JsonSerializer.SerializeAsync"
+                            "System.Text.Json.JsonSerializer.SerializeToDocument"
+                            "System.Text.Json.JsonSerializer.SerializeToElement"
+                            "System.Text.Json.JsonSerializer.SerializeToNode"
+                            "System.Text.Json.JsonSerializer.SerializeToUtf8Bytes"
+                        ]
 
                 let handler : Handler =
                     let callHandler (range : range) (m : FSharpMemberOrFunctionOrValue) (args : FSharpExpr list) =
@@ -50,7 +51,7 @@ module JsonSerializerOptionsAnalyzer =
 
                         if
                             m.Assembly.SimpleName = assemblyName
-                            && Array.contains name namesToWarnAbount
+                            && Set.contains name namesToWarnAbount
                             && containsSerOptsCtorCall
                         then
                             state.Add range
