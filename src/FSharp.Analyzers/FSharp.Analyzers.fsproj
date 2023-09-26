@@ -15,11 +15,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\FSharp.Analyzers.SDK\src\FSharp.Analyzers.SDK\FSharp.Analyzers.SDK.fsproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Update="FSharp.Core"/>
+        <PackageReference Include="FSharp.Analyzers.SDK" />
         <PackageReference Include="FSharp.Compiler.Service"/>
     </ItemGroup>
 

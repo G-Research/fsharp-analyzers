@@ -21,8 +21,8 @@ F# analyzers used within G-Research.
         <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
         <WarningsAsErrors>FS0025</WarningsAsErrors>
         <WarnOn>1182;3390;$(WarnOn)</WarnOn>
-        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-        <RestoreLockedMode>true</RestoreLockedMode>
+        <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+        <RestoreLockedMode>false</RestoreLockedMode>
         <NoWarn>NU1603;NETSDK1057</NoWarn>
         <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
         <!-- https://www.gresearch.co.uk/blog/article/improve-nuget-restores-with-static-graph-evaluation/ -->
