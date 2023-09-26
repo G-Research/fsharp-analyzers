@@ -12,6 +12,7 @@
   <ItemGroup>
     <Compile Include="Testing.fs" />
     <Compile Include="StringAnalyzerTests.fs" />
+    <Compile Include="UnionCaseAnalyzerTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,7 +27,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FSharp.Analyzers\FSharp.Analyzers.fsproj" />
-    <ProjectReference Include="..\..\..\FSharp.Analyzers.SDK\src\FSharp.Analyzers.SDK.Testing\FSharp.Analyzers.SDK.Testing.fsproj"/>
   </ItemGroup>
 
 </Project>
