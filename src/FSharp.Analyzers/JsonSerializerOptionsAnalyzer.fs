@@ -10,7 +10,7 @@ open TASTCollection
 module JsonSerializerOptionsAnalyzer =
 
     [<Literal>]
-    let Code = "GRA-002"
+    let Code = "GRA-JSONOPTS-001"
 
     [<CliAnalyzer "JsonSerializerOptionsAnalyzer">]
     let jsonSerializerOptionsAnalyzer : Analyzer<CliContext> =
