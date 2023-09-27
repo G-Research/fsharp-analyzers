@@ -12,6 +12,7 @@
   <ItemGroup>
     <Compile Include="Testing.fs" />
     <Compile Include="StringAnalyzerTests.fs" />
+    <Compile Include="JsonSerializerOptionsAnalyzerTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
