@@ -2,6 +2,7 @@
 
 module Testing =
 
+    open System
     open System.IO
     open System.Threading.Tasks
     open NUnit.Framework
@@ -9,7 +10,7 @@ module Testing =
     open FSharp.Analyzers.SDK.Testing
 
     let shouldUpdateBaseline () =
-        System.Environment.GetEnvironmentVariable "TEST_UPDATE_BSL"
+        Environment.GetEnvironmentVariable "TEST_UPDATE_BSL"
         |> Option.ofObj
         |> Option.map (fun v -> v.Trim () = "1")
         |> Option.defaultValue false
@@ -22,7 +23,7 @@ module Testing =
                     $"%s{m.Code} | %A{m.Severity} | (%i{m.Range.StartLine},%i{m.Range.StartColumn} - %i{m.Range.EndLine},%i{m.Range.EndColumn}) | %s{m.Message}"
                 )
                 |> String.concat "\n"
-                |> fun contents -> System.String.Concat (contents, "\n")
+                |> fun contents -> String.Concat (contents, "\n")
 
             let expectedFile = $"%s{sourceFile}.expected"
             let actualFile = $"%s{sourceFile}.actual"
@@ -44,3 +45,15 @@ module Testing =
 
             Assert.AreEqual (expectedContents, actualContents)
         }
+
+    let dataFolder = Path.Combine (__SOURCE_DIRECTORY__, "..", "data")
+
+    let constructTestCaseEnumerator (subDataPath : string array) =
+        let testsDirectory = Path.Combine (dataFolder, Path.Combine subDataPath)
+
+        Directory.EnumerateFiles (testsDirectory, "*.fs")
+        |> Seq.map (fun f ->
+            let fileName = Path.GetRelativePath (dataFolder, f)
+            [| fileName :> obj |]
+        )
+        |> fun s -> s.GetEnumerator ()
