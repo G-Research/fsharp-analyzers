@@ -24,9 +24,7 @@ module StringAnalyzerTests =
 
         interface IEnumerable with
             member _.GetEnumerator () : IEnumerator =
-                let endsWithTests = Path.Combine (dataFolder, "string", "endswith")
-
-                constructTestCaseEnumerator endsWithTests
+                constructTestCaseEnumerator [| "string" ; "endswith" |]
 
     [<TestCaseSource(typeof<TestCases>)>]
     let EndsWithTests (fileName : string) =
@@ -45,9 +43,7 @@ module StringAnalyzerTests =
 
         interface IEnumerable with
             member _.GetEnumerator () : IEnumerator =
-                let endsWithTests = Path.Combine (dataFolder, "string", "endswith", "negative")
-
-                constructTestCaseEnumerator endsWithTests
+                constructTestCaseEnumerator [| "string" ; "endswith" ; "negative" |]
 
     [<TestCaseSource(typeof<NegativeTestCases>)>]
     let NegativeEndsWithTests (fileName : string) =

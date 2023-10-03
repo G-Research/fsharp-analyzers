@@ -32,9 +32,7 @@ module JsonSerializerOptionsAnalyzerTests =
 
         interface IEnumerable with
             member _.GetEnumerator () : IEnumerator =
-                let jsonSerializerOptionsTests = Path.Combine (dataFolder, "jsonserializeroptions")
-
-                constructTestCaseEnumerator jsonSerializerOptionsTests
+                constructTestCaseEnumerator [| "jsonserializeroptions" |]
 
     [<TestCaseSource(typeof<TestCases>)>]
     let JsonSerializerOptionsTests (fileName : string) =
