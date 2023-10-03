@@ -1,8 +1,6 @@
 namespace ``G-Research``.FSharp.Analyzers
 
 open FSharp.Analyzers.SDK
-open FSharp.Compiler.CodeAnalysis
-open FSharp.Compiler.EditorServices
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 
@@ -11,39 +9,52 @@ module UnionCaseAnalyzer =
     [<Literal>]
     let Code = "GRA-UNIONCASE-001"
 
-    let findAllShadowingCases
-        (checkFileResults : FSharpCheckFileResults)
-        (parseFileResults : FSharpParseFileResults)
-        (ast : ParsedInput)
-        : range list
-        =
+    let findAllShadowingCases (ast : ParsedInput) : range list =
         let collector = ResizeArray<range> ()
 
-        let declarationListItems =
-            let partialLongName : PartialLongName =
-                {
-                    QualifyingIdents = [ "FSharp" ; "Core" ]
-                    PartialIdent = ""
-                    EndColumn = 0
-                    LastDotPos = None
-                }
+        let namesToWarnAbount =
+            set
+                [
+                    "Choice1Of2"
+                    "Choice2Of2"
+                    "Choice1Of3"
+                    "Choice2Of3"
+                    "Choice3Of3"
+                    "Choice1Of4"
+                    "Choice2Of4"
+                    "Choice3Of4"
+                    "Choice4Of4"
+                    "Choice1Of5"
+                    "Choice2Of5"
+                    "Choice3Of5"
+                    "Choice4Of5"
+                    "Choice5Of5"
+                    "Choice1Of6"
+                    "Choice2Of6"
+                    "Choice3Of6"
+                    "Choice4Of6"
+                    "Choice5Of6"
+                    "Choice6Of6"
+                    "Choice1Of7"
+                    "Choice2Of7"
+                    "Choice3Of7"
+                    "Choice4Of7"
+                    "Choice5Of7"
+                    "Choice6Of7"
+                    "Choice7Of7"
+                    "None"
+                    "Some"
+                    "ValueNone"
+                    "ValueSome"
+                    "Ok"
+                    "Error"
+                ]
 
-            let info =
-                checkFileResults.GetDeclarationListInfo (Some parseFileResults, 1, "", partialLongName)
-
-            info.Items
-            |> Array.filter (fun i ->
-                i.FullName.StartsWith ("Microsoft.FSharp.Core")
-                && i.Glyph = FSharpGlyph.EnumMember
-            )
-
-        let checkCase (SynUnionCase (ident = (SynIdent (ident, _)))) =
-            let isCaseNameInFsharpCore =
-                declarationListItems
-                |> Array.exists (fun i -> i.FullName.EndsWith ($".{ident.idText}"))
-
-            if isCaseNameInFsharpCore then
+        let handleCase (SynUnionCase (ident = (SynIdent (ident, _)))) =
+            if (namesToWarnAbount |> Set.contains ident.idText) then
                 collector.Add ident.idRange
+
+            ()
 
         let walker =
             { new SyntaxCollectorBase() with
@@ -62,7 +73,7 @@ module UnionCaseAnalyzer =
                     if not hasReqQualAccAttribute then
                         match repr with
                         | SynTypeDefnRepr.Simple (SynTypeDefnSimpleRepr.Union (unionCases = synUnionCases), _) ->
-                            synUnionCases |> List.iter checkCase
+                            synUnionCases |> List.iter handleCase
                         | _ -> ()
                     else
                         ()
@@ -77,8 +88,7 @@ module UnionCaseAnalyzer =
         fun ctx ->
             async {
 
-                let ranges =
-                    findAllShadowingCases ctx.CheckFileResults ctx.ParseFileResults ctx.ParseFileResults.ParseTree
+                let ranges = findAllShadowingCases ctx.ParseFileResults.ParseTree
 
                 let msgs =
                     ranges
