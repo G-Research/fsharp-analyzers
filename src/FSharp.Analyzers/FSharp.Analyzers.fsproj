@@ -13,6 +13,7 @@
         <Compile Include="TASTCollecting.fs" />
         <Compile Include="StringAnalyzers.fs"/>
         <Compile Include="JsonSerializerOptionsAnalyzer.fs" />
+        <Compile Include="PartialAppAnalyzer.fs" />
     </ItemGroup>
 
     <ItemGroup>

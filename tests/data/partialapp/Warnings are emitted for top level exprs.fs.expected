@@ -1,0 +1,2 @@
+GRA-PARTAPP-001 | Warning | (5,0 - 5,6) | partial application should not be used: myFunc at (5,0--5,6)
+GRA-PARTAPP-001 | Warning | (9,4 - 9,10) | partial application should not be used: myFunc at (9,4--9,10)

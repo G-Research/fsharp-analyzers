@@ -1,0 +1,1 @@
+GRA-PARTAPP-001 | Warning | (8,16 - 8,22) | partial application should not be used: myFunc at (8,16--8,22)

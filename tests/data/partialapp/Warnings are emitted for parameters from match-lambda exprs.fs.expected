@@ -1,0 +1,2 @@
+GRA-PARTAPP-001 | Warning | (15,4 - 15,10) | partial application should not be used: myFunc at (15,4--15,10)
+GRA-PARTAPP-001 | Warning | (26,19 - 26,28) | partial application should not be used: myGenFunc at (26,19--26,28)

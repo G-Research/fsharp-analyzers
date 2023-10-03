@@ -1,0 +1,5 @@
+GRA-PARTAPP-001 | Warning | (8,8 - 8,14) | partial application should not be used: myFunc at (8,8--8,14)
+GRA-PARTAPP-001 | Warning | (9,16 - 9,22) | partial application should not be used: myFunc at (9,16--9,22)
+GRA-PARTAPP-001 | Warning | (12,19 - 12,25) | partial application should not be used: myFunc at (12,19--12,25)
+GRA-PARTAPP-001 | Warning | (14,20 - 14,21) | partial application should not be used: op_Addition at (14,20--14,21)
+GRA-PARTAPP-001 | Warning | (15,41 - 15,48) | partial application should not be used: map at (15,41--15,48)
