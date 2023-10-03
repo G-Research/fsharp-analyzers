@@ -1,23 +1,49 @@
 namespace ``G-Research``.FSharp.Analyzers
 
 open FSharp.Analyzers.SDK
+open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.EditorServices
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 
 module UnionCaseAnalyzer =
 
     [<Literal>]
-    let Code = "GRA-004"
+    let Code = "GRA-UNIONCASE-001"
 
-    let findAllInvocations (ast : ParsedInput) : range list =
+    let findAllShadowingCases
+        (checkFileResults : FSharpCheckFileResults)
+        (parseFileResults : FSharpParseFileResults)
+        (ast : ParsedInput)
+        : range list
+        =
         let collector = ResizeArray<range> ()
-        let namesToWarnAbount = set [ "None" ; "Some" ]
 
-        let checkCases (SynUnionCase (ident = (SynIdent (ident, _)))) =
-            if (namesToWarnAbount |> Set.contains ident.idText) then
+        let declarationListItems =
+            let partialLongName : PartialLongName =
+                {
+                    QualifyingIdents = [ "FSharp" ; "Core" ]
+                    PartialIdent = ""
+                    EndColumn = 0
+                    LastDotPos = None
+                }
+
+            let info =
+                checkFileResults.GetDeclarationListInfo (Some parseFileResults, 1, "", partialLongName)
+
+            info.Items
+            |> Array.filter (fun i ->
+                i.FullName.StartsWith ("Microsoft.FSharp.Core")
+                && i.Glyph = FSharpGlyph.EnumMember
+            )
+
+        let checkCase (SynUnionCase (ident = (SynIdent (ident, _)))) =
+            let isCaseNameInFsharpCore =
+                declarationListItems
+                |> Array.exists (fun i -> i.FullName.EndsWith ($".{ident.idText}"))
+
+            if isCaseNameInFsharpCore then
                 collector.Add ident.idRange
-
-            ()
 
         let walker =
             { new SyntaxCollectorBase() with
@@ -36,7 +62,7 @@ module UnionCaseAnalyzer =
                     if not hasReqQualAccAttribute then
                         match repr with
                         | SynTypeDefnRepr.Simple (SynTypeDefnSimpleRepr.Union (unionCases = synUnionCases), _) ->
-                            synUnionCases |> List.iter checkCases
+                            synUnionCases |> List.iter checkCase
                         | _ -> ()
                     else
                         ()
@@ -51,7 +77,8 @@ module UnionCaseAnalyzer =
         fun ctx ->
             async {
 
-                let ranges = findAllInvocations ctx.ParseFileResults.ParseTree
+                let ranges =
+                    findAllShadowingCases ctx.CheckFileResults ctx.ParseFileResults ctx.ParseFileResults.ParseTree
 
                 let msgs =
                     ranges
