@@ -8,12 +8,13 @@
     <Tailcalls>true</Tailcalls>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="ASTCollecting.fs"/>
-    <Compile Include="TASTCollecting.fs" />
-    <Compile Include="StringAnalyzers.fs"/>
-    <Compile Include="UnionCaseAnalyzer.fs" />
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Include="ASTCollecting.fs"/>
+        <Compile Include="TASTCollecting.fs" />
+        <Compile Include="StringAnalyzers.fs"/>
+        <Compile Include="JsonSerializerOptionsAnalyzer.fs" />
+        <Compile Include="UnionCaseAnalyzer.fs" />
+    </ItemGroup>
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core"/>
