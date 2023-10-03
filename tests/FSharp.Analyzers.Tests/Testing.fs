@@ -44,3 +44,13 @@ module Testing =
 
             Assert.AreEqual (expectedContents, actualContents)
         }
+
+    let dataFolder = Path.Combine (__SOURCE_DIRECTORY__, "..", "data")
+
+    let constructTestCaseEnumerator testsDirectory =
+        Directory.EnumerateFiles (testsDirectory, "*.fs")
+        |> Seq.map (fun f ->
+            let fileName = Path.GetRelativePath (dataFolder, f)
+            [| fileName :> obj |]
+        )
+        |> fun s -> s.GetEnumerator ()
