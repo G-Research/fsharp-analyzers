@@ -48,7 +48,7 @@ module Testing =
 
     let dataFolder = Path.Combine (__SOURCE_DIRECTORY__, "..", "data")
 
-    let constructTestCaseEnumerator ([<ParamArray>] subDataPath : string array) =
+    let constructTestCaseEnumerator (subDataPath : string array) =
         let testsDirectory = Path.Combine (dataFolder, Path.Combine subDataPath)
 
         Directory.EnumerateFiles (testsDirectory, "*.fs")
