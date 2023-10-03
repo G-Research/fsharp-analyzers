@@ -1,6 +1,8 @@
 namespace ``G-Research``.FSharp.Analyzers
 
 open FSharp.Analyzers.SDK
+open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.Symbols
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 
@@ -9,7 +11,12 @@ module UnionCaseAnalyzer =
     [<Literal>]
     let Code = "GRA-UNIONCASE-001"
 
-    let findAllShadowingCases (ast : ParsedInput) : range list =
+    let findAllShadowingCases
+        (ast : ParsedInput)
+        (checkFileResults : FSharpCheckFileResults)
+        (sourceText : ISourceText)
+        : range list
+        =
         let collector = ResizeArray<range> ()
 
         let namesToWarnAbount =
@@ -66,7 +73,24 @@ module UnionCaseAnalyzer =
                         |> List.exists (fun lst ->
                             lst.Attributes
                             |> Seq.exists (fun (a : SynAttribute) ->
-                                a.TypeName.LongIdent[0].idText = "RequireQualifiedAccess"
+                                let lineText = sourceText.GetLineString (a.Range.EndLine - 1)
+                                let name = (List.last a.TypeName.LongIdent).idText
+
+                                let symbolUseOpt =
+                                    checkFileResults.GetSymbolUseAtLocation (
+                                        a.Range.EndLine,
+                                        a.Range.EndColumn,
+                                        lineText,
+                                        [ name ]
+                                    )
+
+                                match symbolUseOpt with
+                                | Some symbolUse ->
+                                    match symbolUse.Symbol with
+                                    | :? FSharpMemberOrFunctionOrValue as mfv ->
+                                        mfv.FullName = "Microsoft.FSharp.Core.RequireQualifiedAccessAttribute"
+                                    | _ -> false
+                                | _ -> false
                             )
                         )
 
@@ -88,7 +112,8 @@ module UnionCaseAnalyzer =
         fun ctx ->
             async {
 
-                let ranges = findAllShadowingCases ctx.ParseFileResults.ParseTree
+                let ranges =
+                    findAllShadowingCases ctx.ParseFileResults.ParseTree ctx.CheckFileResults ctx.SourceText
 
                 let msgs =
                     ranges
