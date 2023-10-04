@@ -1,6 +1,6 @@
-﻿namespace ``G-Research``.FSharp.Analyzers
+﻿namespace GR.FSharp.Analyzers
 
-module TASTCollection =
+module TASTCollecting =
 
     open FSharp.Compiler.Symbols
     open FSharp.Compiler.Text

@@ -1,4 +1,4 @@
-﻿namespace ``G-Research``.FSharp.Analyzers
+﻿namespace GR.FSharp.Analyzers
 
 open FSharp.Analyzers.SDK
 open FSharp.Compiler.Symbols
