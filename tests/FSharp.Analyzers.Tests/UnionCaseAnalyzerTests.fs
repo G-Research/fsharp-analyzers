@@ -25,14 +25,7 @@ module UnionCaseAnalyzerTests =
 
         interface IEnumerable with
             member _.GetEnumerator () : IEnumerator =
-                let testsDirectory = Path.Combine (TestCases.DataFolder, "unioncase")
-
-                Directory.EnumerateFiles (testsDirectory, "*.fs")
-                |> Seq.map (fun f ->
-                    let fileName = Path.GetRelativePath (TestCases.DataFolder, f)
-                    [| fileName :> obj |]
-                )
-                |> fun s -> s.GetEnumerator ()
+                constructTestCaseEnumerator [| "unioncase" |]
 
     [<TestCaseSource(typeof<TestCases>)>]
     let UnionCaseTests (fileName : string) =
@@ -48,26 +41,11 @@ module UnionCaseAnalyzerTests =
             do! assertExpected fileName messages
         }
 
-    let constructTestCaseEnumerator directoryPath =
-        Directory.EnumerateFiles (directoryPath, "*.fs")
-        |> Seq.map (fun f ->
-            let fileName = Path.GetRelativePath (TestCases.DataFolder, f)
-            [| fileName :> obj |]
-        )
-        |> fun s -> s.GetEnumerator ()
-
     type NegativeTestCases() =
 
         interface IEnumerable with
             member _.GetEnumerator () : IEnumerator =
-                let testsDirectory = Path.Combine (TestCases.DataFolder, "unioncase", "negative")
-
-                Directory.EnumerateFiles (testsDirectory, "*.fs")
-                |> Seq.map (fun f ->
-                    let fileName = Path.GetRelativePath (TestCases.DataFolder, f)
-                    [| fileName :> obj |]
-                )
-                |> fun s -> s.GetEnumerator ()
+                constructTestCaseEnumerator [| "unioncase" ; "negative" |]
 
     [<TestCaseSource(typeof<NegativeTestCases>)>]
     let NegativeTests (fileName : string) =
