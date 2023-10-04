@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -11,9 +11,10 @@
     <ItemGroup>
         <Compile Include="ASTCollecting.fs"/>
         <Compile Include="TASTCollecting.fs" />
-        <Compile Include="StringAnalyzers.fs"/>
         <Compile Include="JsonSerializerOptionsAnalyzer.fs" />
         <Compile Include="UnionCaseAnalyzer.fs" />
+        <Compile Include="StringAnalyzer.fsi" />
+        <Compile Include="StringAnalyzer.fs" />
     </ItemGroup>
 
   <ItemGroup>
