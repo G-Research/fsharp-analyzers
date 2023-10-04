@@ -1,12 +1,11 @@
 namespace ``G-Research``.FSharp.Analyzers.Tests
 
-module StringAnalyzerTests =
+module UnionCaseAnalyzerTests =
 
     open System.Collections
     open System.IO
-    open FSharp.Compiler.CodeAnalysis
     open NUnit.Framework
-    open FSharp.Analyzers.SDK
+    open FSharp.Compiler.CodeAnalysis
     open FSharp.Analyzers.SDK.Testing
     open ``G-Research``.FSharp.Analyzers
     open Testing
@@ -16,25 +15,28 @@ module StringAnalyzerTests =
     [<SetUp>]
     let Setup () =
         task {
-            let! options = mkOptionsFromProject "net6.0" []
+            let! options = mkOptionsFromProject "net7.0" []
+
             projectOptions <- options
         }
 
     type TestCases() =
+        static member DataFolder = Path.Combine (__SOURCE_DIRECTORY__, "..", "data")
 
         interface IEnumerable with
             member _.GetEnumerator () : IEnumerator =
-                constructTestCaseEnumerator [| "string" ; "endswith" |]
+                constructTestCaseEnumerator [| "unioncase" |]
 
     [<TestCaseSource(typeof<TestCases>)>]
-    let EndsWithTests (fileName : string) =
+    let UnionCaseTests (fileName : string) =
         task {
+            let dataFolder = TestCases.DataFolder
             let fileName = Path.Combine (dataFolder, fileName)
 
             let! messages =
                 File.ReadAllText fileName
                 |> getContext projectOptions
-                |> StringAnalyzers.endsWithAnalyzer
+                |> UnionCaseAnalyzer.unionCaseAnalyzer
 
             do! assertExpected fileName messages
         }
@@ -43,17 +45,17 @@ module StringAnalyzerTests =
 
         interface IEnumerable with
             member _.GetEnumerator () : IEnumerator =
-                constructTestCaseEnumerator [| "string" ; "endswith" ; "negative" |]
+                constructTestCaseEnumerator [| "unioncase" ; "negative" |]
 
     [<TestCaseSource(typeof<NegativeTestCases>)>]
-    let NegativeEndsWithTests (fileName : string) =
+    let NegativeTests (fileName : string) =
         task {
-            let fileName = Path.Combine (dataFolder, fileName)
+            let fileName = Path.Combine (TestCases.DataFolder, fileName)
 
             let! messages =
                 File.ReadAllText fileName
                 |> getContext projectOptions
-                |> StringAnalyzers.endsWithAnalyzer
+                |> UnionCaseAnalyzer.unionCaseAnalyzer
 
             Assert.IsEmpty messages
         }
