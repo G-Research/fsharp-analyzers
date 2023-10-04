@@ -1,11 +1,11 @@
-﻿namespace ``G-Research``.FSharp.Analyzers
+﻿namespace GR.FSharp.Analyzers
 
 open System
 open FSharp.Analyzers.SDK
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Text
 open FSharp.Compiler.Symbols.FSharpExprPatterns
-open TASTCollection
+open GR.FSharp.Analyzers.TASTCollecting
 
 module JsonSerializerOptionsAnalyzer =
 
