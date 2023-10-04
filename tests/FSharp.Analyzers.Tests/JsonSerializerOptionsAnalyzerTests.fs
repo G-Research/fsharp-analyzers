@@ -1,4 +1,4 @@
-﻿namespace ``G-Research``.FSharp.Analyzers.Tests
+﻿namespace GR.FSharp.Analyzers.Tests
 
 module JsonSerializerOptionsAnalyzerTests =
 
@@ -7,8 +7,8 @@ module JsonSerializerOptionsAnalyzerTests =
     open NUnit.Framework
     open FSharp.Compiler.CodeAnalysis
     open FSharp.Analyzers.SDK.Testing
-    open ``G-Research``.FSharp.Analyzers
-    open Testing
+    open GR.FSharp.Analyzers
+    open GR.FSharp.Analyzers.Tests.Common
 
     let mutable projectOptions : FSharpProjectOptions = FSharpProjectOptions.zero
 

@@ -1,4 +1,4 @@
-namespace ``G-Research``.FSharp.Analyzers.Tests
+namespace GR.FSharp.Analyzers.Tests
 
 module UnionCaseAnalyzerTests =
 
@@ -7,8 +7,8 @@ module UnionCaseAnalyzerTests =
     open NUnit.Framework
     open FSharp.Compiler.CodeAnalysis
     open FSharp.Analyzers.SDK.Testing
-    open ``G-Research``.FSharp.Analyzers
-    open Testing
+    open GR.FSharp.Analyzers
+    open GR.FSharp.Analyzers.Tests.Common
 
     let mutable projectOptions : FSharpProjectOptions = FSharpProjectOptions.zero
 
@@ -21,7 +21,6 @@ module UnionCaseAnalyzerTests =
         }
 
     type TestCases() =
-        static member DataFolder = Path.Combine (__SOURCE_DIRECTORY__, "..", "data")
 
         interface IEnumerable with
             member _.GetEnumerator () : IEnumerator =
@@ -30,7 +29,6 @@ module UnionCaseAnalyzerTests =
     [<TestCaseSource(typeof<TestCases>)>]
     let UnionCaseTests (fileName : string) =
         task {
-            let dataFolder = TestCases.DataFolder
             let fileName = Path.Combine (dataFolder, fileName)
 
             let! messages =
@@ -50,7 +48,7 @@ module UnionCaseAnalyzerTests =
     [<TestCaseSource(typeof<NegativeTestCases>)>]
     let NegativeTests (fileName : string) =
         task {
-            let fileName = Path.Combine (TestCases.DataFolder, fileName)
+            let fileName = Path.Combine (dataFolder, fileName)
 
             let! messages =
                 File.ReadAllText fileName
