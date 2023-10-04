@@ -21,36 +21,56 @@ type TestCases() =
 
     interface IEnumerable with
         member _.GetEnumerator () : IEnumerator =
-            constructTestCaseEnumerator [| "string" ; "endswith" |]
+            [| "endswith" ; "indexof" ; "startswith" |]
+            |> Seq.collect (fun subFolder ->
+                let folder = Path.Combine (dataFolder, "string", subFolder)
+                Directory.EnumerateFiles (folder, "*.fs")
+            )
+            |> constructTestCaseEnumeratorAux
+
+let findStringAnalyzerFor (fileName : string) =
+    fileName.Split Path.DirectorySeparatorChar
+    |> Array.skip 1
+    |> Array.head
+    |> function
+        | "endswith" -> StringAnalyzer.endsWithAnalyzer
+        | "startswith" -> StringAnalyzer.startsWithAnalyzer
+        | "indexof" -> StringAnalyzer.indexOfAnalyzer
+        | unknown -> failwithf $"Unknown subfolder \"%s{unknown}\", please configure analyzer"
 
 [<TestCaseSource(typeof<TestCases>)>]
-let EndsWithTests (fileName : string) =
+let StringTests (fileName : string) =
     task {
-        let fileName = Path.Combine (dataFolder, fileName)
+        let fullPath = Path.Combine (dataFolder, fileName)
 
         let! messages =
-            File.ReadAllText fileName
+            File.ReadAllText fullPath
             |> getContext projectOptions
-            |> StringAnalyzer.endsWithAnalyzer
+            |> findStringAnalyzerFor fileName
 
-        do! assertExpected fileName messages
+        do! assertExpected fullPath messages
     }
 
 type NegativeTestCases() =
 
     interface IEnumerable with
         member _.GetEnumerator () : IEnumerator =
-            constructTestCaseEnumerator [| "string" ; "endswith" ; "negative" |]
+            [| "endswith" ; "indexof" ; "startswith" |]
+            |> Seq.collect (fun subFolder ->
+                let folder = Path.Combine (dataFolder, "string", subFolder, "negative")
+                Directory.EnumerateFiles (folder, "*.fs")
+            )
+            |> constructTestCaseEnumeratorAux
 
 [<TestCaseSource(typeof<NegativeTestCases>)>]
-let NegativeEndsWithTests (fileName : string) =
+let NegativeStringTests (fileName : string) =
     task {
-        let fileName = Path.Combine (dataFolder, fileName)
+        let fullPath = Path.Combine (dataFolder, fileName)
 
         let! messages =
-            File.ReadAllText fileName
+            File.ReadAllText fullPath
             |> getContext projectOptions
-            |> StringAnalyzer.endsWithAnalyzer
+            |> findStringAnalyzerFor fileName
 
         Assert.IsEmpty messages
     }
