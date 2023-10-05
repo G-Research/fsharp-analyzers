@@ -119,7 +119,9 @@ let indexOfAnalyzer (ctx : CliContext) : Async<Message list> =
                 typedTree
                 (fun args ->
                     match args with
-                    | [ StringExpr ] -> true
+                    | [ StringExpr ]
+                    | [ StringExpr ; IntExpr ]
+                    | [ StringExpr ; IntExpr ; IntExpr ] -> true
                     | _ -> false
                 )
     }
