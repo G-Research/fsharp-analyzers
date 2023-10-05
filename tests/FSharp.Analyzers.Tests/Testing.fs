@@ -32,8 +32,6 @@ let assertExpected sourceFile messages =
             else
                 Task.FromResult "No baseline was found"
 
-        let expectedContents = expectedContents.ReplaceLineEndings ("\n")
-
         let areEqual = expectedContents = actualContents
 
         if shouldUpdateBaseline () then
