@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  nuget-pack:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.repository.fork && github.ref == 'refs/heads/main' }}
+    needs: [all-required-checks-complete]
+    environment: release
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+      - name: Build
+        run: dotnet fsi build.fsx
+      - name: Pack
+        run: dotnet pack src/FSharp.Analyzers/FSharp.Analyzers.fsproj --configuration Release --output artifacts
+      - name: Upload NuGet artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: nuget-package
+          path: artifacts/G-Research.FSharp.Analyzers.*.nupkg
+  nuget-publish:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.repository.fork && github.ref == 'refs/heads/main' }}
+    needs: [ nuget-pack ]
+    environment: release
+    steps:
+      - name: Download NuGet artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: nuget-package
+      - name: Publish to NuGet
+        run: dotnet nuget push "G-Research.FSharp.Analyzers.*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
