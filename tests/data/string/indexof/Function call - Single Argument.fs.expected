@@ -1,1 +1,1 @@
-GRA-STRING-003 | Warning | (2,4 - 2,11) | The usage of String.IndexOf with a single string argument is discouraged. Signal your intention explicitly by calling an overload.
+GRA-STRING-003 | Warning | (2,0 - 2,16) | The usage of String.IndexOf with a single string argument is discouraged. Signal your intention explicitly by calling an overload.

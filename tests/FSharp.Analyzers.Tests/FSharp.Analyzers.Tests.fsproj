@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\FSharp.Analyzers.SDK\src\FSharp.Analyzers.SDK.Testing\FSharp.Analyzers.SDK.Testing.fsproj" />
     <ProjectReference Include="..\..\src\FSharp.Analyzers\FSharp.Analyzers.fsproj" />
   </ItemGroup>
 
