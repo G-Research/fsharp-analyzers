@@ -8,7 +8,6 @@ open Microsoft.FSharp.Core
 
 module PartialAppAnalyzer =
 
-
     [<Literal>]
     let Code = "GRA-PARTAPP-001"
 
@@ -34,7 +33,7 @@ module PartialAppAnalyzer =
             visitExpr handler argExpr
         | SynExpr.App (funcExpr = SynExpr.Ident i) -> handler (i.idText, i.idRange, 1 + depth)
         | SynExpr.App (funcExpr = SynExpr.LongIdent (longDotId = longDotId) ; argExpr = argExpr) ->
-            let SynIdent.SynIdent (ident = ident) = longDotId.IdentsWithTrivia |> Seq.last
+            let (SynIdent.SynIdent (ident = ident)) = longDotId.IdentsWithTrivia |> Seq.last
             handler (ident.idText, longDotId.Range, 1 + depth)
             visitApp handler depth argExpr
         | SynExpr.App (funcExpr = SynExpr.App _ as funcExpr ; argExpr = argExpr) ->
@@ -42,7 +41,7 @@ module PartialAppAnalyzer =
             visitApp handler depth argExpr
         | SynExpr.App (funcExpr = SynExpr.TypeApp (expr = SynExpr.Ident i)) -> handler (i.idText, i.idRange, 1 + depth)
         | SynExpr.App (funcExpr = SynExpr.TypeApp (expr = SynExpr.LongIdent (longDotId = longDotId))) ->
-            let SynIdent.SynIdent (ident = ident) = longDotId.IdentsWithTrivia |> Seq.last
+            let (SynIdent.SynIdent (ident = ident)) = longDotId.IdentsWithTrivia |> Seq.last
             handler (ident.idText, longDotId.Range, 1 + depth)
         | SynExpr.IfThenElse (ifExpr = ifExpr ; thenExpr = thenExpr ; elseExpr = elseExpr) ->
             visitApp handler depth ifExpr
