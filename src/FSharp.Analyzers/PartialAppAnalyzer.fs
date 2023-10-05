@@ -34,21 +34,16 @@ module PartialAppAnalyzer =
             visitExpr handler argExpr
         | SynExpr.App (funcExpr = SynExpr.Ident i) -> handler (i.idText, i.idRange, 1 + depth)
         | SynExpr.App (funcExpr = SynExpr.LongIdent (longDotId = longDotId) ; argExpr = argExpr) ->
-            let i = longDotId.IdentsWithTrivia |> Seq.last
-
-            match i with
-            | SynIdent.SynIdent (ident = ident) ->
-                handler (ident.idText, longDotId.Range, 1 + depth)
-                visitApp handler depth argExpr
+            let SynIdent.SynIdent (ident = ident) = longDotId.IdentsWithTrivia |> Seq.last
+            handler (ident.idText, longDotId.Range, 1 + depth)
+            visitApp handler depth argExpr
         | SynExpr.App (funcExpr = SynExpr.App _ as funcExpr ; argExpr = argExpr) ->
             visitApp handler (1 + depth) funcExpr
             visitApp handler depth argExpr
         | SynExpr.App (funcExpr = SynExpr.TypeApp (expr = SynExpr.Ident i)) -> handler (i.idText, i.idRange, 1 + depth)
         | SynExpr.App (funcExpr = SynExpr.TypeApp (expr = SynExpr.LongIdent (longDotId = longDotId))) ->
-            let i = longDotId.IdentsWithTrivia |> Seq.last
-
-            match i with
-            | SynIdent.SynIdent (ident = ident) -> handler (ident.idText, longDotId.Range, 1 + depth)
+            let SynIdent.SynIdent (ident = ident) = longDotId.IdentsWithTrivia |> Seq.last
+            handler (ident.idText, longDotId.Range, 1 + depth)
         | SynExpr.IfThenElse (ifExpr = ifExpr ; thenExpr = thenExpr ; elseExpr = elseExpr) ->
             visitApp handler depth ifExpr
             visitApp handler depth thenExpr
