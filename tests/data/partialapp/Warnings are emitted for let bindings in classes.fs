@@ -1,4 +1,4 @@
-﻿module M
+module M
 
 type MyClass() =
     let mutable x = 0

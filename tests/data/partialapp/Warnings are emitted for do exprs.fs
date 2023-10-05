@@ -1,4 +1,4 @@
-﻿module M
+module M
     module S =
         let myFunc x y = x + y
 

@@ -1,4 +1,4 @@
-﻿module M
+module M
 
 let myGenFunc<'t> x y z = x + y + z
 
