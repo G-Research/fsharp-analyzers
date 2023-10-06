@@ -5,11 +5,6 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <IsPackable>true</IsPackable>
         <AssemblyName>G-Research.FSharp.Analyzers</AssemblyName>
-        <Authors>G-Research</Authors>
-        <Description>Analyzers internally used at G-Research</Description>
-        <PackageReleaseNotes>https://github.com/G-Research/fsharp-analyzers/blob/main/CHANGELOG.md</PackageReleaseNotes>
-        <PackageTags>fsharp;analyzers</PackageTags>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
         <Tailcalls>true</Tailcalls>
     </PropertyGroup>
 
