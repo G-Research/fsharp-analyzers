@@ -10,10 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Testing.fs" />
-    <Compile Include="StringAnalyzerTests.fs" />
+    <Compile Include="Common.fs" />
     <Compile Include="JsonSerializerOptionsAnalyzerTests.fs" />
     <Compile Include="UnionCaseAnalyzerTests.fs" />
+    <Compile Include="StringAnalyzerTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
