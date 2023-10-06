@@ -3,7 +3,8 @@
         <!-- Set up version and package release note generation from this changelog. -->
         <ChangelogFile>$(MSBuildThisFileDirectory)CHANGELOG.md</ChangelogFile>
         <!-- Common packaging properties for all packages in this repo -->
-        <Authors>G-Research</Authors>
+        <Company>G-Research</Company>
+        <Authors>David Schaefer, Florian Verdonck</Authors>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <Description>
