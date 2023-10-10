@@ -112,12 +112,12 @@ module TASTCollecting =
         | FSharpImplementationFileDeclaration.Entity (_e, subDecls) ->
             for subDecl in subDecls do
                 visitDeclaration f subDecl
-        | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue (_v, _vs, e) ->
+        | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue (v, _vs, e) ->
             // work around exception from
             // https://github.com/dotnet/fsharp/blob/91ff67b5f698f1929f75e65918e998a2df1c1858/src/Compiler/Symbols/Exprs.fs#L1269
             if
-                _v.IsCompilerGenerated
-                && Set.contains _v.CompiledName membersToIgnore
+                v.IsCompilerGenerated
+                && Set.contains v.CompiledName membersToIgnore
                 && e.Type.IsAbbreviation
                 && Set.contains e.Type.BasicQualifiedName exprTypesToIgnore
             then
