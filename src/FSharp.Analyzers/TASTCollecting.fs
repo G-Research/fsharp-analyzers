@@ -121,5 +121,10 @@ module TASTCollecting =
                 || not e.Type.IsAbbreviation
                 || not (Set.contains e.Type.BasicQualifiedName exprTypesToIgnore)
             then
-                visitExpr f e
+                // work around exception from
+                // https://github.com/dotnet/fsharp/blob/91ff67b5f698f1929f75e65918e998a2df1c1858/src/Compiler/Symbols/Exprs.fs#L1329
+                try
+                    visitExpr f e
+                with ex ->
+                    printfn $"unhandled expression at {e.Range.FileName}:{e.Range.ToString ()}"
         | FSharpImplementationFileDeclaration.InitAction e -> visitExpr f e
