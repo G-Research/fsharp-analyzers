@@ -1,6 +1,9 @@
 # Changelog
 
-## [0.1.1] - 2023-10-06
+## [0.1.2] - 2023-10-10
+* Update FSharp.Analyzers.SDK to `0.15.0`
+
+## [0.1.1] - 2023-10-10
 
 ### Fixed
 * Handle internal compiler exception regarding an unsupported kind of pattern match
