@@ -116,12 +116,10 @@ module TASTCollecting =
             // work around exception from
             // https://github.com/dotnet/fsharp/blob/91ff67b5f698f1929f75e65918e998a2df1c1858/src/Compiler/Symbols/Exprs.fs#L1269
             if
-                v.IsCompilerGenerated
-                && Set.contains v.CompiledName membersToIgnore
-                && e.Type.IsAbbreviation
-                && Set.contains e.Type.BasicQualifiedName exprTypesToIgnore
+                not v.IsCompilerGenerated
+                || not (Set.contains v.CompiledName membersToIgnore)
+                || not e.Type.IsAbbreviation
+                || not (Set.contains e.Type.BasicQualifiedName exprTypesToIgnore)
             then
-                ()
-            else
                 visitExpr f e
         | FSharpImplementationFileDeclaration.InitAction e -> visitExpr f e
