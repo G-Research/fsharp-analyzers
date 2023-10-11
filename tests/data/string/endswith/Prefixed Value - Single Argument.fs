@@ -1,3 +1,5 @@
+module M
+
 module A =
     let b = "b"
 
