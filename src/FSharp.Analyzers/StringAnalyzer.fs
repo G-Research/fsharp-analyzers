@@ -39,7 +39,8 @@ let invalidStringFunctionUseAnalyzer
     let handler : Handler =
         Handler.CallHandler (fun (m : range) (mfv : FSharpMemberOrFunctionOrValue) (args : FSharpExpr list) ->
             if
-                mfv.Assembly.SimpleName = "System.Runtime"
+                (mfv.Assembly.SimpleName = "System.Runtime"
+                 || mfv.Assembly.SimpleName = "netstandard")
                 && mfv.FullName = $"System.String.{functionName}"
                 && typedArgumentPredicate args
             then
