@@ -2,6 +2,7 @@
 
 open System
 open System.IO
+open System.Collections
 open System.Threading.Tasks
 open NUnit.Framework
 open FSharp.Analyzers.SDK
@@ -46,12 +47,16 @@ let assertExpected sourceFile messages =
 
 let dataFolder = Path.Combine (__SOURCE_DIRECTORY__, "..", "data")
 
-let constructTestCaseEnumerator (subDataPath : string array) =
-    let testsDirectory = Path.Combine (dataFolder, Path.Combine subDataPath)
-
-    Directory.EnumerateFiles (testsDirectory, "*.fs")
+let constructTestCaseEnumeratorAux (files : string seq) : IEnumerator =
+    files
     |> Seq.map (fun f ->
         let fileName = Path.GetRelativePath (dataFolder, f)
         [| fileName :> obj |]
     )
     |> fun s -> s.GetEnumerator ()
+
+let constructTestCaseEnumerator (subDataPath : string array) =
+    let testsDirectory = Path.Combine (dataFolder, Path.Combine subDataPath)
+
+    Directory.EnumerateFiles (testsDirectory, "*.fs")
+    |> constructTestCaseEnumeratorAux

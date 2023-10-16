@@ -3,4 +3,4 @@ module M
 module A =
     let b = "b"
 
-A.b.EndsWith("b")
+A.b.StartsWith("b")

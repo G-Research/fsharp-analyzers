@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Testing.fs" />
+    <Compile Include="Common.fs" />
     <Compile Include="StringAnalyzerTests.fs" />
     <Compile Include="PartialAppAnalyzerTests.fs" />
     <Compile Include="JsonSerializerOptionsAnalyzerTests.fs" />

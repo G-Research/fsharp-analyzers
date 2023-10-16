@@ -9,6 +9,7 @@ module TASTCollecting =
     type Handler = | CallHandler of (range -> FSharpMemberOrFunctionOrValue -> FSharpExpr list -> unit)
 
     let rec visitExpr (handler : Handler) (e : FSharpExpr) =
+
         match e with
         | AddressOf lvalueExpr -> visitExpr handler lvalueExpr
         | AddressSet (lvalueExpr, rvalueExpr) ->
@@ -102,9 +103,28 @@ module TASTCollecting =
     and visitObjMember f memb = visitExpr f memb.Body
 
     let rec visitDeclaration f d =
+        let membersToIgnore = set [ "CompareTo" ; "GetHashCode" ; "Equals" ]
+
+        let exprTypesToIgnore =
+            set [ "Microsoft.FSharp.Core.int" ; "Microsoft.FSharp.Core.bool" ]
+
         match d with
         | FSharpImplementationFileDeclaration.Entity (_e, subDecls) ->
             for subDecl in subDecls do
                 visitDeclaration f subDecl
-        | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue (_v, _vs, e) -> visitExpr f e
+        | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue (v, _vs, e) ->
+            // work around exception from
+            // https://github.com/dotnet/fsharp/blob/91ff67b5f698f1929f75e65918e998a2df1c1858/src/Compiler/Symbols/Exprs.fs#L1269
+            if
+                not v.IsCompilerGenerated
+                || not (Set.contains v.CompiledName membersToIgnore)
+                || not e.Type.IsAbbreviation
+                || not (Set.contains e.Type.BasicQualifiedName exprTypesToIgnore)
+            then
+                // work around exception from
+                // https://github.com/dotnet/fsharp/blob/91ff67b5f698f1929f75e65918e998a2df1c1858/src/Compiler/Symbols/Exprs.fs#L1329
+                try
+                    visitExpr f e
+                with ex ->
+                    printfn $"unhandled expression at {e.Range.FileName}:{e.Range.ToString ()}"
         | FSharpImplementationFileDeclaration.InitAction e -> visitExpr f e

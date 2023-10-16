@@ -1,58 +1,76 @@
-namespace GR.FSharp.Analyzers.Tests
+module GR.FSharp.Analyzers.Tests.StringAnalyzerTests
 
-module StringAnalyzerTests =
+open System.Collections
+open System.IO
+open FSharp.Compiler.CodeAnalysis
+open NUnit.Framework
+open FSharp.Analyzers.SDK.Testing
+open GR.FSharp.Analyzers
+open GR.FSharp.Analyzers.Tests.Common
 
-    open System.Collections
-    open System.IO
-    open FSharp.Compiler.CodeAnalysis
-    open NUnit.Framework
-    open FSharp.Analyzers.SDK.Testing
-    open GR.FSharp.Analyzers
-    open GR.FSharp.Analyzers.Tests.Common
+let mutable projectOptions : FSharpProjectOptions = FSharpProjectOptions.zero
 
-    let mutable projectOptions : FSharpProjectOptions = FSharpProjectOptions.zero
+[<SetUp>]
+let Setup () =
+    task {
+        let! options = mkOptionsFromProject "net7.0" []
+        projectOptions <- options
+    }
 
-    [<SetUp>]
-    let Setup () =
-        task {
-            let! options = mkOptionsFromProject "net6.0" []
-            projectOptions <- options
-        }
+type TestCases() =
 
-    type TestCases() =
+    interface IEnumerable with
+        member _.GetEnumerator () : IEnumerator =
+            [| "endswith" ; "indexof" ; "startswith" |]
+            |> Seq.collect (fun subFolder ->
+                let folder = Path.Combine (dataFolder, "string", subFolder)
+                Directory.EnumerateFiles (folder, "*.fs")
+            )
+            |> constructTestCaseEnumeratorAux
 
-        interface IEnumerable with
-            member _.GetEnumerator () : IEnumerator =
-                constructTestCaseEnumerator [| "string" ; "endswith" |]
+let findStringAnalyzerFor (fileName : string) =
+    fileName.Split Path.DirectorySeparatorChar
+    |> Array.skip 1
+    |> Array.head
+    |> function
+        | "endswith" -> StringAnalyzer.endsWithAnalyzer
+        | "startswith" -> StringAnalyzer.startsWithAnalyzer
+        | "indexof" -> StringAnalyzer.indexOfAnalyzer
+        | unknown -> failwithf $"Unknown subfolder \"%s{unknown}\", please configure analyzer"
 
-    [<TestCaseSource(typeof<TestCases>)>]
-    let EndsWithTests (fileName : string) =
-        task {
-            let fileName = Path.Combine (dataFolder, fileName)
+[<TestCaseSource(typeof<TestCases>)>]
+let StringTests (fileName : string) =
+    task {
+        let fullPath = Path.Combine (dataFolder, fileName)
 
-            let! messages =
-                File.ReadAllText fileName
-                |> getContext projectOptions
-                |> StringAnalyzers.endsWithAnalyzer
+        let! messages =
+            File.ReadAllText fullPath
+            |> getContext projectOptions
+            |> findStringAnalyzerFor fileName
 
-            do! assertExpected fileName messages
-        }
+        do! assertExpected fullPath messages
+    }
 
-    type NegativeTestCases() =
+type NegativeTestCases() =
 
-        interface IEnumerable with
-            member _.GetEnumerator () : IEnumerator =
-                constructTestCaseEnumerator [| "string" ; "endswith" ; "negative" |]
+    interface IEnumerable with
+        member _.GetEnumerator () : IEnumerator =
+            [| "endswith" ; "indexof" ; "startswith" |]
+            |> Seq.collect (fun subFolder ->
+                let folder = Path.Combine (dataFolder, "string", subFolder, "negative")
+                Directory.EnumerateFiles (folder, "*.fs")
+            )
+            |> constructTestCaseEnumeratorAux
 
-    [<TestCaseSource(typeof<NegativeTestCases>)>]
-    let NegativeEndsWithTests (fileName : string) =
-        task {
-            let fileName = Path.Combine (dataFolder, fileName)
+[<TestCaseSource(typeof<NegativeTestCases>)>]
+let NegativeStringTests (fileName : string) =
+    task {
+        let fullPath = Path.Combine (dataFolder, fileName)
 
-            let! messages =
-                File.ReadAllText fileName
-                |> getContext projectOptions
-                |> StringAnalyzers.endsWithAnalyzer
+        let! messages =
+            File.ReadAllText fullPath
+            |> getContext projectOptions
+            |> findStringAnalyzerFor fileName
 
-            Assert.IsEmpty messages
-        }
+        Assert.IsEmpty messages
+    }

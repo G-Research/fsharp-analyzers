@@ -15,12 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: g-research-fsharp-analyzers
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
-        with:
-          global-json-file: g-research-fsharp-analyzers/global.json
       - name: Build
         run: dotnet fsi build.fsx
-        working-directory: g-research-fsharp-analyzers
