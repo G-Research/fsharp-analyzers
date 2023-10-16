@@ -300,7 +300,7 @@ module PartialAppAnalyzer =
                             let msg =
                                 {
                                     Type = "Partial Application Analyzer"
-                                    Message = $"partial application should not be used: {ident} at {range}"
+                                    Message = $"Partial application should not be used."
                                     Code = Code
                                     Severity = Warning
                                     Range = range

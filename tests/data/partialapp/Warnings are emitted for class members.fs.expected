@@ -1,5 +1,5 @@
-GRA-PARTAPP-001 | Warning | (8,8 - 8,14) | partial application should not be used: myFunc at (8,8--8,14)
-GRA-PARTAPP-001 | Warning | (9,16 - 9,22) | partial application should not be used: myFunc at (9,16--9,22)
-GRA-PARTAPP-001 | Warning | (12,27 - 12,33) | partial application should not be used: myFunc at (12,27--12,33)
-GRA-PARTAPP-001 | Warning | (16,12 - 16,18) | partial application should not be used: myFunc at (16,12--16,18)
-GRA-PARTAPP-001 | Warning | (17,20 - 17,26) | partial application should not be used: myFunc at (17,20--17,26)
+GRA-PARTAPP-001 | Warning | (8,8 - 8,14) | Partial application should not be used.
+GRA-PARTAPP-001 | Warning | (9,16 - 9,22) | Partial application should not be used.
+GRA-PARTAPP-001 | Warning | (12,27 - 12,33) | Partial application should not be used.
+GRA-PARTAPP-001 | Warning | (16,12 - 16,18) | Partial application should not be used.
+GRA-PARTAPP-001 | Warning | (17,20 - 17,26) | Partial application should not be used.

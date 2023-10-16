@@ -1,1 +1,1 @@
-GRA-PARTAPP-001 | Warning | (3,37 - 3,44) | partial application should not be used: map at (3,37--3,44)
+GRA-PARTAPP-001 | Warning | (3,37 - 3,44) | Partial application should not be used.
