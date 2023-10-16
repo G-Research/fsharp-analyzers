@@ -272,6 +272,7 @@ let tryGetParameterCount (symbolUses : FSharpSymbolUse seq) r =
 let analyze parseTree (checkFileResults : FSharpCheckFileResults) =
     let state = ResizeArray<string * FSharp.Compiler.Text.range * int> ()
     let handler : Handler = fun (ident, r, args) -> state.Add (ident, r, args)
+    let symbolUses = checkFileResults.GetAllUsesOfAllSymbolsInFile ()
 
     match parseTree with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (contents = contents)) ->
@@ -280,21 +281,16 @@ let analyze parseTree (checkFileResults : FSharpCheckFileResults) =
 
     let msgs =
         seq {
-            for app in state do
-                let _ident, range, providedArgsCount = app
-
-                let parameterCount =
-                    let symbolUses = checkFileResults.GetAllUsesOfAllSymbolsInFile ()
-                    tryGetParameterCount symbolUses range
+            for _, range, providedArgsCount in state do
+                let parameterCount = tryGetParameterCount symbolUses range
 
                 match parameterCount with
                 | Some paramsCount ->
                     if providedArgsCount < paramsCount then // use LESS, not NOT EQUAL because of CEs, printf, etc. take more than paramsCount
-
                         let msg =
                             {
                                 Type = "Partial Application Analyzer"
-                                Message = $"Partial application should not be used."
+                                Message = "Partial application should not be used."
                                 Code = Code
                                 Severity = Warning
                                 Range = range
