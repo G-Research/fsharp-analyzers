@@ -1,3 +1,5 @@
+module M
+
 [<RequireQualifiedAccess>]
 type MyU =
     | Case1
