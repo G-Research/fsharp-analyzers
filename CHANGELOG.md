@@ -1,7 +1,15 @@
 # Changelog
 
 ## [0.1.4] - 2023-10-16
-* Update FSharp.Analyzers.SDK to `0.16.0`
+
+### Changed
+* Update FSharp.Analyzers.SDK to `0.16.0`. [#22](https://github.com/G-Research/fsharp-analyzers/pull/22)
+
+### Fixed
+* String analyzers work for netstandard. [#19](https://github.com/G-Research/fsharp-analyzers/pull/19)
+
+### Added
+* Partial application analyzer. [#10](https://github.com/G-Research/fsharp-analyzers/pull/10)
 
 ## [0.1.3] - 2023-10-11
 * Fix StringAnalyzers for netstandard projects
