@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.1.4] - 2023-10-16
+* Update FSharp.Analyzers.SDK to `0.16.0`
+
 ## [0.1.3] - 2023-10-11
 * Fix StringAnalyzers for netstandard projects
 

@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="ASTCollecting.fs"/>
+        <Compile Include="ASTCollecting.fs" />
         <Compile Include="TASTCollecting.fs" />
         <Compile Include="StringAnalyzer.fsi" />
         <Compile Include="StringAnalyzer.fs" />
@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Update="FSharp.Core"/>
+        <PackageReference Update="FSharp.Core" />
         <PackageReference Include="FSharp.Analyzers.SDK"/>
         <PackageReference Include="FSharp.Compiler.Service"/>
     </ItemGroup>
