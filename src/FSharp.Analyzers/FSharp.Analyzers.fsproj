@@ -11,10 +11,11 @@
     <ItemGroup>
         <Compile Include="ASTCollecting.fs"/>
         <Compile Include="TASTCollecting.fs" />
-        <Compile Include="JsonSerializerOptionsAnalyzer.fs" />
-        <Compile Include="UnionCaseAnalyzer.fs" />
         <Compile Include="StringAnalyzer.fsi" />
         <Compile Include="StringAnalyzer.fs" />
+        <Compile Include="JsonSerializerOptionsAnalyzer.fs" />
+        <Compile Include="UnionCaseAnalyzer.fs" />
+        <Compile Include="PartialAppAnalyzer.fs" />
     </ItemGroup>
 
     <ItemGroup>
