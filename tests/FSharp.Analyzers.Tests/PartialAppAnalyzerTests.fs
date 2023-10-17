@@ -47,3 +47,22 @@ module PartialAppAnalyzerTests =
 
             do! assertExpected fileName messages
         }
+
+    type NegativeTestCases() =
+
+        interface IEnumerable with
+            member _.GetEnumerator () : IEnumerator =
+                constructTestCaseEnumerator [| "partialapp" ; "negative" |]
+
+    [<TestCaseSource(typeof<NegativeTestCases>)>]
+    let NegativeTests (fileName : string) =
+        task {
+            let fileName = Path.Combine (dataFolder, fileName)
+
+            let! messages =
+                File.ReadAllText fileName
+                |> getContext projectOptions
+                |> PartialAppAnalyzer.partialAppCliAnalyzer
+
+            Assert.IsEmpty messages
+        }
