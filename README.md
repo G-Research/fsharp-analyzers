@@ -35,7 +35,7 @@ Then you need to install the [fsharp-analyzers tool](https://www.nuget.org/packa
 
 Next you can run `dotnet fsharp-analyzers --project YourProject.fsproj --analyzers-path ./.analyzerpackages/g-research.fsharp.analyzers/0.1.4/lib/net6.0`
 
-Please checkout the documentation over [FSharp.Analyzers.SDK](https://ionide.io/FSharp.Analyzers.SDK/).
+Please checkout the documentation over at [FSharp.Analyzers.SDK](https://ionide.io/FSharp.Analyzers.SDK/).
 
 ## Contributing
 
