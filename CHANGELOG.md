@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.5] - 2023-10-17
+
+### Fixed
+* Partial application analyzer takes piped arguments into account.
+
 ## [0.1.4] - 2023-10-16
 
 ### Changed
