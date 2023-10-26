@@ -11,7 +11,7 @@
             F# analyzers used within G-Research.
         </Description>
         <Copyright>Copyright G-Research © $([System.DateTime]::UtcNow.Year)</Copyright>
-        <PackageTags>F# fsharp analyzers</PackageTags>
+        <PackageTags>F#, fsharp, analyzers</PackageTags>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <DebugType>embedded</DebugType>

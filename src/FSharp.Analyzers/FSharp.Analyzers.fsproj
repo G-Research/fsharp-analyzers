@@ -6,6 +6,10 @@
         <IsPackable>true</IsPackable>
         <AssemblyName>G-Research.FSharp.Analyzers</AssemblyName>
         <Tailcalls>true</Tailcalls>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+        <DevelopmentDependency>true</DevelopmentDependency>
+        <NoPackageAnalysis>true</NoPackageAnalysis>
+        <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,4 +28,9 @@
         <PackageReference Include="FSharp.Compiler.Service"/>
     </ItemGroup>
 
+    <Target Name="_AddAnalyzersToOutput">
+        <ItemGroup>
+            <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).dll" PackagePath="analyzers/dotnet/fs" />
+        </ItemGroup>
+    </Target>
 </Project>
