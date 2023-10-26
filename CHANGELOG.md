@@ -3,7 +3,8 @@
 ## [0.1.6] - 2023-12-26
 
 ### Changed
-* Add more MSBuild properties to align with Roslyn.
+* Add more MSBuild properties to align with Roslyn. [#25](https://github.com/G-Research/fsharp-analyzers/pull/25)
+* Update FSharp.Analyzers.SDK to `0.17.0`. [#25](https://github.com/G-Research/fsharp-analyzers/pull/25)
 
 ## [0.1.5] - 2023-10-17
 
