@@ -2,10 +2,10 @@
 
 open System
 open FSharp.Analyzers.SDK
+open FSharp.Analyzers.SDK.TASTCollecting
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Text
 open FSharp.Compiler.Symbols.FSharpExprPatterns
-open GR.FSharp.Analyzers.TASTCollecting
 
 
 [<Literal>]
@@ -31,35 +31,35 @@ let jsonSerializerOptionsAnalyzer : Analyzer<CliContext> =
                         "System.Text.Json.JsonSerializer.SerializeToUtf8Bytes"
                     ]
 
-            let handler : Handler =
-                let callHandler (range : range) (m : FSharpMemberOrFunctionOrValue) (args : FSharpExpr list) =
-                    let name = String.Join (".", m.DeclaringEntity.Value.FullName, m.DisplayName)
-                    let assemblyName = "System.Text.Json"
+            let walker =
+                { new TypedTreeCollectorBase() with
+                    override _.WalkCall (range : range) (m : FSharpMemberOrFunctionOrValue) (args : FSharpExpr list) =
+                        let name = String.Join (".", m.DeclaringEntity.Value.FullName, m.DisplayName)
+                        let assemblyName = "System.Text.Json"
 
-                    let containsSerOptsCtorCall =
-                        args
-                        |> List.exists (
-                            function
-                            | NewObject (objType, _, _) when
-                                objType.FullName = "System.Text.Json.JsonSerializerOptions"
-                                && objType.Assembly.SimpleName = assemblyName
-                                ->
-                                true
-                            | _ -> false
-                        )
+                        let containsSerOptsCtorCall =
+                            args
+                            |> List.exists (
+                                function
+                                | NewObject (objType, _, _) when
+                                    objType.FullName = "System.Text.Json.JsonSerializerOptions"
+                                    && objType.Assembly.SimpleName = assemblyName
+                                    ->
+                                    true
+                                | _ -> false
+                            )
 
-                    if
-                        m.Assembly.SimpleName = assemblyName
-                        && Set.contains name namesToWarnAbount
-                        && containsSerOptsCtorCall
-                    then
-                        state.Add range
-
-                Handler.CallHandler callHandler
+                        if
+                            m.Assembly.SimpleName = assemblyName
+                            && Set.contains name namesToWarnAbount
+                            && containsSerOptsCtorCall
+                        then
+                            state.Add range
+                }
 
             match ctx.TypedTree with
             | None -> ()
-            | Some typedTree -> typedTree.Declarations |> List.iter (visitDeclaration handler)
+            | Some typedTree -> typedTree.Declarations |> List.iter (walkTast walker)
 
             return
                 state

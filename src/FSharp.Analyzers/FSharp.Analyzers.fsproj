@@ -13,8 +13,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="ASTCollecting.fs" />
-        <Compile Include="TASTCollecting.fs" />
         <Compile Include="StringAnalyzer.fsi" />
         <Compile Include="StringAnalyzer.fs" />
         <Compile Include="JsonSerializerOptionsAnalyzer.fs" />

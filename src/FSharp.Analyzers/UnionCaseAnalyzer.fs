@@ -1,6 +1,7 @@
 module GR.FSharp.Analyzers.UnionCaseAnalyzer
 
 open FSharp.Analyzers.SDK
+open FSharp.Analyzers.SDK.ASTCollecting
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Syntax

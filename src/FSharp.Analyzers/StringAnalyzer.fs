@@ -1,9 +1,9 @@
 ﻿module GR.FSharp.Analyzers.StringAnalyzer
 
 open FSharp.Analyzers.SDK
+open FSharp.Analyzers.SDK.TASTCollecting
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Text
-open GR.FSharp.Analyzers.TASTCollecting
 
 [<Literal>]
 let StringEndsWithCode = "GRA-STRING-001"
@@ -36,19 +36,20 @@ let invalidStringFunctionUseAnalyzer
     =
     let invocations = ResizeArray<range> ()
 
-    let handler : Handler =
-        Handler.CallHandler (fun (m : range) (mfv : FSharpMemberOrFunctionOrValue) (args : FSharpExpr list) ->
-            if
-                (mfv.Assembly.SimpleName = "System.Runtime"
-                 || mfv.Assembly.SimpleName = "netstandard")
-                && mfv.FullName = $"System.String.{functionName}"
-                && typedArgumentPredicate args
-            then
-                invocations.Add m
-        )
+    let walker =
+        { new TypedTreeCollectorBase() with
+            override _.WalkCall (m : range) (mfv : FSharpMemberOrFunctionOrValue) (args : FSharpExpr list) =
+                if
+                    (mfv.Assembly.SimpleName = "System.Runtime"
+                     || mfv.Assembly.SimpleName = "netstandard")
+                    && mfv.FullName = $"System.String.{functionName}"
+                    && typedArgumentPredicate args
+                then
+                    invocations.Add m
+        }
 
     for decl in typedTree.Declarations do
-        visitDeclaration handler decl
+        walkTast walker decl
 
     invocations
     |> Seq.map (fun mFunctionName ->
