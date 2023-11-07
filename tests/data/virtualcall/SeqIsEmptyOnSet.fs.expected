@@ -1,0 +1,1 @@
+GRA-VIRTUALCALL-001 | Warning | (5,4 - 5,21) | Consider replacing the call of Seq.isEmpty with a function from the Set module to avoid the costs of virtual calls.
