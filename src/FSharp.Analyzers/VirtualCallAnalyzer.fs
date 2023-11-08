@@ -135,7 +135,6 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
         async {
             let state = ResizeArray<string * string * range> ()
 
-
             let walker =
                 { new TypedTreeCollectorBase() with
                     override _.WalkCall
@@ -157,12 +156,16 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
                             let seqParamIndexes =
                                 mfv.CurriedParameterGroups
                                 |> Seq.indexed
-                                |> Seq.filter (fun (_idx, g) ->
-                                    g.Count = 1
-                                    && g[0].Type.HasTypeDefinition
-                                    && g[0].Type.TypeDefinition.LogicalName = "seq`1"
+                                |> Seq.choose (fun (idx, g) ->
+                                    if
+                                        g.Count = 1
+                                        && g[0].Type.HasTypeDefinition
+                                        && g[0].Type.TypeDefinition.LogicalName = "seq`1"
+                                    then
+                                        Some idx
+                                    else
+                                        None
                                 )
-                                |> Seq.map fst
                                 |> List.ofSeq
 
                             if not seqParamIndexes.IsEmpty then
@@ -185,9 +188,7 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
                                         state.Add (mfv.DisplayName, modules[0], range)
                 }
 
-            match ctx.TypedTree with
-            | Some t -> walkTast walker t
-            | None -> ()
+            ctx.TypedTree |> Option.iter (walkTast walker)
 
             return
                 [

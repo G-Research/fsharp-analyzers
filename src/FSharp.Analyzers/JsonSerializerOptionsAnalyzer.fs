@@ -64,9 +64,7 @@ let jsonSerializerOptionsAnalyzer : Analyzer<CliContext> =
                             state.Add range
                 }
 
-            match ctx.TypedTree with
-            | None -> ()
-            | Some typedTree -> walkTast walker typedTree
+            ctx.TypedTree |> Option.iter (walkTast walker)
 
             return
                 state
