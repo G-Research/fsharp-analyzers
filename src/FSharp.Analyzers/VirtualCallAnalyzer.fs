@@ -153,7 +153,7 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
                         "Microsoft.FSharp.Collections.Seq.tryFindIndexBack"
                         "Microsoft.FSharp.Collections.Seq.tryItem"
                         "Microsoft.FSharp.Collections.Seq.tryPick"
-                        "Microsoft.FSharp.Collections.Seq.transpose" // ToDo special arg0 handling
+                        "Microsoft.FSharp.Collections.Seq.transpose"
                         "Microsoft.FSharp.Collections.Seq.truncate"
                         "Microsoft.FSharp.Collections.Seq.unfold"
                         "Microsoft.FSharp.Collections.Seq.windowed"
@@ -210,6 +210,11 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
                                     | [ idx0 ; idx1 ] ->
                                         match args[idx0], args[idx1] with
                                         | CoerceToSeq inAllCollections m1, CoerceToSeq inAllCollections m2 when m1 = m2 ->
+                                            state.Add (mfv.DisplayName, m1, range)
+                                        | _ -> ()
+                                    | [ idx0; idx1; idx2 ] ->
+                                        match args[idx0], args[idx1], args[idx2] with
+                                        | CoerceToSeq inAllCollections m1, CoerceToSeq inAllCollections m2, CoerceToSeq inAllCollections m3 when m1 = m2 && m2 = m3 ->
                                             state.Add (mfv.DisplayName, m1, range)
                                         | _ -> ()
                                     | _ -> ()

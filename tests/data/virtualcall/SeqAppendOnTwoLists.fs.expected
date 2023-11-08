@@ -1,0 +1,1 @@
+GRA-VIRTUALCALL-001 | Warning | (6,4 - 6,30) | Consider replacing the call of Seq.append with a function from the List module to avoid the costs of virtual calls.
