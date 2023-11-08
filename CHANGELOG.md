@@ -4,6 +4,10 @@
 
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.18.0`. [#26](https://github.com/G-Research/fsharp-analyzers/pull/26)
+* Update FSharp.Analyzers.SDK to `0.19.0`. [#27](https://github.com/G-Research/fsharp-analyzers/pull/27)
+
+### Added
+* Virtual call analyzer. [#27](https://github.com/G-Research/fsharp-analyzers/pull/27)
 
 ## [0.1.6] - 2023-12-26
 
