@@ -36,46 +36,24 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
             let state = ResizeArray<string * string * range> ()
 
             let seqFuncsWithEquivalentsInAllCollections =
-
-                let seqFuncsWithEquivalentsInAllCollectionsArg0 =
-                    set
-                        [
-                            "Microsoft.FSharp.Collections.Seq.isEmpty"
-                            "Microsoft.FSharp.Collections.Seq.length" // ~ Set.count
-                            "Microsoft.FSharp.Collections.Seq.max" // ~ Set.maxElement
-                            "Microsoft.FSharp.Collections.Seq.min" // ~ Set.minElement
-                        ]
-
-                let seqFuncsWithEquivalentsInAllCollectionsArg1 =
-                    set
-                        [
-                            "Microsoft.FSharp.Collections.Seq.contains"
-                            "Microsoft.FSharp.Collections.Seq.exists"
-                            "Microsoft.FSharp.Collections.Seq.filter"
-                            "Microsoft.FSharp.Collections.Seq.foldBack"
-                            "Microsoft.FSharp.Collections.Seq.forall"
-                            "Microsoft.FSharp.Collections.Seq.iter"
-                            "Microsoft.FSharp.Collections.Seq.map"
-                        ]
-
-                let seqFuncsWithEquivalentsInAllCollectionsArg2 =
-                    set [ "Microsoft.FSharp.Collections.Seq.fold" ]
-
-                let seqFuncsWithEquivalentsInAllCollectionsArg0And1 =
-                    set
-                        [
-                            "Microsoft.FSharp.Collections.Seq.except" // ~ Set.difference
-                        ]
-
-                Set.unionMany
+                set
                     [
-                        seqFuncsWithEquivalentsInAllCollectionsArg0
-                        seqFuncsWithEquivalentsInAllCollectionsArg1
-                        seqFuncsWithEquivalentsInAllCollectionsArg2
-                        seqFuncsWithEquivalentsInAllCollectionsArg0And1
+                        "Microsoft.FSharp.Collections.Seq.isEmpty"
+                        "Microsoft.FSharp.Collections.Seq.length" // ~ Set.count
+                        "Microsoft.FSharp.Collections.Seq.max" // ~ Set.maxElement
+                        "Microsoft.FSharp.Collections.Seq.min" // ~ Set.minElement
+                        "Microsoft.FSharp.Collections.Seq.contains"
+                        "Microsoft.FSharp.Collections.Seq.exists"
+                        "Microsoft.FSharp.Collections.Seq.filter"
+                        "Microsoft.FSharp.Collections.Seq.foldBack"
+                        "Microsoft.FSharp.Collections.Seq.forall"
+                        "Microsoft.FSharp.Collections.Seq.iter"
+                        "Microsoft.FSharp.Collections.Seq.map"
+                        "Microsoft.FSharp.Collections.Seq.fold"
+                        "Microsoft.FSharp.Collections.Seq.except" // ~ Set.difference
                     ]
 
-            let seqFuncsWithEquivalentsInArrayAndListArg0 =
+            let seqFuncsWithEquivalentsInArrayAndList =
                 set
                     [
                         "Microsoft.FSharp.Collections.Seq.average"
@@ -93,14 +71,7 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
                         "Microsoft.FSharp.Collections.Seq.sortDescending"
                         "Microsoft.FSharp.Collections.Seq.sum"
                         "Microsoft.FSharp.Collections.Seq.tail"
-                    ]
-
-            let seqFuncsWithEquivalentsInArrayAndListArg1 =
-                set [ "Microsoft.FSharp.Collections.Seq.averageBy" ]
-
-            let seqFuncsWithEquivalentsInArrayAndListXXX =
-                set
-                    [
+                        "Microsoft.FSharp.Collections.Seq.averageBy"
                         "Microsoft.FSharp.Collections.Seq.append"
                         "Microsoft.FSharp.Collections.Seq.choose"
                         "Microsoft.FSharp.Collections.Seq.chunkBySize"
@@ -167,14 +138,6 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
                         "Microsoft.FSharp.Collections.Seq.allPairs"
                     ]
 
-            let seqFuncsWithEquivalentsInArrayAndList =
-                Set.unionMany
-                    [
-                        seqFuncsWithEquivalentsInArrayAndListArg0
-                        seqFuncsWithEquivalentsInArrayAndListArg1
-                        seqFuncsWithEquivalentsInArrayAndListXXX
-                    ]
-
             let walker =
                 { new TypedTreeCollectorBase() with
                     override _.WalkCall (range : range) (mfv : FSharpMemberOrFunctionOrValue) (args : FSharpExpr list) =
@@ -202,22 +165,19 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
                                 let maxSeqParamIdx = Seq.last seqParamIndexes
 
                                 if args.Length > maxSeqParamIdx then
-                                    match seqParamIndexes with
-                                    | [ idx ] ->
-                                        match args[idx] with
-                                        | CoerceToSeq inAllCollections m -> state.Add (mfv.DisplayName, m, range)
-                                        | _ -> ()
-                                    | [ idx0 ; idx1 ] ->
-                                        match args[idx0], args[idx1] with
-                                        | CoerceToSeq inAllCollections m1, CoerceToSeq inAllCollections m2 when m1 = m2 ->
-                                            state.Add (mfv.DisplayName, m1, range)
-                                        | _ -> ()
-                                    | [ idx0; idx1; idx2 ] ->
-                                        match args[idx0], args[idx1], args[idx2] with
-                                        | CoerceToSeq inAllCollections m1, CoerceToSeq inAllCollections m2, CoerceToSeq inAllCollections m3 when m1 = m2 && m2 = m3 ->
-                                            state.Add (mfv.DisplayName, m1, range)
-                                        | _ -> ()
-                                    | _ -> ()
+
+                                    let modules =
+                                        seqParamIndexes
+                                        |> List.choose (fun i ->
+                                            match args[i] with
+                                            | CoerceToSeq inAllCollections m -> Some m
+                                            | _ -> None
+                                        )
+
+                                    if
+                                        modules.Length = seqParamIndexes.Length && (List.distinct modules).Length = 1
+                                    then
+                                        state.Add (mfv.DisplayName, modules[0], range)
                 }
 
             match context.TypedTree with
