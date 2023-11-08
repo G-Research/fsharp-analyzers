@@ -33,7 +33,14 @@ let jsonSerializerOptionsAnalyzer : Analyzer<CliContext> =
 
             let walker =
                 { new TypedTreeCollectorBase() with
-                    override _.WalkCall (range : range) (m : FSharpMemberOrFunctionOrValue) (args : FSharpExpr list) =
+                    override _.WalkCall
+                        _
+                        (m : FSharpMemberOrFunctionOrValue)
+                        _
+                        _
+                        (args : FSharpExpr list)
+                        (range : range)
+                        =
                         let name = String.Join (".", m.DeclaringEntity.Value.FullName, m.DisplayName)
                         let assemblyName = "System.Text.Json"
 
@@ -59,7 +66,7 @@ let jsonSerializerOptionsAnalyzer : Analyzer<CliContext> =
 
             match ctx.TypedTree with
             | None -> ()
-            | Some typedTree -> typedTree.Declarations |> List.iter (walkTast walker)
+            | Some typedTree -> walkTast walker typedTree
 
             return
                 state

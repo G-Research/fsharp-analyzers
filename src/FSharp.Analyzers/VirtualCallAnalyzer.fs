@@ -9,12 +9,6 @@ open FSharp.Compiler.Text
 [<Literal>]
 let Code = "GRA-VIRTUALCALL-001"
 
-let f () =
-    let mySet = [ 1..10 ] |> Set.ofSeq
-    let b1 = Seq.max mySet // should warn
-    let b2 = Set.maxElement mySet // should not warn
-    b1, b2
-
 let (|CoerceToSeq|_|) (includeFromSet : bool) (expr : FSharpExpr) =
     match expr with
     | Coerce (t, e) when
@@ -140,7 +134,14 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
 
             let walker =
                 { new TypedTreeCollectorBase() with
-                    override _.WalkCall (range : range) (mfv : FSharpMemberOrFunctionOrValue) (args : FSharpExpr list) =
+                    override _.WalkCall
+                        _
+                        (mfv : FSharpMemberOrFunctionOrValue)
+                        _
+                        _
+                        (args : FSharpExpr list)
+                        (range : range)
+                        =
 
                         let inAllCollections =
                             seqFuncsWithEquivalentsInAllCollections |> Set.contains mfv.FullName
@@ -181,7 +182,7 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
                 }
 
             match context.TypedTree with
-            | Some t -> t.Declarations |> List.iter (walkTast walker)
+            | Some t -> walkTast walker t
             | None -> ()
 
             return
