@@ -15,7 +15,7 @@ let f () =
     let b2 = Set.maxElement mySet // should not warn
     b1, b2
 
-let (|CoerceToSeqFromArrayOrListOrSet|_|) (expr : FSharpExpr) =
+let (|CoerceToSeq|_|) (includeFromSet : bool) (expr : FSharpExpr) =
     match expr with
     | Coerce (t, e) when
         t.HasTypeDefinition
@@ -25,20 +25,7 @@ let (|CoerceToSeqFromArrayOrListOrSet|_|) (expr : FSharpExpr) =
         match e.Type.TypeDefinition.LogicalName with
         | "[]`1" -> Some "Array"
         | "list`1" -> Some "List"
-        | "Set`1" -> Some "Set"
-        | _ -> None
-    | _ -> None
-
-let (|CoerceToSeqFromArrayOrList|_|) (expr : FSharpExpr) =
-    match expr with
-    | Coerce (t, e) when
-        t.HasTypeDefinition
-        && t.TypeDefinition.LogicalName = "seq`1"
-        && e.Type.HasTypeDefinition
-        ->
-        match e.Type.TypeDefinition.LogicalName with
-        | "[]`1" -> Some "Array"
-        | "list`1" -> Some "List"
+        | "Set`1" when includeFromSet -> Some "Set"
         | _ -> None
     | _ -> None
 
@@ -48,34 +35,44 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
         async {
             let state = ResizeArray<string * string * range> ()
 
-            let seqFuncsWithEquivalentsInAllCollectionsArg0 =
-                set
-                    [
-                        "Microsoft.FSharp.Collections.Seq.isEmpty"
-                        "Microsoft.FSharp.Collections.Seq.length" // ~ Set.count
-                        "Microsoft.FSharp.Collections.Seq.max" // ~ Set.maxElement
-                        "Microsoft.FSharp.Collections.Seq.min" // ~ Set.minElement
-                    ]
+            let seqFuncsWithEquivalentsInAllCollections =
 
-            let seqFuncsWithEquivalentsInAllCollectionsArg1 =
-                set
-                    [
-                        "Microsoft.FSharp.Collections.Seq.contains"
-                        "Microsoft.FSharp.Collections.Seq.exists"
-                        "Microsoft.FSharp.Collections.Seq.filter"
-                        "Microsoft.FSharp.Collections.Seq.foldBack"
-                        "Microsoft.FSharp.Collections.Seq.forall"
-                        "Microsoft.FSharp.Collections.Seq.iter"
-                        "Microsoft.FSharp.Collections.Seq.map"
-                    ]
+                let seqFuncsWithEquivalentsInAllCollectionsArg0 =
+                    set
+                        [
+                            "Microsoft.FSharp.Collections.Seq.isEmpty"
+                            "Microsoft.FSharp.Collections.Seq.length" // ~ Set.count
+                            "Microsoft.FSharp.Collections.Seq.max" // ~ Set.maxElement
+                            "Microsoft.FSharp.Collections.Seq.min" // ~ Set.minElement
+                        ]
 
-            let seqFuncsWithEquivalentsInAllCollectionsArg2 =
-                set [ "Microsoft.FSharp.Collections.Seq.fold" ]
+                let seqFuncsWithEquivalentsInAllCollectionsArg1 =
+                    set
+                        [
+                            "Microsoft.FSharp.Collections.Seq.contains"
+                            "Microsoft.FSharp.Collections.Seq.exists"
+                            "Microsoft.FSharp.Collections.Seq.filter"
+                            "Microsoft.FSharp.Collections.Seq.foldBack"
+                            "Microsoft.FSharp.Collections.Seq.forall"
+                            "Microsoft.FSharp.Collections.Seq.iter"
+                            "Microsoft.FSharp.Collections.Seq.map"
+                        ]
 
-            let seqFuncsWithEquivalentsInAllCollectionsArg1And2 =
-                set
+                let seqFuncsWithEquivalentsInAllCollectionsArg2 =
+                    set [ "Microsoft.FSharp.Collections.Seq.fold" ]
+
+                let seqFuncsWithEquivalentsInAllCollectionsArg0And1 =
+                    set
+                        [
+                            "Microsoft.FSharp.Collections.Seq.except" // ~ Set.difference
+                        ]
+
+                Set.unionMany
                     [
-                        "Microsoft.FSharp.Collections.Seq.except" // ~ Set.difference
+                        seqFuncsWithEquivalentsInAllCollectionsArg0
+                        seqFuncsWithEquivalentsInAllCollectionsArg1
+                        seqFuncsWithEquivalentsInAllCollectionsArg2
+                        seqFuncsWithEquivalentsInAllCollectionsArg0And1
                     ]
 
             let seqFuncsWithEquivalentsInArrayAndListArg0 =
@@ -98,11 +95,13 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
                         "Microsoft.FSharp.Collections.Seq.tail"
                     ]
 
-            let seqFuncsWithEquivalentsInArrayAndList =
+            let seqFuncsWithEquivalentsInArrayAndListArg1 =
+                set [ "Microsoft.FSharp.Collections.Seq.averageBy" ]
+
+            let seqFuncsWithEquivalentsInArrayAndListXXX =
                 set
                     [
                         "Microsoft.FSharp.Collections.Seq.append"
-                        "Microsoft.FSharp.Collections.Seq.averageBy"
                         "Microsoft.FSharp.Collections.Seq.choose"
                         "Microsoft.FSharp.Collections.Seq.chunkBySize"
                         "Microsoft.FSharp.Collections.Seq.collect"
@@ -168,54 +167,52 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
                         "Microsoft.FSharp.Collections.Seq.allPairs"
                     ]
 
+            let seqFuncsWithEquivalentsInArrayAndList =
+                Set.unionMany
+                    [
+                        seqFuncsWithEquivalentsInArrayAndListArg0
+                        seqFuncsWithEquivalentsInArrayAndListArg1
+                        seqFuncsWithEquivalentsInArrayAndListXXX
+                    ]
+
             let walker =
                 { new TypedTreeCollectorBase() with
                     override _.WalkCall (range : range) (mfv : FSharpMemberOrFunctionOrValue) (args : FSharpExpr list) =
-                        if
-                            seqFuncsWithEquivalentsInAllCollectionsArg0 |> Set.contains mfv.FullName
-                            && args.Length >= 1
-                        then
-                            match args[0] with
-                            | CoerceToSeqFromArrayOrListOrSet m -> state.Add (mfv.DisplayName, m, range)
-                            | _ -> ()
-                        else if
-                            seqFuncsWithEquivalentsInAllCollectionsArg1 |> Set.contains mfv.FullName
-                            && args.Length >= 2
-                        then
-                            match args[1] with
-                            | CoerceToSeqFromArrayOrListOrSet m -> state.Add (mfv.DisplayName, m, range)
-                            | _ -> ()
-                        else if
-                            seqFuncsWithEquivalentsInAllCollectionsArg2 |> Set.contains mfv.FullName
-                            && args.Length >= 3
-                        then
-                            match args[2] with
-                            | CoerceToSeqFromArrayOrListOrSet m -> state.Add (mfv.DisplayName, m, range)
-                            | _ -> ()
-                        else if
-                            seqFuncsWithEquivalentsInAllCollectionsArg1And2 |> Set.contains mfv.FullName
-                            && args.Length >= 2
-                        then
-                            match args[0], args[1] with
-                            | CoerceToSeqFromArrayOrListOrSet m1, CoerceToSeqFromArrayOrListOrSet m2 when m1 = m2 ->
-                                state.Add (mfv.DisplayName, m1, range)
-                            | _ -> ()
-                        else if
-                            seqFuncsWithEquivalentsInArrayAndListArg0 |> Set.contains mfv.FullName
-                            && args.Length >= 1
-                        then
-                            match args[0] with
-                            | CoerceToSeqFromArrayOrList m -> state.Add (mfv.DisplayName, m, range)
-                            | _ -> ()
-                        else if
+
+                        let inAllCollections =
+                            seqFuncsWithEquivalentsInAllCollections |> Set.contains mfv.FullName
+
+                        let inArrayAndList =
                             seqFuncsWithEquivalentsInArrayAndList |> Set.contains mfv.FullName
-                            && args.Length >= 2
-                        then
-                            match args[1] with
-                            | CoerceToSeqFromArrayOrList m -> state.Add (mfv.DisplayName, m, range)
-                            | _ -> ()
-                        else
-                            ()
+
+                        if inAllCollections || inArrayAndList then
+                            let seqParamIndexes =
+                                mfv.CurriedParameterGroups
+                                |> Seq.indexed
+                                |> Seq.filter (fun (_idx, g) ->
+                                    g.Count = 1
+                                    && g[0].Type.HasTypeDefinition
+                                    && g[0].Type.TypeDefinition.LogicalName = "seq`1"
+                                )
+                                |> Seq.map fst
+                                |> List.ofSeq
+
+                            if not seqParamIndexes.IsEmpty then
+
+                                let maxSeqParamIdx = Seq.last seqParamIndexes
+
+                                if args.Length > maxSeqParamIdx then
+                                    match seqParamIndexes with
+                                    | [ idx ] ->
+                                        match args[idx] with
+                                        | CoerceToSeq inAllCollections m -> state.Add (mfv.DisplayName, m, range)
+                                        | _ -> ()
+                                    | [ idx0 ; idx1 ] ->
+                                        match args[idx0], args[idx1] with
+                                        | CoerceToSeq inAllCollections m1, CoerceToSeq inAllCollections m2 when m1 = m2 ->
+                                            state.Add (mfv.DisplayName, m1, range)
+                                        | _ -> ()
+                                    | _ -> ()
                 }
 
             match context.TypedTree with

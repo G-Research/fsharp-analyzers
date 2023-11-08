@@ -1,0 +1,1 @@
+GRA-VIRTUALCALL-001 | Warning | (5,4 - 5,27) | Consider replacing the call of Seq.averageBy with a function from the List module to avoid the costs of virtual calls.
