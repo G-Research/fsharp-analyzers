@@ -146,6 +146,10 @@ let virtualCallAnalyzer : Analyzer<CliContext> =
                         (range : range)
                         =
 
+                        // check if we are calling a function in the Seq module that has an equivalent function in the (Array|List|Set) modules
+                        // check if all collection parameters were coerced from the same type (array|list|set) to seq
+                        // If yes, we could have used a function from the (Array|List|Set) modules
+
                         let inAllCollections =
                             seqFuncsWithEquivalentsInAllCollections |> Set.contains mfv.FullName
 
