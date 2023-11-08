@@ -1,3 +1,5 @@
+/// This analyzer works on the assumption, that the Seq module functions result in virtual IL calls in contrast to the
+/// equivalent functions from the Array,List,Set modules.
 module GR.FSharp.Analyzers.VirtualCallAnalyzer
 
 open FSharp.Analyzers.SDK
