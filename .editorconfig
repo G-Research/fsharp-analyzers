@@ -1,5 +1,8 @@
 root = true
 
+[*]
+indent_size = 4
+
 [*.{fs,fsi,fsx}]
 end_of_line = lf
 fsharp_space_before_uppercase_invocation=true
