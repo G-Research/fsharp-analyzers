@@ -15,6 +15,7 @@
     <Compile Include="PartialAppAnalyzerTests.fs" />
     <Compile Include="JsonSerializerOptionsAnalyzerTests.fs" />
     <Compile Include="UnionCaseAnalyzerTests.fs" />
+    <Compile Include="VirtualCallAnalyzerTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -38,7 +38,7 @@ let invalidStringFunctionUseAnalyzer
 
     let walker =
         { new TypedTreeCollectorBase() with
-            override _.WalkCall (m : range) (mfv : FSharpMemberOrFunctionOrValue) (args : FSharpExpr list) =
+            override _.WalkCall _ (mfv : FSharpMemberOrFunctionOrValue) _ _ (args : FSharpExpr list) (m : range) =
                 if
                     (mfv.Assembly.SimpleName = "System.Runtime"
                      || mfv.Assembly.SimpleName = "netstandard")
@@ -48,8 +48,7 @@ let invalidStringFunctionUseAnalyzer
                     invocations.Add m
         }
 
-    for decl in typedTree.Declarations do
-        walkTast walker decl
+    walkTast walker typedTree
 
     invocations
     |> Seq.map (fun mFunctionName ->

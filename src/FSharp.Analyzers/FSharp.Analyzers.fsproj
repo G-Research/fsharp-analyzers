@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -18,6 +18,8 @@
         <Compile Include="JsonSerializerOptionsAnalyzer.fs" />
         <Compile Include="UnionCaseAnalyzer.fs" />
         <Compile Include="PartialAppAnalyzer.fs" />
+        <Compile Include="VirtualCallAnalyzer.fsi" />
+        <Compile Include="VirtualCallAnalyzer.fs" />
     </ItemGroup>
 
     <ItemGroup>
