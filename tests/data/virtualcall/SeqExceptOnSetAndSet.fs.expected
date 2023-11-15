@@ -1,1 +1,0 @@
-GRA-VIRTUALCALL-001 | Warning | (6,4 - 6,28) | Consider replacing the call of Seq.except with a function from the Set module to avoid the costs of virtual calls.
