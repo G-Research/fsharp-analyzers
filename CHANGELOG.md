@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 - 2023-11-15
+
+### Changed
+* Reduced warnings in VirtualCallAnalyzer. [#31](https://github.com/G-Research/fsharp-analyzers/pull/31)
+* Update FSharp.Analyzers.SDK to `0.20.2`. [#32](https://github.com/G-Research/fsharp-analyzers/pull/32)
+
 ## 0.3.0 - 2023-11-14
 
 ### Changed
