@@ -1,1 +1,0 @@
-GRA-VIRTUALCALL-001 | Warning | (7,4 - 7,61) | Consider replacing the call of Seq.map3 with a function from the List module to avoid the costs of virtual calls.
