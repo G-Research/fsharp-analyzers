@@ -65,7 +65,7 @@ let invalidStringFunctionUseAnalyzer
 
 [<CliAnalyzer("String.EndsWith Analyzer",
               "Verifies the correct usage of System.String.EndsWith",
-              "https://learn.microsoft.com/en-us/dotnet/standard/base-types/best-practices-strings")>]
+              "https://g-research.github.io/fsharp-analyzers/analyzers/StringAnalyzer.html")>]
 let endsWithAnalyzer (ctx : CliContext) : Async<Message list> =
     async {
         match ctx.TypedTree with
@@ -88,7 +88,7 @@ let endsWithAnalyzer (ctx : CliContext) : Async<Message list> =
 
 [<CliAnalyzer("String.StartsWith Analyzer",
               "Verifies the correct usage of System.String.StartsWith",
-              "https://learn.microsoft.com/en-us/dotnet/standard/base-types/best-practices-strings")>]
+              "https://g-research.github.io/fsharp-analyzers/analyzers/StringAnalyzer.html")>]
 let startsWithAnalyzer (ctx : CliContext) : Async<Message list> =
     async {
         match ctx.TypedTree with
@@ -110,7 +110,7 @@ let startsWithAnalyzer (ctx : CliContext) : Async<Message list> =
 
 [<CliAnalyzer("String.IndexOf Analyzer",
               "Verifies the correct usage of System.String.IndexOf",
-              "https://learn.microsoft.com/en-us/dotnet/standard/base-types/best-practices-strings")>]
+              "https://g-research.github.io/fsharp-analyzers/analyzers/StringAnalyzer.html")>]
 let indexOfAnalyzer (ctx : CliContext) : Async<Message list> =
     async {
         match ctx.TypedTree with

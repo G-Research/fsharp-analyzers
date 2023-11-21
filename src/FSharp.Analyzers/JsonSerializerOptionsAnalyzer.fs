@@ -11,7 +11,9 @@ open FSharp.Compiler.Symbols.FSharpExprPatterns
 [<Literal>]
 let Code = "GRA-JSONOPTS-001"
 
-[<CliAnalyzer("JsonSerializerOptionsAnalyzer", "Scans code for inline usage of JsonSerializerOptions")>]
+[<CliAnalyzer("JsonSerializerOptionsAnalyzer",
+              "Scans code for inline usage of JsonSerializerOptions",
+              "https://g-research.github.io/fsharp-analyzers/analyzers/JsonSerializerOptionsAnalyzer.html")>]
 let jsonSerializerOptionsAnalyzer : Analyzer<CliContext> =
     fun ctx ->
         async {

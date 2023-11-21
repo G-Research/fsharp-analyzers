@@ -1,0 +1,56 @@
+:root {
+    --g-research-50: #effaff;
+    --g-research-100: #def4ff;
+    --g-research-200: #b6ecff;
+    --g-research-300: #75dfff;
+    --g-research-400: #2cd0ff;
+    /* brand */
+    --g-research-500: #00aae1;
+    --g-research-600: #0096d4;
+    --g-research-700: #0077ab;
+    --g-research-800: #00648d;
+    --g-research-900: #065374;
+    --g-research-950: #04354d;
+
+    --accent: #00458D;
+
+    --twilight-50: #ffffff;
+    --twilight-100: #efefef;
+    --twilight-200: #dcdcdc;
+    --twilight-300: #bdbdbd;
+    --twilight-400: #989898;
+    --twilight-500: #7c7c7c;
+    --twilight-600: #656565;
+    --twilight-700: #525252;
+    --twilight-800: #464646;
+    --twilight-900: #3d3d3d;
+    --twilight-950: #292929;
+    --dark: #020C1F;
+
+    --system-font: 'Jost', sans-serif;
+    --primary: var(--g-research-500);
+    --header-background: var(--g-research-500);
+    --aside-background: var(--g-research-500);
+    --header-link-color: var(--twilight-50);
+    --menu-color: var(--twilight-50);
+    --menu-item-hover-background: var(--g-research-300);
+    --menu-item-hover-color: var(--twilight-950);
+    --on-this-page-color: var(--twilight-50);
+    --dialog-link-color: var(--twilight-50);
+    --dialog-icon-color: var(--twilight-50);
+    --dialog-link-hover-color: var(--g-research-500);
+    --dialog-link-hover-background-color: var(--twilight-50);
+    --dialog-empty-color: var(--twilight-50);
+}
+
+[data-theme=dark] {
+    --header-background: var(--g-research-900);
+    --aside-background: var(--g-research-900);
+    --header-border: var(--twilight-300);
+    --dialog-link-hover-color: var(--g-research-900);
+    --link-color: var(--g-research-300);
+}
+
+p {
+    font-size: var(--font-400);
+}

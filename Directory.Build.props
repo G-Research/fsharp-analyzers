@@ -34,6 +34,13 @@
         <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen</OtherFlags>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <FsDocsLogoSource>img/logo.svg</FsDocsLogoSource>
+        <FsDocsLicenseLink>https://github.com/G-Research/fsharp-analyzers/blob/main/LICENSE</FsDocsLicenseLink>
+        <FsDocsReleaseNotesLink>https://github.com/G-Research/fsharp-analyzers/blob/main/CHANGELOG.md</FsDocsReleaseNotesLink>
+        <RepositoryUrl>https://github.com/G-Research/fsharp-analyzers</RepositoryUrl>
+    </PropertyGroup>
+
     <ItemGroup Condition="'$(IsPackable)' == 'true'">
         <None Include="$(MSBuildThisFileDirectory)README.md" Visible="false" Pack="true" PackagePath=""/>
         <PackageReference Include="Ionide.KeepAChangelog.Tasks" PrivateAssets="all"/>
