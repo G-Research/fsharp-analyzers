@@ -10,7 +10,7 @@ index: 5
 ## Problem
 
 Certain `Seq` operations should be avoided when the input collection type is known and has a specific module counter-part.
-This can avoid a virtual call at runtime and the specific collection implementation is more performant.
+This can avoid a type cast or a virtual call at runtime and the specific collection implementation is more performant.
 Example: Use `Set.fold` rather than `Seq.fold` when the argument is a set.
 
 ```fsharp

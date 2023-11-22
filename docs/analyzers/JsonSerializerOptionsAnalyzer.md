@@ -9,7 +9,7 @@ index: 1
 
 ## Problem
 
-[Performance Improvements in .NET 8](https://devblogs.microsoft.com/dotnet/performance-improvements-in-net-8/#json) blog post mentions `JsonSerializerOptions` from `System.Text.Json` is deceptively expensive to create, so calls to JsonSerializer.{De}Serialize should use a cached instance rather than newing one up each time.
+The [Performance Improvements in .NET 8](https://devblogs.microsoft.com/dotnet/performance-improvements-in-net-8/#json) blog post mentions `JsonSerializerOptions` from `System.Text.Json` is deceptively expensive to create, so calls to JsonSerializer.{De}Serialize should use a cached instance rather than newing one up each time.
 
 ```fsharp
 open System.Text.Json

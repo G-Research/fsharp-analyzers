@@ -10,7 +10,7 @@ index: 4
 ## Problem
 
 A discriminated union case with the same name as a case from `FSharp.Core` is considered harmful.
-It may shadow the case from `FSharp.Core` and it to be avoided.
+It may shadow the case from `FSharp.Core` and it is to be avoided.
 
 ```fsharp
 type MyU =
