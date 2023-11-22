@@ -14,6 +14,9 @@ let shouldUpdateBaseline () =
     |> Option.map (fun v -> v.Trim () = "1")
     |> Option.defaultValue false
 
+/// Update by:
+/// set TEST_UPDATE_BSL=1
+/// $env:TEST_UPDATE_BSL=1
 let assertExpected sourceFile messages =
     task {
         let actualContents =
