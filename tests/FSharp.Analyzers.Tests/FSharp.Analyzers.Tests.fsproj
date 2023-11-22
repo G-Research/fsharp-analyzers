@@ -1,36 +1,43 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
 
-    <IsPackable>false</IsPackable>
-    <GenerateProgramFile>false</GenerateProgramFile>
-    <IsTestProject>true</IsTestProject>
-    <AssemblyName>G-Research.FSharp.Analyzers.Tests</AssemblyName>
-  </PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <GenerateProgramFile>false</GenerateProgramFile>
+        <IsTestProject>true</IsTestProject>
+        <AssemblyName>G-Research.FSharp.Analyzers.Tests</AssemblyName>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="Common.fs" />
-    <Compile Include="StringAnalyzerTests.fs" />
-    <Compile Include="PartialAppAnalyzerTests.fs" />
-    <Compile Include="JsonSerializerOptionsAnalyzerTests.fs" />
-    <Compile Include="UnionCaseAnalyzerTests.fs" />
-    <Compile Include="VirtualCallAnalyzerTests.fs" />
-    <Compile Include="TypeAnnotateStringFunctionAnalyzerTests.fs" />
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Include="Common.fs"/>
+        <Compile Include="StringAnalyzerTests.fs"/>
+        <Compile Include="PartialAppAnalyzerTests.fs"/>
+        <Compile Include="JsonSerializerOptionsAnalyzerTests.fs"/>
+        <Compile Include="UnionCaseAnalyzerTests.fs"/>
+        <Compile Include="VirtualCallAnalyzerTests.fs"/>
+        <Compile Include="TypeAnnotateStringFunctionAnalyzerTests.fs"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" />
-    <PackageReference Include="FSharp.Analyzers.SDK.Testing" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
-    <PackageReference Include="NUnit" />
-    <PackageReference Include="NUnit3TestAdapter" />
-    <PackageReference Include="NUnit.Analyzers" />
-    <PackageReference Include="coverlet.collector" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Update="FSharp.Core"/>
+        <PackageReference Include="FSharp.Analyzers.SDK.Testing"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+        <PackageReference Include="NUnit"/>
+        <PackageReference Include="NUnit3TestAdapter"/>
+        <PackageReference Include="NUnit.Analyzers"/>
+        <PackageReference Include="coverlet.collector"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\FSharp.Analyzers\FSharp.Analyzers.fsproj" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(UseLocalAnalyzersSDK)' == 'false'">
+        <PackageReference Include="FSharp.Analyzers.SDK.Testing"/>
+    </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\FSharp.Analyzers\FSharp.Analyzers.fsproj"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(UseLocalAnalyzersSDK)' == 'true'">
+        <ProjectReference Include="$(LocalAnalyzersSDKRepo)/src/FSharp.Analyzers.SDK.Testing/FSharp.Analyzers.SDK.Testing.fsproj" />
+    </ItemGroup>
 </Project>

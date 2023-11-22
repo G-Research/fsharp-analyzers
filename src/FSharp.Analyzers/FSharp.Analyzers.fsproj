@@ -23,10 +23,16 @@
         <Compile Include="TypeAnnotateStringFunction.fs" />
     </ItemGroup>
 
+    <ItemGroup Condition="'$(UseLocalAnalyzersSDK)' == 'true'">
+        <ProjectReference Include="$(LocalAnalyzersSDKRepo)/src/FSharp.Analyzers.SDK/FSharp.Analyzers.SDK.fsproj" />
+    </ItemGroup>
+    
     <ItemGroup>
         <PackageReference Update="FSharp.Core" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(UseLocalAnalyzersSDK)' == 'false'">
         <PackageReference Include="FSharp.Analyzers.SDK"/>
-        <PackageReference Include="FSharp.Compiler.Service"/>
     </ItemGroup>
 
     <Target Name="_AddAnalyzersToOutput">

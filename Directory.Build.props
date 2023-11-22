@@ -32,6 +32,9 @@
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <LangVersion>preview</LangVersion>
         <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen</OtherFlags>
+        <!-- Set to true and adjust the path to your local repo if you want to use that instead of the nuget packages -->
+        <UseLocalAnalyzersSDK>false</UseLocalAnalyzersSDK>
+        <LocalAnalyzersSDKRepo>../../../FSharp.Analyzers.SDK</LocalAnalyzersSDKRepo>
     </PropertyGroup>
 
     <PropertyGroup>

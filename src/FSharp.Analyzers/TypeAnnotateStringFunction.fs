@@ -36,7 +36,7 @@ type StringApplicationResult =
 let (|StringFunctionExpr|_|) =
     function
     | SynExpr.Ident (ident = ident) when ident.idText = "string" -> Some ()
-    | SynExpr.LongIdent(longDotId = SynLongIdent(id = lid)) ->
+    | SynExpr.LongIdent (longDotId = SynLongIdent (id = lid)) ->
         List.tryLast lid
         |> Option.bind (fun ident -> if ident.idText = "string" then Some () else None)
     | _ -> None
@@ -60,9 +60,10 @@ let typeAnnotateStringFunctionsAnalyzer : Analyzer<CliContext> =
                                 // in this case expression was probably piped into the string function.
                                 | StringFunctionExpr ->
                                     match path with
-                                    | SyntaxNode.SynExpr (SynExpr.TypeApp _) :: _ -> Some StringApplicationResult.TypeArgument
+                                    | SyntaxNode.SynExpr (SynExpr.TypeApp _) :: _ ->
+                                        Some StringApplicationResult.TypeArgument
                                     | _ -> Some StringApplicationResult.NoTypeArgument
-                                
+
                                 | SynExpr.App (funcExpr = StringFunctionExpr) ->
                                     Some StringApplicationResult.NoTypeArgument
 
@@ -88,9 +89,11 @@ let typeAnnotateStringFunctionsAnalyzer : Analyzer<CliContext> =
                         if mfv.FullName = "Microsoft.FSharp.Core.Operators.string" && args.Length = 1 then
                             match tryFindSynExprApp m with
                             | Some (StringApplicationResult.Unsure sourceCode) ->
-                                #if DEBUG
+#if DEBUG
                                 printfn $"Could map %A{m} to an string application, source:\n%s{sourceCode}"
-                                #endif
+#else
+                                ignore sourceCode
+#endif
                             | Some StringApplicationResult.NoTypeArgument ->
                                 messages.Add
                                     {
@@ -103,9 +106,11 @@ let typeAnnotateStringFunctionsAnalyzer : Analyzer<CliContext> =
                                     }
                             | Some StringApplicationResult.TypeArgument -> ()
                             | None ->
-                                #if DEBUG
+#if DEBUG
                                 printfn $"Could not find application for %A{m}"
-                                #endif
+#else
+                                ()
+#endif
                 }
 
             match ctx.TypedTree with
