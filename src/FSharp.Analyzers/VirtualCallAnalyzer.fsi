@@ -6,5 +6,6 @@ open FSharp.Analyzers.SDK
 val Code : string = "GRA-VIRTUALCALL-001"
 
 [<CliAnalyzer("VirtualCall Analyzer",
-              "Checks if calls of Seq functions can be replaced with functions from the collection modules")>]
+              "Checks if calls of Seq functions can be replaced with functions from the collection modules",
+              "https://g-research.github.io/fsharp-analyzers/analyzers/VirtualCallAnalyzer.html")>]
 val virtualCallAnalyzer : ctx : CliContext -> Async<Message list>

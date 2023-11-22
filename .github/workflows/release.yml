@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+    contents: write
+    pages: write
+    id-token: write
+
 jobs:
   nuget-pack:
     runs-on: ubuntu-latest
@@ -22,6 +27,11 @@ jobs:
         with:
           name: nuget-package
           path: artifacts/G-Research.FSharp.Analyzers.*.nupkg
+      - name: Upload documentation
+        uses: actions/upload-pages-artifact@v2
+        with:
+            path: ./output
+
   nuget-publish:
     runs-on: ubuntu-latest
     if: ${{ !github.event.repository.fork && github.ref == 'refs/heads/main' }}
@@ -34,3 +44,11 @@ jobs:
           name: nuget-package
       - name: Publish to NuGet
         run: dotnet nuget push "G-Research.FSharp.Analyzers.*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+  deploy:
+      runs-on: ubuntu-latest
+      needs: [ nuget-pack ]
+      steps:
+          - name: Deploy to GitHub Pages
+            id: deployment
+            uses: actions/deploy-pages@v2

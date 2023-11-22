@@ -107,7 +107,8 @@ let findAllShadowingCases
     collector |> Seq.toList
 
 [<CliAnalyzer("UnionCaseAnalyzer",
-              "Warns for reusing any default FSharp.Core union case name without RequireQualifiedAccessAttribute")>]
+              "Warns for reusing any default FSharp.Core union case name without RequireQualifiedAccessAttribute",
+              "https://g-research.github.io/fsharp-analyzers/analyzers/UnionCaseAnalyzer.html")>]
 let unionCaseAnalyzer : Analyzer<CliContext> =
     fun ctx ->
         async {

@@ -485,3 +485,8 @@ $RECYCLE.BIN/
 
 # Unit tests
 tests/data/**/*.actual
+
+# fsdocs
+.fsdocs/
+tmp/
+output/
