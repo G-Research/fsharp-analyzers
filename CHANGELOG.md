@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 - 2023-11-23
+
+### Added
+* Add TypeAnnotateStringFunction analyzer. [#34](https://github.com/G-Research/fsharp-analyzers/pull/34)
+
+### Changed
+* Update FSharp.Analyzers.SDK to `0.21.0`. [#34](https://github.com/G-Research/fsharp-analyzers/pull/34)
+
 ## 0.3.1 - 2023-11-15
 
 ### Changed
