@@ -90,7 +90,7 @@ let typeAnnotateStringFunctionsAnalyzer : Analyzer<CliContext> =
                             match tryFindSynExprApp m with
                             | Some (StringApplicationResult.Unsure sourceCode) ->
 #if DEBUG
-                                printfn $"Could map %A{m} to an string application, source:\n%s{sourceCode}"
+                                printfn $"Could map %A{m} to a string application, source:\n%s{sourceCode}"
 #else
                                 ignore sourceCode
 #endif

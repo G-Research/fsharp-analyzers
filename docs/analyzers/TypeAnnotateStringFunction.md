@@ -12,7 +12,7 @@ index: 6
 Using the `string` function can catch you off guard when refactoring types.
 
 ```fsharp
-let v = 1 // Changing this value won't affect `s`
+let v = 1 // Changing the type won't affect `s`
 let s = string v
 ```
 
@@ -21,6 +21,6 @@ let s = string v
 Add an explicit type annotation:
 
 ```fsharp
-let v = 1 // Changing this will affect `s`
+let v = 1 // Changing the type will affect `s`
 let s = string<int> v
 ```
