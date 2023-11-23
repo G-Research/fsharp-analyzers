@@ -3,15 +3,21 @@
   "isRoot": true,
   "tools": {
     "fantomas": {
-      "version": "6.3.0-alpha-002",
+      "version": "6.3.0-alpha-003",
       "commands": [
         "fantomas"
       ]
     },
     "fsdocs-tool": {
-      "version": "20.0.0-alpha-013",
+      "version": "20.0.0-alpha-014",
       "commands": [
         "fsdocs"
+      ]
+    },
+    "fsharp-analyzers": {
+      "version": "0.21.0",
+      "commands": [
+        "fsharp-analyzers"
       ]
     }
   }
