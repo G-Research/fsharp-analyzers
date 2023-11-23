@@ -21,7 +21,7 @@
 
     <ItemGroup>
         <PackageReference Update="FSharp.Core"/>
-        <PackageReference Include="FSharp.Analyzers.SDK.Testing"/>
+        <PackageReference Include="FSharp.Analyzers.SDK.Testing" Condition="'$(UseLocalAnalyzersSDK)' == 'false'" />
         <PackageReference Include="Microsoft.NET.Test.Sdk"/>
         <PackageReference Include="NUnit"/>
         <PackageReference Include="NUnit3TestAdapter"/>
