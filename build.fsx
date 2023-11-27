@@ -9,14 +9,17 @@ let restoreStage =
         run "dotnet restore --locked-mode"
     }
 
+let buildStage =
+    stage "build" { run "dotnet build -c Release --no-restore -maxCpuCount" }
+
 pipeline "Build" {
     restoreStage
     stage "lint" { run "dotnet fantomas . --check" }
-    stage "build" { run "dotnet build -c Release --no-restore -maxCpuCount" }
+    buildStage
     stage "test" { run "dotnet test -c Release --no-build" }
 
     stage "docs" {
-        run "dotnet fsdocs build --parameters fsdocs-collection-name \"G-Research F# Analyzers\" --noapidocs"
+        run "dotnet fsdocs build --parameters fsdocs-collection-name \"G-Research F# Analyzers\" --noapidocs --eval"
     }
 
     runIfOnlySpecified false
@@ -51,9 +54,10 @@ pipeline "EnsureTrailingNewline" {
 pipeline "Docs" {
     stage "Docs" {
         restoreStage
+        buildStage
 
         run
-            "dotnet fsdocs watch --parameters fsdocs-collection-name \"G-Research F# Analyzers\" --noapidocs --port 5000"
+            "dotnet fsdocs watch --parameters fsdocs-collection-name \"G-Research F# Analyzers\" --noapidocs --eval --port 5000"
     }
 
     runIfOnlySpecified true
