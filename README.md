@@ -44,6 +44,14 @@ or small changes. If you're contemplating something larger please get
 in touch first by opening a GitHub Issue describing the problem and
 how you propose to solve it.
 
+### Scaffold new analyzer
+
+Run
+
+    dotnet fsi build.fsx -- -p NewAnalyzer
+
+to scaffold a new analyzer.
+
 ## License
 
 Copyright &copy; 2023 G-Research
