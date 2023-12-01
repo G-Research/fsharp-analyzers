@@ -24,6 +24,9 @@ let isImmutableType (basicQualifiedName : string) (e : FSharpExpr) =
 let isImmutableDictionaryType (e : FSharpExpr) =
     isImmutableType "System.Collections.Immutable.ImmutableDictionary`2" e
 
+let isImmutableHashSetType (e : FSharpExpr) =
+    isImmutableType "System.Collections.Immutable.ImmutableHashSet`1" e
+
 let mkMessage typeName m =
     {
         Type = "ImmutableCollectionEqualityAnalyzer"
@@ -78,6 +81,8 @@ let immutableCollectionEqualityAnalyzer : Analyzer<CliContext> =
 
                         if isImmutableDictionaryType e1 && isImmutableDictionaryType e2 then
                             invocations.Add (mkMessage "System.Collections.Immutable.ImmutableDictionary" m)
+                        elif isImmutableHashSetType e1 && isImmutableHashSetType e2 then
+                            invocations.Add (mkMessage "System.Collections.Immutable.ImmutableHashSet" m)
                 }
 
             match ctx.TypedTree with
