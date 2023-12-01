@@ -25,7 +25,7 @@ a = b
 
 ## Fix
 
-It is more 
+It is more likely that fellow developers understand your intent if you use `ReferenceEquals` in such cases.
 
 ```fsharp
 open System.Collections.Immutable
