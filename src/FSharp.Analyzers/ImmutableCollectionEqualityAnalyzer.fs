@@ -31,7 +31,7 @@ let mkMessage typeName m =
     {
         Type = "ImmutableCollectionEqualityAnalyzer"
         Message =
-            $"%s{typeName} does not implement structural equality. Use Object.ReferenceEquals instead .Equals, = or <> to emphasize this."
+            $"%s{typeName} does not implement structural equality. Use Object.ReferenceEquals instead of .Equals, = or <> to emphasize this."
         Code = Code
         Severity = Warning
         Range = m
