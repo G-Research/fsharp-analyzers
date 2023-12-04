@@ -30,9 +30,6 @@ let loggingArgFuncNotFullyAppliedAnalyzer : Analyzer<CliContext> =
                         "Microsoft.Extensions.Logging.LoggerExtensions.LogWarning"
                     ]
 
-            let partialApps =
-                PartialAppAnalyzer.analyze ctx.ParseFileResults.ParseTree ctx.CheckFileResults
-
             let walker =
                 { new TypedTreeCollectorBase() with
                     override _.WalkCall
@@ -54,9 +51,7 @@ let loggingArgFuncNotFullyAppliedAnalyzer : Analyzer<CliContext> =
                                     exprs
                                     |> List.exists (
                                         function
-                                        | Coerce (_type, expr) ->
-                                            partialApps
-                                            |> Seq.exists (fun m -> Range.rangeContainsRange expr.Range m.Range)
+                                        | Coerce (_type, expr) -> expr.Type.IsFunctionType
                                         | _ -> false
                                     )
                                 | _ -> false
