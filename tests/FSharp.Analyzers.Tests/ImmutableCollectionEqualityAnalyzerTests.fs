@@ -1,4 +1,4 @@
-module GR.FSharp.Analyzers.Tests.TypeAnnotateStringFunctionAnalyzerTests
+module GR.FSharp.Analyzers.Tests.ImmutableCollectionEqualityAnalyzerTests
 
 open System.Collections
 open System.IO
@@ -14,7 +14,6 @@ let mutable projectOptions : FSharpProjectOptions = FSharpProjectOptions.zero
 let Setup () =
     task {
         let! options = mkOptionsFromProject "net7.0" []
-
         projectOptions <- options
     }
 
@@ -22,17 +21,17 @@ type TestCases() =
 
     interface IEnumerable with
         member _.GetEnumerator () : IEnumerator =
-            constructTestCaseEnumerator [| "typeAnnotateStringFunctions" |]
+            constructTestCaseEnumerator [| "immutableCollectionEquality" |]
 
 [<TestCaseSource(typeof<TestCases>)>]
-let TypeAnnotateStringFunctionsTests (fileName : string) =
+let ImmutableCollectionEqualityAnalyzerTests (fileName : string) =
     task {
         let fileName = Path.Combine (dataFolder, fileName)
 
         let! messages =
             File.ReadAllText fileName
             |> getContext projectOptions
-            |> TypeAnnotateStringFunctionAnalyzer.typeAnnotateStringFunctionsAnalyzer
+            |> ImmutableCollectionEqualityAnalyzer.immutableCollectionEqualityAnalyzer
 
         do! assertExpected fileName messages
     }
@@ -41,7 +40,7 @@ type NegativeTestCases() =
 
     interface IEnumerable with
         member _.GetEnumerator () : IEnumerator =
-            constructTestCaseEnumerator [| "typeAnnotateStringFunctions" ; "negative" |]
+            constructTestCaseEnumerator [| "immutableCollectionEquality" ; "negative" |]
 
 [<TestCaseSource(typeof<NegativeTestCases>)>]
 let NegativeTests (fileName : string) =
@@ -51,7 +50,7 @@ let NegativeTests (fileName : string) =
         let! messages =
             File.ReadAllText fileName
             |> getContext projectOptions
-            |> TypeAnnotateStringFunctionAnalyzer.typeAnnotateStringFunctionsAnalyzer
+            |> ImmutableCollectionEqualityAnalyzer.immutableCollectionEqualityAnalyzer
 
         Assert.IsEmpty messages
     }
