@@ -1,4 +1,4 @@
-module GR.FSharp.Analyzers.TypeAnnotateStringFunction
+module GR.FSharp.Analyzers.TypeAnnotateStringFunctionAnalyzer
 
 open System.Text
 open FSharp.Analyzers.SDK

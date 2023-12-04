@@ -1,47 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <IsPackable>true</IsPackable>
-        <AssemblyName>G-Research.FSharp.Analyzers</AssemblyName>
-        <Tailcalls>true</Tailcalls>
-        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-        <DevelopmentDependency>true</DevelopmentDependency>
-        <NoPackageAnalysis>true</NoPackageAnalysis>
-        <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-        <IncludeBuildOutput>false</IncludeBuildOutput>
-    </PropertyGroup>
-
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <AssemblyName>G-Research.FSharp.Analyzers</AssemblyName>
+    <Tailcalls>true</Tailcalls>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="StringAnalyzer.fsi" />
+    <Compile Include="StringAnalyzer.fs" />
+    <Compile Include="JsonSerializerOptionsAnalyzer.fs" />
+    <Compile Include="UnionCaseAnalyzer.fs" />
+    <Compile Include="PartialAppAnalyzer.fs" />
+    <Compile Include="VirtualCallAnalyzer.fsi" />
+    <Compile Include="VirtualCallAnalyzer.fs" />
+    <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fsi" />
+    <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fs" />
+    <Compile Include="TypeAnnotateStringFunctionAnalyzer.fs" />
+    <Compile Include="ImmutableCollectionEqualityAnalyzer.fs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalAnalyzersSDK)' == 'true'">
+    <ProjectReference Include="$(LocalAnalyzersSDKRepo)/src/FSharp.Analyzers.SDK/FSharp.Analyzers.SDK.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalAnalyzersSDK)' == 'false'">
+    <PackageReference Include="FSharp.Analyzers.SDK" />
+  </ItemGroup>
+  <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
-        <Compile Include="StringAnalyzer.fsi" />
-        <Compile Include="StringAnalyzer.fs" />
-        <Compile Include="JsonSerializerOptionsAnalyzer.fs" />
-        <Compile Include="UnionCaseAnalyzer.fs" />
-        <Compile Include="PartialAppAnalyzer.fs" />
-        <Compile Include="VirtualCallAnalyzer.fsi" />
-        <Compile Include="VirtualCallAnalyzer.fs" />
-        <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fsi" />
-        <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fs" />
-        <Compile Include="TypeAnnotateStringFunction.fs" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).dll" PackagePath="analyzers/dotnet/fs" />
     </ItemGroup>
-
-    <ItemGroup Condition="'$(UseLocalAnalyzersSDK)' == 'true'">
-        <ProjectReference Include="$(LocalAnalyzersSDKRepo)/src/FSharp.Analyzers.SDK/FSharp.Analyzers.SDK.fsproj" />
-    </ItemGroup>
-    
-    <ItemGroup>
-        <PackageReference Update="FSharp.Core" />
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(UseLocalAnalyzersSDK)' == 'false'">
-        <PackageReference Include="FSharp.Analyzers.SDK"/>
-    </ItemGroup>
-
-    <Target Name="_AddAnalyzersToOutput">
-        <ItemGroup>
-            <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).dll" PackagePath="analyzers/dotnet/fs" />
-        </ItemGroup>
-    </Target>
+  </Target>
 </Project>
