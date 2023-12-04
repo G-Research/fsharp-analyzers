@@ -18,7 +18,7 @@ let loggingArgFuncNotFullyAppliedAnalyzer : Analyzer<CliContext> =
         async {
             let state = ResizeArray<range> ()
 
-            let namesToWarnAbount =
+            let namesToWarnAbout =
                 set
                     [
                         "Microsoft.Extensions.Logging.LoggerExtensions.Log"
