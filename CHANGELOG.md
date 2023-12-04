@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0 - 2023-12-04
+
+### Added
+* Add ImmutableCollectionEquality analyzer. [#34](https://github.com/G-Research/fsharp-analyzers/pull/37)
+* Add LoggingArgFuncNotFullyApplied analyzer. [#34](https://github.com/G-Research/fsharp-analyzers/pull/38)
+
 ## 0.4.0 - 2023-11-23
 
 ### Added
