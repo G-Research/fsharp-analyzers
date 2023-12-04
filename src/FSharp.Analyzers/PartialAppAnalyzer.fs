@@ -107,6 +107,7 @@ let rec visitApp (handlers : Handlers) (depth : int) (expr : SynExpr) =
         visitApp handlers depth ifExpr
         visitApp handlers depth thenExpr
         Option.iter (visitApp handlers depth) elseExpr
+    | SynExpr.Paren (expr = synExpr) -> visitExpr handlers synExpr
     | SynExpr.Match (expr = expr ; clauses = clauses) ->
         let matchExprs = collectExprFromMatchClauses clauses
         visitApp handlers depth expr

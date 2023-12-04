@@ -21,6 +21,8 @@
     <Compile Include="PartialAppAnalyzer.fs" />
     <Compile Include="VirtualCallAnalyzer.fsi" />
     <Compile Include="VirtualCallAnalyzer.fs" />
+    <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fsi" />
+    <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fs" />
     <Compile Include="TypeAnnotateStringFunctionAnalyzer.fs" />
     <Compile Include="ImmutableCollectionEqualityAnalyzer.fs" />
   </ItemGroup>

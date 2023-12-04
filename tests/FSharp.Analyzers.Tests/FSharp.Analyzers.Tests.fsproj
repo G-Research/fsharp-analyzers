@@ -14,6 +14,7 @@
     <Compile Include="JsonSerializerOptionsAnalyzerTests.fs" />
     <Compile Include="UnionCaseAnalyzerTests.fs" />
     <Compile Include="VirtualCallAnalyzerTests.fs" />
+    <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzerTests.fs" />
     <Compile Include="TypeAnnotateStringFunctionAnalyzerTests.fs" />
     <Compile Include="ImmutableCollectionEqualityAnalyzerTests.fs" />
   </ItemGroup>
