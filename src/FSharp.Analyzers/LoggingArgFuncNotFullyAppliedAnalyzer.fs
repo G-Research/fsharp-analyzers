@@ -64,7 +64,7 @@ let loggingArgFuncNotFullyAppliedAnalyzer : Analyzer<CliContext> =
 
                         if
                             m.Assembly.SimpleName = assemblyName
-                            && Set.contains name namesToWarnAbount
+                            && Set.contains name namesToWarnAbout
                             && argsContainPartiallyAppliedFunc
                         then
                             state.Add range
