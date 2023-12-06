@@ -18,7 +18,13 @@ let isImmutableType (basicQualifiedName : string) (e : FSharpExpr) =
 
     let t = e.Type
 
-    t.BasicQualifiedName = basicQualifiedName
+    let basicQualifiedNameOfExprType =
+        if t.ErasedType.HasTypeDefinition then
+            t.ErasedType.TypeDefinition.TryGetFullName () |> Option.defaultValue ""
+        else
+            ""
+
+    basicQualifiedNameOfExprType = basicQualifiedName
     && t.TypeDefinition.Assembly.SimpleName = "System.Collections.Immutable"
 
 let isImmutableDictionaryType (e : FSharpExpr) =
@@ -39,7 +45,7 @@ let mkMessage typeName m =
     }
 
 [<CliAnalyzer("ImmutableCollectionEqualityAnalyzer",
-              "TODO: add description.",
+              "Warns about questionable comparison operations among immutable collections",
               "https://g-research.github.io/fsharp-analyzers/analyzers/ImmutableCollectionEqualityAnalyzer.html")>]
 let immutableCollectionEqualityAnalyzer : Analyzer<CliContext> =
     fun (ctx : CliContext) ->

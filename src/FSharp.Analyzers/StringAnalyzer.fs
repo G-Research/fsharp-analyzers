@@ -14,15 +14,22 @@ let StringStartsWithCode = "GRA-STRING-002"
 [<Literal>]
 let StringIndexOfCode = "GRA-STRING-003"
 
-let (|StringExpr|_|) (e : FSharpExpr) =
-    if e.Type.ErasedType.BasicQualifiedName = "System.String" then
-        Some ()
+let tryGetFullName (e : FSharpExpr) =
+    if e.Type.ErasedType.HasTypeDefinition then
+        e.Type.ErasedType.TypeDefinition.TryGetFullName ()
     else
         None
 
+let (|StringExpr|_|) (e : FSharpExpr) =
+    match tryGetFullName e with
+    | Some "System.String" -> Some ()
+    | _ -> None
+
 let (|IntExpr|_|) (e : FSharpExpr) =
-    if e.Type.ErasedType.BasicQualifiedName = "System.Int32" then
-        Some ()
+    if e.Type.ErasedType.HasTypeDefinition then
+        match tryGetFullName e with
+        | Some "System.Int32" -> Some ()
+        | _ -> None
     else
         None
 
