@@ -16,9 +16,7 @@ let StringIndexOfCode = "GRA-STRING-003"
 
 let tryGetFullName (e : FSharpExpr) =
     if e.Type.ErasedType.HasTypeDefinition then
-        match e.Type.ErasedType.TypeDefinition.TryGetFullName () with
-        | Some n -> Some n
-        | _ -> None
+        e.Type.ErasedType.TypeDefinition.TryGetFullName ()
     else
         None
 
