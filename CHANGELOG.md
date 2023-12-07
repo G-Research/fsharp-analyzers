@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Added
+* Add TypedInterpolatedStringsAnalyzer. [#40](https://github.com/G-Research/fsharp-analyzers/pull/40)
+
 ## 0.5.1 - 2023-12-06
 
 ### Fixed
