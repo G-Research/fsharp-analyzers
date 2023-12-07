@@ -3,13 +3,13 @@
   "isRoot": true,
   "tools": {
     "fantomas": {
-      "version": "6.3.0-alpha-003",
+      "version": "6.3.0-alpha-004",
       "commands": [
         "fantomas"
       ]
     },
     "fsdocs-tool": {
-      "version": "20.0.0-alpha-014",
+      "version": "20.0.0-alpha-016",
       "commands": [
         "fsdocs"
       ]
