@@ -13,7 +13,7 @@ let specifierRegex =
     Regex (@"\%(\+|\-)?\d*\.?\d*(b|s|c|d|i|u|x|X|o|B|e|E|f|F|g|G|M|O|A)$")
 
 [<CliAnalyzer("TypedInterpolatedStringsAnalyzer",
-              "TODO: add description.",
+              "Warns about missing type specifiers in interpolated strings",
               "https://g-research.github.io/fsharp-analyzers/analyzers/TypedInterpolatedStringsAnalyzer.html")>]
 let typedInterpolatedStringsAnalyzer : Analyzer<CliContext> =
     fun (ctx : CliContext) ->
