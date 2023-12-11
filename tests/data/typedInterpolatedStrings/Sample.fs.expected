@@ -1,0 +1,4 @@
+GRA-INTERPOLATED-001 | Warning | (5,14 - 5,16) | Interpolated hole expression without format detected. Use prefix with the correct % to enforce type safety.
+GRA-INTERPOLATED-001 | Warning | (6,10 - 6,12) | Interpolated hole expression without format detected. Use prefix with the correct % to enforce type safety.
+GRA-INTERPOLATED-001 | Warning | (6,17 - 6,22) | Interpolated hole expression without format detected. Use prefix with the correct % to enforce type safety.
+GRA-INTERPOLATED-001 | Warning | (6,27 - 6,40) | Interpolated hole expression without format detected. Use prefix with the correct % to enforce type safety.

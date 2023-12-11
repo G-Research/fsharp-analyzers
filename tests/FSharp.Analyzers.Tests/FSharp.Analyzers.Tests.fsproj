@@ -17,6 +17,7 @@
     <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzerTests.fs" />
     <Compile Include="TypeAnnotateStringFunctionAnalyzerTests.fs" />
     <Compile Include="ImmutableCollectionEqualityAnalyzerTests.fs" />
+    <Compile Include="TypedInterpolatedStringsAnalyzerTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="FSharp.Core" />

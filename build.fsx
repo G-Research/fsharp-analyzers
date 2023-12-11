@@ -102,7 +102,7 @@ open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 
 [<CliAnalyzer("%s{analyzerName}",
-              "TODO: add description.",
+              "", // TODO: add description.
               "https://g-research.github.io/fsharp-analyzers/analyzers/%s{analyzerName}.html")>]
 let %s{camelCasedName} : Analyzer<CliContext> = fun (ctx : CliContext) -> async {{ return List.empty<Message> }}
 """

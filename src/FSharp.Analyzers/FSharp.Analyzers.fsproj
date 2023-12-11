@@ -25,6 +25,7 @@
     <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fs" />
     <Compile Include="TypeAnnotateStringFunctionAnalyzer.fs" />
     <Compile Include="ImmutableCollectionEqualityAnalyzer.fs" />
+    <Compile Include="TypedInterpolatedStringsAnalyzer.fs" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalAnalyzersSDK)' == 'true'">
     <ProjectReference Include="$(LocalAnalyzersSDKRepo)/src/FSharp.Analyzers.SDK/FSharp.Analyzers.SDK.fsproj" />
