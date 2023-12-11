@@ -55,5 +55,5 @@ module VirtualCallAnalyzerTests =
                 |> getContext projectOptions
                 |> VirtualCallAnalyzer.virtualCallAnalyzer
 
-            Assert.IsEmpty messages
+            Assert.That (messages, Is.Empty)
         }

@@ -6,7 +6,6 @@ open System.Collections
 open System.Threading.Tasks
 open NUnit.Framework
 open FSharp.Analyzers.SDK
-open FSharp.Analyzers.SDK.Testing
 
 let shouldUpdateBaseline () =
     Environment.GetEnvironmentVariable "TEST_UPDATE_BSL"
@@ -45,7 +44,7 @@ let assertExpected sourceFile messages =
         elif File.Exists actualFile then
             File.Delete actualFile
 
-        Assert.AreEqual (expectedContents, actualContents)
+        Assert.That (actualContents, Is.EqualTo expectedContents)
     }
 
 let dataFolder = Path.Combine (__SOURCE_DIRECTORY__, "..", "data")

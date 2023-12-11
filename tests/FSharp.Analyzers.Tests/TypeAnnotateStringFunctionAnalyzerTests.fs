@@ -53,5 +53,5 @@ let NegativeTests (fileName : string) =
             |> getContext projectOptions
             |> TypeAnnotateStringFunctionAnalyzer.typeAnnotateStringFunctionsAnalyzer
 
-        Assert.IsEmpty messages
+        Assert.That (messages, Is.Empty)
     }

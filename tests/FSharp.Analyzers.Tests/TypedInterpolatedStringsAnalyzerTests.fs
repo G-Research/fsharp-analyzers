@@ -52,5 +52,5 @@ let NegativeTests (fileName : string) =
             |> getContext projectOptions
             |> TypedInterpolatedStringsAnalyzer.typedInterpolatedStringsAnalyzer
 
-        Assert.IsEmpty messages
+        Assert.That (messages, Is.Empty)
     }

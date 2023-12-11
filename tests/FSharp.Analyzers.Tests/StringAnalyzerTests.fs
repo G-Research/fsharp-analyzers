@@ -72,5 +72,5 @@ let NegativeStringTests (fileName : string) =
             |> getContext projectOptions
             |> findStringAnalyzerFor fileName
 
-        Assert.IsEmpty messages
+        Assert.That (messages, Is.Empty)
     }

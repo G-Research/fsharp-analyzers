@@ -52,5 +52,5 @@ let NegativeTests (fileName : string) =
             |> getContext projectOptions
             |> ImmutableCollectionEqualityAnalyzer.immutableCollectionEqualityAnalyzer
 
-        Assert.IsEmpty messages
+        Assert.That (messages, Is.Empty)
     }
