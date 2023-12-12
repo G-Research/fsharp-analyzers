@@ -67,5 +67,5 @@ module LoggingArgFuncNotFullyAppliedAnalyzerTests =
                 |> getContext projectOptions
                 |> LoggingArgFuncNotFullyAppliedAnalyzer.loggingArgFuncNotFullyAppliedAnalyzer
 
-            Assert.IsEmpty messages
+            Assert.That (messages, Is.Empty)
         }

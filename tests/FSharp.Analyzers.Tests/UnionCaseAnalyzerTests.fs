@@ -55,5 +55,5 @@ module UnionCaseAnalyzerTests =
                 |> getContext projectOptions
                 |> UnionCaseAnalyzer.unionCaseAnalyzer
 
-            Assert.IsEmpty messages
+            Assert.That (messages, Is.Empty)
         }

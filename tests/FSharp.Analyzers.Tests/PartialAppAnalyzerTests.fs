@@ -64,5 +64,5 @@ module PartialAppAnalyzerTests =
                 |> getContext projectOptions
                 |> PartialAppAnalyzer.partialAppCliAnalyzer
 
-            Assert.IsEmpty messages
+            Assert.That (messages, Is.Empty)
         }
