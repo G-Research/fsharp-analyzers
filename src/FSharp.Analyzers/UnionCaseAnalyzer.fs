@@ -65,7 +65,10 @@ let findAllShadowingCases
     let walker =
         { new SyntaxCollectorBase() with
             override _.WalkTypeDefn
-                (SynTypeDefn (typeInfo = SynComponentInfo (attributes = synAttributeLists) ; typeRepr = repr))
+                (
+                    _,
+                    SynTypeDefn (typeInfo = SynComponentInfo (attributes = synAttributeLists) ; typeRepr = repr)
+                )
                 =
                 let hasReqQualAccAttribute =
                     synAttributeLists

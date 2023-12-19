@@ -22,7 +22,7 @@ let typedInterpolatedStringsAnalyzer : Analyzer<CliContext> =
 
             let walker =
                 { new SyntaxCollectorBase() with
-                    override x.WalkExpr (expr : SynExpr) =
+                    override x.WalkExpr (_, expr : SynExpr) =
                         match expr with
                         | SynExpr.InterpolatedString (contents = contents) ->
                             contents
