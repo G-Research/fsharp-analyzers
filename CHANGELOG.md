@@ -1,9 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.6.0 - 2023-12-20
 
 ### Added
 * Add TypedInterpolatedStringsAnalyzer. [#40](https://github.com/G-Research/fsharp-analyzers/pull/40)
+
+### Changed
+* Update FSharp.Analyzers.SDK to `0.22.0`. [#27](https://github.com/G-Research/fsharp-analyzers/pull/45)
 
 ## 0.5.1 - 2023-12-06
 
