@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+* Don't report FormattableStrings in TypedInterpolatedStringsAnalyzer. [#46](https://github.com/G-Research/fsharp-analyzers/pull/46)
+
 ## 0.6.0 - 2023-12-20
 
 ### Added
