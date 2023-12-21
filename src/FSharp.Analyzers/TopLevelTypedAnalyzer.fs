@@ -68,14 +68,15 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                     match headPat with
                     | SynPat.LongIdent (argPats = SynArgPats.Pats (pats = pats)) ->
                         pats
-                        |> List.choose (fun pat ->
+                        |> List.indexed
+                        |> List.choose (fun (idx, pat) ->
                             let pat = removePatternParens pat
 
                             match pat with
                             | SynPat.Typed (targetType = targetType) ->
                                 // TODO: the type might be incomplete, if it has wildcard for example.
                                 None
-                            | untypedPat -> Some untypedPat
+                            | untypedPat -> Some (idx, untypedPat)
                         )
                     | _ ->
                         // There were no parameters
@@ -92,13 +93,32 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
 
                 if isNotPrivateAndLacksTypeInformation then
                     let msg =
-                        if not hasUsesOutsideOfFile then
-                            let projectName =
-                                Path.GetFileName ctx.CheckProjectResults.ProjectContext.ProjectOptions.ProjectFileName
+                        let andOrComma, notUsedOutsideFile =
+                            if not hasUsesOutsideOfFile then
+                                ", ", $" and not used outside `%s{ctx.FileName}`"
+                            else
+                                "and", ""
 
-                            $"`%s{ident.idText}` is not private and not fully typed and not used outside %s{ctx.FileName} in project %s{projectName}. Add `private` keyword."
-                        else
-                            $"`%s{ident.idText}` is not private and not fully typed. Add fully type information."
+                        let addReturnType = if hasReturnType then "" else "Specify the return type."
+
+                        let addTypeForParameters =
+                            let text =
+                                untypedParameters
+                                |> List.map (fun (idx, pat) ->
+                                    match pat with
+                                    | SynPat.Named (ident = SynIdent (ident = ident)) -> ident.idText
+                                    | _ -> $"parameter at index %i{idx}"
+                                    |> sprintf "Add type annotation for parameter `%s`"
+                                )
+                                |> String.concat "\n"
+
+                            if String.IsNullOrWhiteSpace text then
+                                ""
+                            else
+                                String.Concat (" ", text, ".")
+
+
+                        $"`%s{ident.idText}` is not private%s{andOrComma}not fully typed%s{notUsedOutsideFile}.%s{addReturnType}%s{addTypeForParameters}"
 
                     {
                         Type = "TopLevelTyped analyzer"

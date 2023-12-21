@@ -1,1 +1,3 @@
-GRA-UNTYPEDAPI-001 | Warning | (3,4 - 3,12) | `areEqual` is not private and not fully typed
+GRA-UNTYPEDAPI-001 | Warning | (3,4 - 3,12) | `areEqual` is not private, not fully typed and not used outside `A.fs`.Specify the return type. Add type annotation for parameter `a`
+Add type annotation for parameter `b`.
+GRA-UNTYPEDAPI-001 | Warning | (5,4 - 5,5) | `a` is not private, not fully typed and not used outside `A.fs`.Specify the return type.

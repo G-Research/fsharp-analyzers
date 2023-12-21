@@ -1,0 +1,1 @@
+GRA-UNTYPEDAPI-001 | Warning | (3,4 - 3,5) | `a` is not private, not fully typed and not used outside `A.fs`. Add type annotation for parameter `b`.
