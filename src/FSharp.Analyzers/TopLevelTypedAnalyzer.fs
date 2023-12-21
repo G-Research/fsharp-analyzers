@@ -130,12 +130,46 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                     }
                     |> messages.Add
 
+            let processMember (md : SynMemberDefn) =
+                match md with
+                | SynMemberDefn.Open _ -> ()
+                | SynMemberDefn.Member (memberDefn = memberDefn) -> processBinding memberDefn
+                | SynMemberDefn.GetSetMember (memberDefnForGet, memberDefnForSet, range, trivia) -> failwith "todo"
+                | SynMemberDefn.ImplicitCtor (accessibility, attributes, ctorArgs, selfIdentifier, xmlDoc, range, trivia) ->
+                    failwith "todo"
+                | SynMemberDefn.ImplicitInherit (inheritType, inheritArgs, inheritAlias, range) -> failwith "todo"
+                | SynMemberDefn.LetBindings (bindings, isStatic, isRecursive, range) -> failwith "todo"
+                | SynMemberDefn.AbstractSlot (slotSig, flags, range, trivia) -> failwith "todo"
+                | SynMemberDefn.Interface (interfaceType, withKeyword, members, range) -> failwith "todo"
+                | SynMemberDefn.Inherit (baseType, asIdent, range) -> failwith "todo"
+                | SynMemberDefn.ValField (fieldInfo, range) -> failwith "todo"
+                | SynMemberDefn.NestedType (typeDefn, accessibility, range) -> failwith "todo"
+                | SynMemberDefn.AutoProperty (attributes,
+                                              isStatic,
+                                              ident,
+                                              typeOpt,
+                                              propKind,
+                                              memberFlags,
+                                              memberFlagsForSet,
+                                              xmlDoc,
+                                              accessibility,
+                                              synExpr,
+                                              range,
+                                              trivia) -> failwith "todo"
+
             let walker =
                 { new SyntaxCollectorBase() with
                     override x.WalkSynModuleDecl (path, mdl) =
                         match mdl with
                         | SynModuleDecl.Let (bindings = bindings) -> List.iter processBinding bindings
-                        | SynModuleDecl.Types (typeDefns = typeDefns) -> ()
+                        | SynModuleDecl.Types (typeDefns = typeDefns) ->
+                            for (SynTypeDefn (typeRepr = typeRepr ; members = additionalMembers)) in typeDefns do
+                                match typeRepr with
+                                | SynTypeDefnRepr.Simple _
+                                | SynTypeDefnRepr.Exception _ -> ()
+                                | SynTypeDefnRepr.ObjectModel (members = members) -> List.iter processMember members
+
+                                List.iter processMember additionalMembers
                         | _ -> ()
                 }
 
