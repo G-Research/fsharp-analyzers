@@ -1,9 +1,12 @@
 module GR.FSharp.Analyzers.TypedInterpolatedStringsAnalyzer
 
+open System.Collections.Generic
 open System.Text.RegularExpressions
 open FSharp.Analyzers.SDK
 open FSharp.Analyzers.SDK.ASTCollecting
+open FSharp.Analyzers.SDK.TASTCollecting
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.Text
 
 [<Literal>]
 let Code = "GRA-INTERPOLATED-001"
@@ -19,12 +22,36 @@ let typedInterpolatedStringsAnalyzer : Analyzer<CliContext> =
     fun (ctx : CliContext) ->
         async {
             let messages = ResizeArray<Message> ()
+            // Formattable strings needs to be skipped https://learn.microsoft.com/en-us/dotnet/api/system.formattablestring?view=net-8.0
+            let formattableStrings = HashSet Range.comparer
+
+            let tastWalker =
+                { new TypedTreeCollectorBase() with
+                    override _.WalkCall
+                        objExprOpt
+                        memberOrFunc
+                        objExprTypeArgs
+                        memberOrFuncTypeArgs
+                        argExprs
+                        exprRange
+                        =
+                        if
+                            memberOrFunc.FullName = "System.Runtime.CompilerServices.FormattableStringFactory.Create"
+                            && argExprs.Length = 2
+                            && argExprs.[0].Type.ErasedType.BasicQualifiedName = "System.String"
+                        then
+                            formattableStrings.Add argExprs.[0].Range |> ignore
+                }
+
+            Option.iter (walkTast tastWalker) ctx.TypedTree
 
             let walker =
                 { new SyntaxCollectorBase() with
                     override x.WalkExpr (_, expr : SynExpr) =
                         match expr with
-                        | SynExpr.InterpolatedString (contents = contents) ->
+                        | SynExpr.InterpolatedString (contents = contents) when
+                            not (formattableStrings.Contains expr.Range)
+                            ->
                             contents
                             |> List.pairwise
                             |> List.iter (fun (p1, p2) ->
