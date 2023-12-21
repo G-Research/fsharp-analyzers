@@ -1,0 +1,3 @@
+GRA-UNTYPEDAPI-001 | Warning | (3,4 - 3,12) | `areEqual` is not private, not fully typed and not used outside `A.fs` in the current project.
+Missing constraint: a : equality
+Generic type parameter b not present.

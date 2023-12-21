@@ -1,4 +1,8 @@
-GRA-UNTYPEDAPI-001 | Warning | (3,4 - 3,5) | `a` is not private, not fully typed and not used outside `A.fs`.Specify the return type.
-GRA-UNTYPEDAPI-001 | Warning | (5,4 - 5,5) | `c` is not private, not fully typed and not used outside `A.fs`.Specify the return type.
-GRA-UNTYPEDAPI-001 | Warning | (8,13 - 8,16) | `Foo` is not private, not fully typed and not used outside `A.fs`.Specify the return type.
-GRA-UNTYPEDAPI-001 | Warning | (9,13 - 9,17) | `Char` is not private, not fully typed and not used outside `A.fs`.Specify the return type.
+GRA-UNTYPEDAPI-001 | Warning | (3,4 - 3,5) | `a` is not private, not fully typed and not used outside `A.fs` in the current project.
+Specify the return type.
+GRA-UNTYPEDAPI-001 | Warning | (5,4 - 5,5) | `c` is not private, not fully typed and not used outside `A.fs` in the current project.
+Specify the return type.
+GRA-UNTYPEDAPI-001 | Warning | (8,13 - 8,16) | `Foo` is not private, not fully typed and not used outside `A.fs` in the current project.
+Specify the return type.
+GRA-UNTYPEDAPI-001 | Warning | (9,13 - 9,17) | `Char` is not private, not fully typed and not used outside `A.fs` in the current project.
+Specify the return type.

@@ -1,2 +1,4 @@
-GRA-UNTYPEDAPI-001 | Warning | (3,4 - 3,5) | `a` is not private, not fully typed and not used outside `A.fs`. Add type annotation for parameter `b`.
-GRA-UNTYPEDAPI-001 | Warning | (6,13 - 6,16) | `Foo` is not private, not fully typed and not used outside `A.fs`. Add type annotation for parameter `bar`.
+GRA-UNTYPEDAPI-001 | Warning | (3,4 - 3,5) | `a` is not private, not fully typed and not used outside `A.fs` in the current project.
+Add type annotation for parameter `b`
+GRA-UNTYPEDAPI-001 | Warning | (6,13 - 6,16) | `Foo` is not private, not fully typed and not used outside `A.fs` in the current project.
+Add type annotation for parameter `bar`

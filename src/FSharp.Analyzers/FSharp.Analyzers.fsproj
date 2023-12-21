@@ -26,6 +26,7 @@
     <Compile Include="TypeAnnotateStringFunctionAnalyzer.fs" />
     <Compile Include="ImmutableCollectionEqualityAnalyzer.fs" />
     <Compile Include="TypedInterpolatedStringsAnalyzer.fs" />
+    <Compile Include="TopLevelTypeAnalysis.fs" />
     <Compile Include="TopLevelTypedAnalyzer.fs" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalAnalyzersSDK)' == 'true'">
