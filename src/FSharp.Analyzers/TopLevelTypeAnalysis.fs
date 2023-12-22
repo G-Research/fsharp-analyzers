@@ -53,6 +53,11 @@ type Declaration =
         typeName : LongIdent *
         /// Constructor arguments range, does include parentheses.
         simplePatsRange : range
+    | AutoProperty of
+        name : Ident *
+        /// Return type name formatted using proper DisplayContext.
+        TypeName : string
+
 
 /// Missing information for a binding to extract signature data.
 type MissingTypeInfo =
@@ -101,6 +106,11 @@ type ISourceText with
                 let lastLine = x.GetLineString (range.EndLine - 1)
 
                 sb.Append(lastLine.Substring (0, range.EndColumn)).ToString ()
+
+let (|Mfv|_|) (symbolUse : FSharpSymbolUse) =
+    match symbolUse.Symbol with
+    | :? FSharpMemberOrFunctionOrValue as mfv -> Some mfv
+    | _ -> None
 
 type private Env =
     {
@@ -518,18 +528,35 @@ let private processMember
     | SynMemberDefn.Inherit (baseType, asIdent, range) ->
         failwithf "todo: SynMemberDefn.Inherit %A %s" range range.FileName
     | SynMemberDefn.ValField (fieldInfo, range) -> failwithf "todo: SynMemberDefn.ValField %A %s" range range.FileName
-    | SynMemberDefn.AutoProperty (attributes,
-                                  isStatic,
-                                  ident,
-                                  typeOpt,
-                                  propKind,
-                                  memberFlags,
-                                  memberFlagsForSet,
-                                  xmlDoc,
-                                  accessibility,
-                                  synExpr,
-                                  range,
-                                  trivia) -> failwithf "todo: SynMemberDefn.AutoProperty %A %s" range range.FileName
+    | SynMemberDefn.AutoProperty (ident = ident ; typeOpt = typeOpt) ->
+        match typeOpt with
+        | Some _ -> []
+        | None ->
+
+        let lineText = env.SourceText.GetLineString (ident.idRange.EndLine - 1)
+
+        env.CheckFileResults.GetSymbolUseAtLocation (
+            ident.idRange.EndLine,
+            ident.idRange.EndColumn,
+            lineText,
+            [ ident.idText ]
+        )
+        |> Option.bind (fun symbolUse ->
+            match symbolUse with
+            | Mfv mfv ->
+                let t = mfv.FullType.Format symbolUse.DisplayContext
+                let usedOutsideFile = symbolHasUsesOutsideFile env symbolUse
+
+                Some
+                    {
+                        Declaration = Declaration.AutoProperty (ident, t)
+                        Parameters = []
+                        GenericParameters = []
+                        ValueIsUsedOutsideTheFileInTheProject = usedOutsideFile
+                    }
+            | _ -> None
+        )
+        |> Option.toList
 
 let private processModuleDecl (env : Env) (mdl : SynModuleDecl) =
     match mdl with

@@ -1,0 +1,2 @@
+GRA-UNTYPEDAPI-001 | Warning | (4,15 - 4,16) | `X` is not private, not fully typed and not used outside `A.fs` in the current project.
+GRA-UNTYPEDAPI-001 | Warning | (5,15 - 5,16) | `Y` is not private, not fully typed and not used outside `A.fs` in the current project.

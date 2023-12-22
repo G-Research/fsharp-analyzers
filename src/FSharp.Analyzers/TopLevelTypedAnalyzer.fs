@@ -24,7 +24,7 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
             | ParsedInput.ImplFile _ ->
 
             let missingInfo =
-                TopLevelTypeAnalysis.findMissingTypeInformation
+                findMissingTypeInformation
                     ctx.SourceText
                     ctx.ParseFileResults.ParseTree
                     ctx.CheckFileResults
@@ -61,6 +61,7 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                             | Declaration.ImplicitCtor (typeName = typeName) ->
                                 let typeName = typeName |> List.map (fun ident -> ident.idText) |> String.concat "."
                                 $"The constructor of %s{typeName}"
+                            | Declaration.AutoProperty (name, _) -> name.idText
 
                         [
                             $"`%s{identifier}` is not private"
@@ -87,7 +88,8 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                         | Declaration.ImplicitCtor (typeName = typeName) ->
                             typeName
                             |> List.map (fun ident -> ident.idRange)
-                            |> List.reduce (FSharp.Compiler.Text.Range.unionRanges)
+                            |> List.reduce FSharp.Compiler.Text.Range.unionRanges
+                        | Declaration.AutoProperty (name, _) -> name.idRange
 
                     {
                         Type = "TopLevelTyped analyzer"
