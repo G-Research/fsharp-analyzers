@@ -563,7 +563,12 @@ let rec private processModuleDecl (env : Env) (mdl : SynModuleDecl) =
     | SynModuleDecl.Types (typeDefns = typeDefns) ->
         [
             for SynTypeDefn (typeRepr = typeRepr ; members = additionalMembers ; typeInfo = typeInfo) in typeDefns do
-                let (SynComponentInfo (longId = typeName ; typeParams = typeParams)) = typeInfo
+                let (SynComponentInfo (longId = typeName ; typeParams = typeParams ; accessibility = vis)) =
+                    typeInfo
+
+                match vis with
+                | Some (SynAccess.Private _) -> ()
+                | _ ->
 
                 match typeRepr with
                 | SynTypeDefnRepr.Simple _
