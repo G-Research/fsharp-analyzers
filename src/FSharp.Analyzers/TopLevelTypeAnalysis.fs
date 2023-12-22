@@ -486,7 +486,8 @@ let private processMember
     | SynMemberDefn.LetBindings _
     | SynMemberDefn.Open _
     | SynMemberDefn.ImplicitInherit _
-    | SynMemberDefn.Interface _ -> []
+    | SynMemberDefn.Interface _
+    | SynMemberDefn.AbstractSlot _ -> []
     | SynMemberDefn.Member (memberDefn = memberDefn) -> processBinding env memberDefn |> Option.toList
     | SynMemberDefn.GetSetMember (memberDefnForGet, memberDefnForSet, range, trivia) ->
         failwithf "todo: SynMemberDefn.GetSetMember %A %s" range range.FileName
@@ -523,8 +524,6 @@ let private processMember
                         }
             )
             |> Option.toList
-    | SynMemberDefn.AbstractSlot (slotSig, flags, range, trivia) ->
-        failwithf "todo: SynMemberDefn.AbstractSlot %A %s" range range.FileName
     | SynMemberDefn.Inherit (baseType, asIdent, range) ->
         failwithf "todo: SynMemberDefn.Inherit %A %s" range range.FileName
     | SynMemberDefn.ValField (fieldInfo, range) -> failwithf "todo: SynMemberDefn.ValField %A %s" range range.FileName
