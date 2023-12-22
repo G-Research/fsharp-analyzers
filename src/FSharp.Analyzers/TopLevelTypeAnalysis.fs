@@ -1,5 +1,6 @@
 module TopLevelTypeAnalysis
 
+open System.Text
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Syntax
@@ -70,6 +71,37 @@ type FSharpGenericParameter with
     member private gp.HasEqualityConstraint =
         gp.Constraints |> Seq.exists (fun c -> c.IsEqualityConstraint)
 
+    member private gp.SubtypesOfTypeConstraint (dp : FSharpDisplayContext) =
+        gp.Constraints
+        |> Seq.choose (fun c ->
+            if not c.IsCoercesToConstraint then
+                None
+            else
+                let t = c.CoercesToTarget.Format (dp)
+                Some $"%s{gp.Name} :> %s{t}"
+        )
+        |> Seq.toList
+
+type ISourceText with
+
+    member private x.GetContentAt (range : range) : string =
+        let startLine = range.StartLine - 1
+        let line = x.GetLineString startLine
+
+        if range.StartLine = range.EndLine then
+            let length = range.EndColumn - range.StartColumn
+            line.Substring (range.StartColumn, length)
+        else
+            let firstLineContent = line.Substring range.StartColumn
+            let sb = StringBuilder().AppendLine firstLineContent
+
+            (sb, [ range.StartLine .. range.EndLine - 2 ])
+            ||> List.fold (fun sb lineNumber -> sb.AppendLine (x.GetLineString lineNumber))
+            |> fun sb ->
+                let lastLine = x.GetLineString (range.EndLine - 1)
+
+                sb.Append(lastLine.Substring (0, range.EndColumn)).ToString ()
+
 type private Env =
     {
         SourceText : ISourceText
@@ -82,9 +114,14 @@ type private Env =
 type private UntypedGenericParameterInfo =
     {
         IsEqualityConstraint : bool
+        SubtypesOfType : string list
     }
 
-    static member Empty = { IsEqualityConstraint = false }
+    static member Empty =
+        {
+            IsEqualityConstraint = false
+            SubtypesOfType = []
+        }
 
 let rec private removePatternParens (p : SynPat) =
     match p with
@@ -96,6 +133,7 @@ let private symbolHasUsesOutsideFile (env : Env) (symbolUse : FSharpSymbolUse) =
     |> Array.exists (fun symbolUse -> symbolUse.FileName <> symbolUse.FileName)
 
 let private findMissingGenericParameterInfos
+    (env : Env)
     (symbolUse : FSharpSymbolUse)
     (typarDecls : SynTyparDecls option)
     : MissingGenericParameterInfo list
@@ -118,36 +156,54 @@ let private findMissingGenericParameterInfos
             ||> List.fold (fun map stc ->
                 match stc with
                 | SynTypeConstraint.WhereTyparIsValueType (typar, range) ->
-                    failwith "todo: SynTypeConstraint.WhereTyparIsValueType"
+                    failwithf "todo: SynTypeConstraint.WhereTyparIsValueType %A %s" range range.FileName
                 | SynTypeConstraint.WhereTyparIsReferenceType (typar, range) ->
-                    failwith "todo: SynTypeConstraint.WhereTyparIsReferenceType"
+                    failwithf "todo: SynTypeConstraint.WhereTyparIsReferenceType %A %s" range range.FileName
                 | SynTypeConstraint.WhereTyparIsUnmanaged (typar, range) ->
-                    failwith "todo: SynTypeConstraint.WhereTyparIsUnmanaged"
+                    failwithf "todo: SynTypeConstraint.WhereTyparIsUnmanaged %A %s" range range.FileName
                 | SynTypeConstraint.WhereTyparSupportsNull (typar, range) ->
-                    failwith "todo: SynTypeConstraint.WhereTyparSupportsNull"
+                    failwithf "todo: SynTypeConstraint.WhereTyparSupportsNull %A %s" range range.FileName
                 | SynTypeConstraint.WhereTyparIsComparable (typar, range) ->
-                    failwith "todo: SynTypeConstraint.WhereTyparIsComparable"
-                | SynTypeConstraint.WhereTyparIsEquatable ((SynTypar (ident = ident)), range) ->
+                    failwithf "todo: SynTypeConstraint.WhereTyparIsComparable %A %s" range range.FileName
+                | SynTypeConstraint.WhereTyparIsEquatable (SynTypar (ident = ident), range) ->
                     let info =
                         Map.tryFind ident.idText map
                         |> Option.defaultValue UntypedGenericParameterInfo.Empty
 
-                    Map.add ident.idText { IsEqualityConstraint = true } map
+                    Map.add
+                        ident.idText
+                        { info with
+                            IsEqualityConstraint = true
+                        }
+                        map
                 | SynTypeConstraint.WhereTyparDefaultsToType (typar, typeName, range) ->
-                    failwith "todo: SynTypeConstraint.WhereTyparDefaultsToType"
-                | SynTypeConstraint.WhereTyparSubtypeOfType (typar, typeName, range) ->
-                    failwith "todo: SynTypeConstraint.WhereTyparSubtypeOfType"
+                    failwithf "todo: SynTypeConstraint.WhereTyparDefaultsToType %A %s" range range.FileName
+                | SynTypeConstraint.WhereTyparSubtypeOfType (SynTypar (ident = ident), typeName, range) ->
+                    let info =
+                        Map.tryFind ident.idText map
+                        |> Option.defaultValue UntypedGenericParameterInfo.Empty
+
+                    let typeText = env.SourceText.GetContentAt typeName.Range
+
+                    Map.add
+                        ident.idText
+                        { info with
+                            SubtypesOfType = typeText :: info.SubtypesOfType
+                        }
+                        map
                 | SynTypeConstraint.WhereTyparSupportsMember (typars, memberSig, range) ->
-                    failwith "todo: SynTypeConstraint.WhereTyparSupportsMember"
+                    failwithf "todo: SynTypeConstraint.WhereTyparSupportsMember %A %s" range range.FileName
                 | SynTypeConstraint.WhereTyparIsEnum (typar, typeArgs, range) ->
-                    failwith "todo: SynTypeConstraint.WhereTyparIsEnum"
+                    failwithf "todo: SynTypeConstraint.WhereTyparIsEnum %A %s" range range.FileName
                 | SynTypeConstraint.WhereTyparIsDelegate (typar, typeArgs, range) ->
-                    failwith "todo: SynTypeConstraint.WhereTyparIsDelegate"
+                    failwithf "todo: SynTypeConstraint.WhereTyparIsDelegate %A %s" range range.FileName
                 | SynTypeConstraint.WhereSelfConstrained (selfConstraint, range) ->
-                    failwith "todo: SynTypeConstraint.WhereSelfConstrained"
+                    failwithf "todo: SynTypeConstraint.WhereSelfConstrained %A %s" range range.FileName
             )
-        | SynTyparDecls.PrefixList _ -> failwith "todo: SynTyparDecls.PrefixList"
-        | SynTyparDecls.SinglePrefix _ -> failwith "todo: SynTyparDecls.SinglePrefix"
+        | SynTyparDecls.PrefixList (range = range) ->
+            failwithf "todo: SynTyparDecls.PrefixList %A %s" range range.FileName
+        | SynTyparDecls.SinglePrefix (range = range) ->
+            failwithf "todo: SynTyparDecls.SinglePrefix %A %s" range range.FileName
 
     match symbolUse.Symbol with
     | :? FSharpMemberOrFunctionOrValue as mfv ->
@@ -160,14 +216,21 @@ let private findMissingGenericParameterInfos
                     // Check if each constraint was found in the source
                     match Map.tryFind gp.Name untypedConstraints with
                     | None ->
+                        let subtypeConstraints = gp.SubtypesOfTypeConstraint (symbolUse.DisplayContext)
+
                         [
                             if gp.HasEqualityConstraint then
                                 yield $"%s{gp.Name} : equality"
+                            yield! subtypeConstraints
                         ]
                     | Some untypedConstraint ->
+                        let subtypeConstraints = gp.SubtypesOfTypeConstraint (symbolUse.DisplayContext)
+
                         [
                             if untypedConstraint.IsEqualityConstraint <> gp.HasEqualityConstraint then
                                 yield $"%s{gp.Name} : equality"
+                            if untypedConstraint.SubtypesOfType.Length <> subtypeConstraints.Length then
+                                yield! subtypeConstraints
                         ]
 
             match missingConstraints with
@@ -246,7 +309,7 @@ let private processBinding
                 | untypedPat ->
                     match Seq.tryItem idx mfv.CurriedParameterGroups with
                     | None ->
-                        failwith
+                        failwithf
                             $"There is no curried parameter group for this untyped parameter (%i{idx}) in %s{ident.idText}"
                     | Some pg ->
                         if pg.Count = 1 then
@@ -260,7 +323,7 @@ let private processBinding
                             Some
                                 {
                                     Index = idx
-                                    TypeName = singleParameter.Type.Format (symbol.DisplayContext)
+                                    TypeName = singleParameter.Type.Format symbol.DisplayContext
                                     Range = untypedPat.Range
                                     ParameterName = parameterName
                                     AddParentheses = Option.isNone parameterName
@@ -269,7 +332,7 @@ let private processBinding
                             let tupleType =
                                 // TODO: maybe wrap in parentheses to be on the safe side?
                                 pg
-                                |> Seq.map (fun p -> p.Type.Format (symbol.DisplayContext))
+                                |> Seq.map (fun p -> p.Type.Format symbol.DisplayContext)
                                 |> String.concat " * "
 
                             Some
@@ -316,7 +379,7 @@ let private processBinding
                         visit mfv.FullType id
 
                     if allTypesFromFunctionType.Length <= untypedParameterCount then
-                        mfv.ReturnParameter.Type.Format (symbol.DisplayContext)
+                        mfv.ReturnParameter.Type.Format symbol.DisplayContext
                     else
                         allTypesFromFunctionType
                         |> List.skip untypedParameterCount
@@ -335,7 +398,7 @@ let private processBinding
                     TypeName = returnTypeText
                     Equals =
                         trivia.EqualsRange
-                        |> Option.defaultWith (fun () -> failwith $"No equals sign in binding %s{ident.idText}")
+                        |> Option.defaultWith (fun () -> failwithf $"No equals sign in binding %s{ident.idText}")
                 }
 
         // TODO: again incomplete, type cannot have wildcards.
@@ -349,7 +412,7 @@ let private processBinding
                 typarDecls
                 |> Option.bind (fun (SynValTyparDecls (typars = typarDecls)) -> typarDecls)
 
-            findMissingGenericParameterInfos symbol typeParams
+            findMissingGenericParameterInfos env symbol typeParams
         | _ -> []
 
     // Are all potential inferred constraints present?
@@ -389,7 +452,7 @@ let private processSimplePats (env : Env) (SynSimplePats.SimplePats (pats = pats
                 | :? FSharpMemberOrFunctionOrValue as mfv ->
                     Some
                         {
-                            TypeName = mfv.FullType.Format (symbolUse.DisplayContext)
+                            TypeName = mfv.FullType.Format symbolUse.DisplayContext
                             Range = ident.idRange
                             Index = idx
                             ParameterName = Some ident.idText
@@ -411,10 +474,12 @@ let private processMember
     match md with
     | SynMemberDefn.NestedType _
     | SynMemberDefn.LetBindings _
-    | SynMemberDefn.Open _ -> []
+    | SynMemberDefn.Open _
+    | SynMemberDefn.ImplicitInherit _
+    | SynMemberDefn.Interface _ -> []
     | SynMemberDefn.Member (memberDefn = memberDefn) -> processBinding env memberDefn |> Option.toList
     | SynMemberDefn.GetSetMember (memberDefnForGet, memberDefnForSet, range, trivia) ->
-        failwith "todo: SynMemberDefn.GetSetMember"
+        failwithf "todo: SynMemberDefn.GetSetMember %A %s" range range.FileName
     | SynMemberDefn.ImplicitCtor (accessibility, attributes, ctorArgs, selfIdentifier, xmlDoc, range, trivia) ->
         match accessibility with
         | Some (SynAccess.Private _) -> []
@@ -434,7 +499,7 @@ let private processMember
             |> Option.bind (fun symbolUse ->
                 let valueIsUsedOutsideTheFileInTheProject = symbolHasUsesOutsideFile env symbolUse
                 let parameters = processSimplePats env ctorArgs
-                let genericParameters = findMissingGenericParameterInfos symbolUse typeParams
+                let genericParameters = findMissingGenericParameterInfos env symbolUse typeParams
 
                 if List.isEmpty parameters && List.isEmpty genericParameters then
                     None
@@ -448,12 +513,11 @@ let private processMember
                         }
             )
             |> Option.toList
-    | SynMemberDefn.ImplicitInherit (inheritType, inheritArgs, inheritAlias, range) ->
-        failwith "todo: SynMemberDefn.ImplicitInherit"
-    | SynMemberDefn.AbstractSlot (slotSig, flags, range, trivia) -> failwith "todo: SynMemberDefn.AbstractSlot"
-    | SynMemberDefn.Interface (interfaceType, withKeyword, members, range) -> failwith "todo: SynMemberDefn.Interface"
-    | SynMemberDefn.Inherit (baseType, asIdent, range) -> failwith "todo: SynMemberDefn.Inherit"
-    | SynMemberDefn.ValField (fieldInfo, range) -> failwith "todo: SynMemberDefn.ValField"
+    | SynMemberDefn.AbstractSlot (slotSig, flags, range, trivia) ->
+        failwithf "todo: SynMemberDefn.AbstractSlot %A %s" range range.FileName
+    | SynMemberDefn.Inherit (baseType, asIdent, range) ->
+        failwithf "todo: SynMemberDefn.Inherit %A %s" range range.FileName
+    | SynMemberDefn.ValField (fieldInfo, range) -> failwithf "todo: SynMemberDefn.ValField %A %s" range range.FileName
     | SynMemberDefn.AutoProperty (attributes,
                                   isStatic,
                                   ident,
@@ -465,7 +529,7 @@ let private processMember
                                   accessibility,
                                   synExpr,
                                   range,
-                                  trivia) -> failwith "todo: SynMemberDefn.AutoProperty"
+                                  trivia) -> failwithf "todo: SynMemberDefn.AutoProperty %A %s" range range.FileName
 
 let private processModuleDecl (env : Env) (mdl : SynModuleDecl) =
     match mdl with
@@ -483,6 +547,10 @@ let private processModuleDecl (env : Env) (mdl : SynModuleDecl) =
 
                 yield! List.collect (processMember typeName typeParams env) additionalMembers
         ]
+    | SynModuleDecl.Exception (
+        exnDefn = SynExceptionDefn (
+            exnRepr = SynExceptionDefnRepr (caseName = SynUnionCase (ident = SynIdent (ident, _))) ; members = members)) ->
+        List.collect (processMember [ ident ] None env) members
     | _ -> []
 
 let private processModuleOrNamespace (env : Env) (SynModuleOrNamespace (decls = decls)) =
