@@ -557,7 +557,7 @@ let private processMember
         )
         |> Option.toList
 
-let private processModuleDecl (env : Env) (mdl : SynModuleDecl) =
+let rec private processModuleDecl (env : Env) (mdl : SynModuleDecl) =
     match mdl with
     | SynModuleDecl.Let (bindings = bindings) -> List.choose (processBinding env) bindings
     | SynModuleDecl.Types (typeDefns = typeDefns) ->
@@ -577,6 +577,10 @@ let private processModuleDecl (env : Env) (mdl : SynModuleDecl) =
         exnDefn = SynExceptionDefn (
             exnRepr = SynExceptionDefnRepr (caseName = SynUnionCase (ident = SynIdent (ident, _))) ; members = members)) ->
         List.collect (processMember [ ident ] None env) members
+    | SynModuleDecl.NestedModule (moduleInfo = SynComponentInfo (accessibility = vis) ; decls = decls) ->
+        match vis with
+        | Some (SynAccess.Private _) -> []
+        | _ -> decls |> List.collect (processModuleDecl env)
     | _ -> []
 
 let private processModuleOrNamespace (env : Env) (SynModuleOrNamespace (decls = decls)) =

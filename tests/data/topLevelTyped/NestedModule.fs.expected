@@ -1,0 +1,14 @@
+GRA-UNTYPEDAPI-001 | Warning | (4,8 - 4,9) | `a` is not private, not fully typed and not used outside `A.fs` in the current project.
+Specify the return type.
+GRA-UNTYPEDAPI-001 | Warning | (5,8 - 5,9) | `b` is not private, not fully typed and not used outside `A.fs` in the current project.
+Add type annotation for parameter `c`
+Specify the return type.
+GRA-UNTYPEDAPI-001 | Warning | (7,9 - 7,10) | `The constructor of D` is not private, not fully typed and not used outside `A.fs` in the current project.
+Add type annotation for parameter `e`
+GRA-UNTYPEDAPI-001 | Warning | (11,17 - 11,18) | `F` is not private, not fully typed and not used outside `A.fs` in the current project.
+Specify the return type.
+GRA-UNTYPEDAPI-001 | Warning | (12,19 - 12,20) | `G` is not private, not fully typed and not used outside `A.fs` in the current project.
+GRA-UNTYPEDAPI-001 | Warning | (13,17 - 13,18) | `H` is not private, not fully typed and not used outside `A.fs` in the current project.
+Add type annotation for parameter `i`
+Add type annotation for parameter `j`
+Specify the return type.
