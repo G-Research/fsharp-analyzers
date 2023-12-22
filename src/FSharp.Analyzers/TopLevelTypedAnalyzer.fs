@@ -1,12 +1,9 @@
 module GR.FSharp.Analyzers.TopLevelTypedAnalyzer
 
 open System
-open System.IO
 open FSharp.Analyzers.SDK
-open FSharp.Analyzers.SDK.ASTCollecting
-open FSharp.Compiler.Symbols
 open FSharp.Compiler.Syntax
-open FSharp.Compiler.SyntaxTrivia
+open TopLevelTypeAnalysis
 
 [<Literal>]
 let Code : string = "GRA-UNTYPEDAPI-001"
@@ -33,7 +30,6 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                     ctx.CheckFileResults
                     ctx.CheckProjectResults
 
-
             return
                 missingInfo
                 |> List.map (fun missingInfo ->
@@ -59,10 +55,17 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                             )
                             |> String.concat "\n"
 
+                        let identifier =
+                            match missingInfo.Declaration with
+                            | Declaration.Binding (name = ident) -> ident.idText
+                            | Declaration.ImplicitCtor (typeName = typeName) ->
+                                let typeName = typeName |> List.map (fun ident -> ident.idText) |> String.concat "."
+                                $"The constructor of %s{typeName}"
+
                         [
-                            $"`%s{missingInfo.NameIdent.idText}` is not private"
+                            $"`%s{identifier}` is not private"
                             ", not fully typed"
-                            if missingInfo.ValueIsUsedOutsideTheProject then
+                            if missingInfo.ValueIsUsedOutsideTheFileInTheProject then
                                 $" and used outside `%s{ctx.FileName}`."
                             else
                                 $" and not used outside `%s{ctx.FileName}` in the current project."
@@ -72,18 +75,26 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                             if not missingInfo.GenericParameters.IsEmpty then
                                 "\n"
                                 genericParameters ()
-                            match missingInfo.ReturnType with
-                            | None -> ()
-                            | Some _ -> "\nSpecify the return type."
+                            match missingInfo.Declaration with
+                            | Declaration.Binding (returnType = Some _) -> "\nSpecify the return type."
+                            | _ -> ()
                         ]
                         |> String.concat ""
+
+                    let m =
+                        match missingInfo.Declaration with
+                        | Declaration.Binding (name = ident) -> ident.idRange
+                        | Declaration.ImplicitCtor (typeName = typeName) ->
+                            typeName
+                            |> List.map (fun ident -> ident.idRange)
+                            |> List.reduce (FSharp.Compiler.Text.Range.unionRanges)
 
                     {
                         Type = "TopLevelTyped analyzer"
                         Message = msg
                         Code = Code
                         Severity = Warning
-                        Range = missingInfo.NameIdent.idRange
+                        Range = m
                         Fixes = []
                     }
                 )

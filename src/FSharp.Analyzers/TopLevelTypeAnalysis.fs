@@ -1,12 +1,12 @@
 module TopLevelTypeAnalysis
 
-open System
-open System.IO
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
+
+#nowarn "1182"
 
 type MissingReturnType =
     {
@@ -39,19 +39,31 @@ type MissingGenericParameterInfo =
         MissingConstraints : string list
     }
 
+[<RequireQualifiedAccess>]
+type Declaration =
+    | Binding of
+        /// The last ident of the binding name.
+        name : Ident *
+        /// Let keyword range
+        leadingKeyword : SynLeadingKeyword *
+        returnType : MissingReturnType option
+    | ImplicitCtor of
+        /// Friendly name of the type.
+        typeName : LongIdent *
+        /// Constructor arguments range, does include parentheses.
+        simplePatsRange : range
+
 /// Missing information for a binding to extract signature data.
 type MissingTypeInfo =
     {
-        /// The last ident of the binding name.
-        NameIdent : Ident
-        ReturnType : MissingReturnType option
+        Declaration : Declaration
         Parameters : MissingParameterType list
         /// Missing generic parameters
         /// If a generic parameter is missing a constraint it won't
         GenericParameters : MissingGenericParameterInfo list
         /// Were any symbol uses found inside the project for this value?
         /// It might still be used outside the project.
-        ValueIsUsedOutsideTheProject : bool
+        ValueIsUsedOutsideTheFileInTheProject : bool
     }
 
 type FSharpGenericParameter with
@@ -78,6 +90,105 @@ let rec private removePatternParens (p : SynPat) =
     match p with
     | SynPat.Paren (pat = inner) -> removePatternParens inner
     | _ -> p
+
+let private symbolHasUsesOutsideFile (env : Env) (symbolUse : FSharpSymbolUse) =
+    env.CheckProjectResults.GetUsesOfSymbol symbolUse.Symbol
+    |> Array.exists (fun symbolUse -> symbolUse.FileName <> symbolUse.FileName)
+
+let private findMissingGenericParameterInfos
+    (symbolUse : FSharpSymbolUse)
+    (typarDecls : SynTyparDecls option)
+    : MissingGenericParameterInfo list
+    =
+    let untypedConstraints : Map<string, UntypedGenericParameterInfo> =
+        match typarDecls with
+        | None -> Map.empty
+        | Some typarDecls ->
+
+        match typarDecls with
+        | SynTyparDecls.PostfixList (decls = decls ; constraints = constraints) ->
+            let initialMap =
+                decls
+                |> List.map (fun (SynTyparDecl (typar = SynTypar (ident = ident))) ->
+                    ident.idText, UntypedGenericParameterInfo.Empty
+                )
+                |> Map.ofList
+
+            (initialMap, constraints)
+            ||> List.fold (fun map stc ->
+                match stc with
+                | SynTypeConstraint.WhereTyparIsValueType (typar, range) ->
+                    failwith "todo: SynTypeConstraint.WhereTyparIsValueType"
+                | SynTypeConstraint.WhereTyparIsReferenceType (typar, range) ->
+                    failwith "todo: SynTypeConstraint.WhereTyparIsReferenceType"
+                | SynTypeConstraint.WhereTyparIsUnmanaged (typar, range) ->
+                    failwith "todo: SynTypeConstraint.WhereTyparIsUnmanaged"
+                | SynTypeConstraint.WhereTyparSupportsNull (typar, range) ->
+                    failwith "todo: SynTypeConstraint.WhereTyparSupportsNull"
+                | SynTypeConstraint.WhereTyparIsComparable (typar, range) ->
+                    failwith "todo: SynTypeConstraint.WhereTyparIsComparable"
+                | SynTypeConstraint.WhereTyparIsEquatable ((SynTypar (ident = ident)), range) ->
+                    let info =
+                        Map.tryFind ident.idText map
+                        |> Option.defaultValue UntypedGenericParameterInfo.Empty
+
+                    Map.add ident.idText { IsEqualityConstraint = true } map
+                | SynTypeConstraint.WhereTyparDefaultsToType (typar, typeName, range) ->
+                    failwith "todo: SynTypeConstraint.WhereTyparDefaultsToType"
+                | SynTypeConstraint.WhereTyparSubtypeOfType (typar, typeName, range) ->
+                    failwith "todo: SynTypeConstraint.WhereTyparSubtypeOfType"
+                | SynTypeConstraint.WhereTyparSupportsMember (typars, memberSig, range) ->
+                    failwith "todo: SynTypeConstraint.WhereTyparSupportsMember"
+                | SynTypeConstraint.WhereTyparIsEnum (typar, typeArgs, range) ->
+                    failwith "todo: SynTypeConstraint.WhereTyparIsEnum"
+                | SynTypeConstraint.WhereTyparIsDelegate (typar, typeArgs, range) ->
+                    failwith "todo: SynTypeConstraint.WhereTyparIsDelegate"
+                | SynTypeConstraint.WhereSelfConstrained (selfConstraint, range) ->
+                    failwith "todo: SynTypeConstraint.WhereSelfConstrained"
+            )
+        | SynTyparDecls.PrefixList _ -> failwith "todo: SynTyparDecls.PrefixList"
+        | SynTyparDecls.SinglePrefix _ -> failwith "todo: SynTyparDecls.SinglePrefix"
+
+    match symbolUse.Symbol with
+    | :? FSharpMemberOrFunctionOrValue as mfv ->
+        mfv.GenericParameters
+        |> Seq.choose (fun gp ->
+            let missingConstraints =
+                if Seq.isEmpty gp.Constraints then
+                    List.empty
+                else
+                    // Check if each constraint was found in the source
+                    match Map.tryFind gp.Name untypedConstraints with
+                    | None ->
+                        [
+                            if gp.HasEqualityConstraint then
+                                yield $"%s{gp.Name} : equality"
+                        ]
+                    | Some untypedConstraint ->
+                        [
+                            if untypedConstraint.IsEqualityConstraint <> gp.HasEqualityConstraint then
+                                yield $"%s{gp.Name} : equality"
+                        ]
+
+            match missingConstraints with
+            | [] ->
+                if Map.containsKey gp.Name untypedConstraints then
+                    None
+                else
+                    Some
+                        {
+                            Name = gp.Name
+                            MissingConstraints = []
+                        }
+            | missingConstraints ->
+                Some
+                    {
+                        Name = gp.Name
+                        MissingConstraints = missingConstraints
+                    }
+        )
+        |> Seq.toList
+    | _ -> []
 
 let private processBinding
     (env : Env)
@@ -117,9 +228,7 @@ let private processBinding
         )
         |> Option.defaultWith (fun () -> failwithf $"Could not find symbol for %s{ident.idText}")
 
-    let hasUsesOutsideOfFile =
-        checkProjectResults.GetUsesOfSymbol symbol.Symbol
-        |> Array.exists (fun symbolUse -> symbolUse.FileName <> symbol.FileName)
+    let hasUsesOutsideOfFile = symbolHasUsesOutsideFile env symbol
 
     // Does every parameter has a fully type?
     let untypedParameters =
@@ -234,86 +343,13 @@ let private processBinding
 
     // Are there inferred constraints not in the source.
     let missingGenericParameterInfos =
-        let untypedConstraints =
-            match headPat with
-            | SynPat.LongIdent (typarDecls = Some (SynValTyparDecls (typars = Some typarDecls))) ->
-                match typarDecls with
-                | SynTyparDecls.PostfixList (constraints = constraints) ->
-                    (Map.empty, constraints)
-                    ||> List.fold (fun map stc ->
-                        match stc with
-                        | SynTypeConstraint.WhereTyparIsValueType (typar, range) ->
-                            failwith "todo: SynTypeConstraint.WhereTyparIsValueType"
-                        | SynTypeConstraint.WhereTyparIsReferenceType (typar, range) ->
-                            failwith "todo: SynTypeConstraint.WhereTyparIsReferenceType"
-                        | SynTypeConstraint.WhereTyparIsUnmanaged (typar, range) ->
-                            failwith "todo: SynTypeConstraint.WhereTyparIsUnmanaged"
-                        | SynTypeConstraint.WhereTyparSupportsNull (typar, range) ->
-                            failwith "todo: SynTypeConstraint.WhereTyparSupportsNull"
-                        | SynTypeConstraint.WhereTyparIsComparable (typar, range) ->
-                            failwith "todo: SynTypeConstraint.WhereTyparIsComparable"
-                        | SynTypeConstraint.WhereTyparIsEquatable ((SynTypar (ident = ident)), range) ->
-                            let info =
-                                Map.tryFind ident.idText map
-                                |> Option.defaultValue UntypedGenericParameterInfo.Empty
+        match headPat with
+        | SynPat.LongIdent (typarDecls = typarDecls) ->
+            let typeParams =
+                typarDecls
+                |> Option.bind (fun (SynValTyparDecls (typars = typarDecls)) -> typarDecls)
 
-                            Map.add ident.idText { IsEqualityConstraint = true } map
-                        | SynTypeConstraint.WhereTyparDefaultsToType (typar, typeName, range) ->
-                            failwith "todo: SynTypeConstraint.WhereTyparDefaultsToType"
-                        | SynTypeConstraint.WhereTyparSubtypeOfType (typar, typeName, range) ->
-                            failwith "todo: SynTypeConstraint.WhereTyparSubtypeOfType"
-                        | SynTypeConstraint.WhereTyparSupportsMember (typars, memberSig, range) ->
-                            failwith "todo: SynTypeConstraint.WhereTyparSupportsMember"
-                        | SynTypeConstraint.WhereTyparIsEnum (typar, typeArgs, range) ->
-                            failwith "todo: SynTypeConstraint.WhereTyparIsEnum"
-                        | SynTypeConstraint.WhereTyparIsDelegate (typar, typeArgs, range) ->
-                            failwith "todo: SynTypeConstraint.WhereTyparIsDelegate"
-                        | SynTypeConstraint.WhereSelfConstrained (selfConstraint, range) ->
-                            failwith "todo: SynTypeConstraint.WhereSelfConstrained"
-                    )
-                | SynTyparDecls.PrefixList _ -> failwith "todo: SynTyparDecls.PrefixList"
-                | SynTyparDecls.SinglePrefix _ -> failwith "todo: SynTyparDecls.SinglePrefix"
-            | _ -> Map.empty
-
-        match symbol.Symbol with
-        | :? FSharpMemberOrFunctionOrValue as mfv ->
-            mfv.GenericParameters
-            |> Seq.choose (fun gp ->
-                let missingConstraints =
-                    if Seq.isEmpty gp.Constraints then
-                        List.empty
-                    else
-                        // Check if each constraint was found in the source
-                        match Map.tryFind gp.Name untypedConstraints with
-                        | None ->
-                            [
-                                if gp.HasEqualityConstraint then
-                                    yield $"%s{gp.Name} : equality"
-                            ]
-                        | Some untypedConstraint ->
-                            [
-                                if untypedConstraint.IsEqualityConstraint <> gp.HasEqualityConstraint then
-                                    yield $"%s{gp.Name} : equality"
-                            ]
-
-                match missingConstraints with
-                | [] ->
-                    if Map.containsKey gp.Name untypedConstraints then
-                        None
-                    else
-                        Some
-                            {
-                                Name = gp.Name
-                                MissingConstraints = []
-                            }
-                | missingConstraints ->
-                    Some
-                        {
-                            Name = gp.Name
-                            MissingConstraints = missingConstraints
-                        }
-            )
-            |> Seq.toList
+            findMissingGenericParameterInfos symbol typeParams
         | _ -> []
 
     // Are all potential inferred constraints present?
@@ -328,14 +364,50 @@ let private processBinding
     else
         Some
             {
-                NameIdent = ident
+                Declaration = Declaration.Binding (ident, trivia.LeadingKeyword, missingReturnType)
                 Parameters = untypedParameters
                 GenericParameters = missingGenericParameterInfos
-                ReturnType = missingReturnType
-                ValueIsUsedOutsideTheProject = hasUsesOutsideOfFile
+                ValueIsUsedOutsideTheFileInTheProject = hasUsesOutsideOfFile
             }
 
-let private processMember (env : Env) (md : SynMemberDefn) : MissingTypeInfo list =
+let private processSimplePats (env : Env) (SynSimplePats.SimplePats (pats = pats)) =
+    pats
+    |> List.indexed
+    |> List.choose (fun (idx, simplePat) ->
+        match simplePat with
+        | SynSimplePat.Id (ident = ident) ->
+            let line = env.SourceText.GetLineString (ident.idRange.EndLine - 1)
+
+            env.CheckFileResults.GetSymbolUseAtLocation (
+                ident.idRange.EndLine,
+                ident.idRange.EndColumn,
+                line,
+                [ ident.idText ]
+            )
+            |> Option.bind (fun symbolUse ->
+                match symbolUse.Symbol with
+                | :? FSharpMemberOrFunctionOrValue as mfv ->
+                    Some
+                        {
+                            TypeName = mfv.FullType.Format (symbolUse.DisplayContext)
+                            Range = ident.idRange
+                            Index = idx
+                            ParameterName = Some ident.idText
+                            AddParentheses = false
+                        }
+                | _ -> None
+            )
+        // TODO: what was the deal again with attributes?
+        | _ -> None
+    )
+
+let private processMember
+    (typeName : LongIdent)
+    (typeParams : SynTyparDecls option)
+    (env : Env)
+    (md : SynMemberDefn)
+    : MissingTypeInfo list
+    =
     match md with
     | SynMemberDefn.NestedType _
     | SynMemberDefn.LetBindings _
@@ -344,7 +416,38 @@ let private processMember (env : Env) (md : SynMemberDefn) : MissingTypeInfo lis
     | SynMemberDefn.GetSetMember (memberDefnForGet, memberDefnForSet, range, trivia) ->
         failwith "todo: SynMemberDefn.GetSetMember"
     | SynMemberDefn.ImplicitCtor (accessibility, attributes, ctorArgs, selfIdentifier, xmlDoc, range, trivia) ->
-        failwith "todo: SynMemberDefn.ImplicitCtor"
+        match accessibility with
+        | Some (SynAccess.Private _) -> []
+        | _ ->
+            typeName
+            |> List.tryLast
+            |> Option.bind (fun ident ->
+                let lineText = env.SourceText.GetLineString (ident.idRange.EndLine - 1)
+
+                env.CheckFileResults.GetSymbolUseAtLocation (
+                    ident.idRange.EndLine,
+                    ident.idRange.EndColumn,
+                    lineText,
+                    [ ".ctor" ]
+                )
+            )
+            |> Option.bind (fun symbolUse ->
+                let valueIsUsedOutsideTheFileInTheProject = symbolHasUsesOutsideFile env symbolUse
+                let parameters = processSimplePats env ctorArgs
+                let genericParameters = findMissingGenericParameterInfos symbolUse typeParams
+
+                if List.isEmpty parameters && List.isEmpty genericParameters then
+                    None
+                else
+                    Some
+                        {
+                            Declaration = Declaration.ImplicitCtor (typeName, ctorArgs.Range)
+                            Parameters = parameters
+                            GenericParameters = genericParameters
+                            ValueIsUsedOutsideTheFileInTheProject = valueIsUsedOutsideTheFileInTheProject
+                        }
+            )
+            |> Option.toList
     | SynMemberDefn.ImplicitInherit (inheritType, inheritArgs, inheritAlias, range) ->
         failwith "todo: SynMemberDefn.ImplicitInherit"
     | SynMemberDefn.AbstractSlot (slotSig, flags, range, trivia) -> failwith "todo: SynMemberDefn.AbstractSlot"
@@ -364,19 +467,21 @@ let private processMember (env : Env) (md : SynMemberDefn) : MissingTypeInfo lis
                                   range,
                                   trivia) -> failwith "todo: SynMemberDefn.AutoProperty"
 
-
 let private processModuleDecl (env : Env) (mdl : SynModuleDecl) =
     match mdl with
     | SynModuleDecl.Let (bindings = bindings) -> List.choose (processBinding env) bindings
     | SynModuleDecl.Types (typeDefns = typeDefns) ->
         [
-            for SynTypeDefn (typeRepr = typeRepr ; members = additionalMembers) in typeDefns do
+            for SynTypeDefn (typeRepr = typeRepr ; members = additionalMembers ; typeInfo = typeInfo) in typeDefns do
+                let (SynComponentInfo (longId = typeName ; typeParams = typeParams)) = typeInfo
+
                 match typeRepr with
                 | SynTypeDefnRepr.Simple _
                 | SynTypeDefnRepr.Exception _ -> ()
-                | SynTypeDefnRepr.ObjectModel (members = members) -> yield! List.collect (processMember env) members
+                | SynTypeDefnRepr.ObjectModel (members = members) ->
+                    yield! List.collect (processMember typeName typeParams env) members
 
-                yield! List.collect (processMember env) additionalMembers
+                yield! List.collect (processMember typeName typeParams env) additionalMembers
         ]
     | _ -> []
 
