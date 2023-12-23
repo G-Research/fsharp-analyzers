@@ -155,14 +155,14 @@ let private findMissingGenericParameterInfos
 
         match typarDecls with
         | SynTyparDecls.PostfixList (decls = decls ; constraints = constraints) ->
-            let initialMap =
+            let typars =
                 decls
                 |> List.map (fun (SynTyparDecl (typar = SynTypar (ident = ident))) ->
                     ident.idText, UntypedGenericParameterInfo.Empty
                 )
                 |> Map.ofList
 
-            (initialMap, constraints)
+            (typars, constraints)
             ||> List.fold (fun map stc ->
                 match stc with
                 | SynTypeConstraint.WhereTyparIsValueType (typar, range) ->
@@ -176,20 +176,20 @@ let private findMissingGenericParameterInfos
                 | SynTypeConstraint.WhereTyparIsComparable (typar, range) ->
                     failwithf "todo: SynTypeConstraint.WhereTyparIsComparable %A %s" range range.FileName
                 | SynTypeConstraint.WhereTyparIsEquatable (SynTypar (ident = ident), range) ->
-                    let info =
+                    let typarInfo =
                         Map.tryFind ident.idText map
                         |> Option.defaultValue UntypedGenericParameterInfo.Empty
 
                     Map.add
                         ident.idText
-                        { info with
+                        { typarInfo with
                             IsEqualityConstraint = true
                         }
                         map
                 | SynTypeConstraint.WhereTyparDefaultsToType (typar, typeName, range) ->
                     failwithf "todo: SynTypeConstraint.WhereTyparDefaultsToType %A %s" range range.FileName
                 | SynTypeConstraint.WhereTyparSubtypeOfType (SynTypar (ident = ident), typeName, range) ->
-                    let info =
+                    let typarInfo =
                         Map.tryFind ident.idText map
                         |> Option.defaultValue UntypedGenericParameterInfo.Empty
 
@@ -197,8 +197,8 @@ let private findMissingGenericParameterInfos
 
                     Map.add
                         ident.idText
-                        { info with
-                            SubtypesOfType = typeText :: info.SubtypesOfType
+                        { typarInfo with
+                            SubtypesOfType = typeText :: typarInfo.SubtypesOfType
                         }
                         map
                 | SynTypeConstraint.WhereTyparSupportsMember (typars, memberSig, range) ->
