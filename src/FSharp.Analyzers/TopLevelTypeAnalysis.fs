@@ -406,7 +406,15 @@ let private processBinding
                         mfv.ReturnParameter.Type.Format symbol.DisplayContext
                     else
                         let skip =
-                            if mfv.IsMember then
+                            // In case of a value member like  `member this.V = 4`
+                            // The return type will be: `OwnerType -> unit -> value`
+                            if
+                                mfv.IsMember
+                                && allTypesFromFunctionType.Length = 3
+                                && untypedParameters.Length = 0
+                            then
+                                2
+                            elif mfv.IsMember then
                                 1 + untypedParameterCount
                             else
                                 untypedParameterCount

@@ -90,7 +90,33 @@ let ``Type definition of member`` () =
 module M
 
 type T =
-    member this.V (x:int) = 5 - x
+    member this.F (x:int) = 5 - x
+    """
+
+        let ctx = getContext projectOptions source
+
+        let missingInfo =
+            findMissingTypeInformation
+                ctx.SourceText
+                ctx.ParseFileResults.ParseTree
+                ctx.CheckFileResults
+                ctx.CheckProjectResults
+            |> List.head
+
+        match missingInfo.Declaration with
+        | Declaration.Binding (returnType = Some returnType) -> Assert.That (returnType.TypeName, Is.EqualTo "int")
+        | d -> Assert.Fail $"Unexpected declaration %A{d}"
+    }
+
+[<Test>]
+let ``Type definition of member value`` () =
+    async {
+        let source =
+            """
+module M
+
+type T =
+    member this.V = 4
     """
 
         let ctx = getContext projectOptions source
