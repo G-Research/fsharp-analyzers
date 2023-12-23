@@ -21,6 +21,8 @@ type MissingParameterType =
     {
         /// Return type name formatted using proper DisplayContext.
         TypeName : string
+        /// Source text of the parameter pattern
+        SourceText : string
         /// Range of the parameter pattern
         Range : range
         /// Friendly name of the parameter. Might not be present.
@@ -73,6 +75,7 @@ type MissingTypeInfo =
     }
 
 type FSharpGenericParameter with
+
     member private gp.HasEqualityConstraint =
         gp.Constraints |> Seq.exists (fun c -> c.IsEqualityConstraint)
 
@@ -107,11 +110,6 @@ type ISourceText with
 
                 sb.Append(lastLine.Substring (0, range.EndColumn)).ToString ()
 
-let (|Mfv|_|) (symbolUse : FSharpSymbolUse) =
-    match symbolUse.Symbol with
-    | :? FSharpMemberOrFunctionOrValue as mfv -> Some mfv
-    | _ -> None
-
 type private Env =
     {
         SourceText : ISourceText
@@ -138,7 +136,17 @@ let rec private removePatternParens (p : SynPat) =
     | SynPat.Paren (pat = inner) -> removePatternParens inner
     | _ -> p
 
+let (|Mfv|_|) (symbolUse : FSharpSymbolUse) =
+    match symbolUse.Symbol with
+    | :? FSharpMemberOrFunctionOrValue as mfv -> Some mfv
+    | _ -> None
+
 let private symbolHasUsesOutsideFile (env : Env) (symbolUse : FSharpSymbolUse) =
+    match symbolUse with
+    // Active patterns can't be detected it seems.
+    | Mfv mfv when mfv.IsActivePattern -> true
+    | _ ->
+
     env.CheckProjectResults.GetUsesOfSymbol symbolUse.Symbol
     |> Array.exists (fun su -> su.FileName <> symbolUse.FileName)
 
@@ -330,6 +338,8 @@ let private processBinding
                                 | SynPat.Named (ident = SynIdent (ident = ident)) -> Some ident.idText
                                 | _ -> None
 
+                            let sourceText = env.SourceText.GetContentAt (untypedPat.Range)
+
                             Some
                                 {
                                     Index = idx
@@ -337,6 +347,7 @@ let private processBinding
                                     Range = untypedPat.Range
                                     ParameterName = parameterName
                                     AddParentheses = Option.isNone parameterName
+                                    SourceText = sourceText
                                 }
                         else
                             let tupleType =
@@ -345,6 +356,8 @@ let private processBinding
                                 |> Seq.map (fun p -> p.Type.Format symbol.DisplayContext)
                                 |> String.concat " * "
 
+                            let sourceText = env.SourceText.GetContentAt (untypedPat.Range)
+
                             Some
                                 {
                                     Index = idx
@@ -352,6 +365,7 @@ let private processBinding
                                     TypeName = tupleType
                                     Range = untypedPat.Range
                                     AddParentheses = true
+                                    SourceText = sourceText
                                 }
             )
         | _ ->
@@ -460,6 +474,8 @@ let private processSimplePats (env : Env) (SynSimplePats.SimplePats (pats = pats
             |> Option.bind (fun symbolUse ->
                 match symbolUse.Symbol with
                 | :? FSharpMemberOrFunctionOrValue as mfv ->
+                    let sourceText = env.SourceText.GetContentAt (simplePat.Range)
+
                     Some
                         {
                             TypeName = mfv.FullType.Format symbolUse.DisplayContext
@@ -467,6 +483,7 @@ let private processSimplePats (env : Env) (SynSimplePats.SimplePats (pats = pats
                             Index = idx
                             ParameterName = Some ident.idText
                             AddParentheses = false
+                            SourceText = sourceText
                         }
                 | _ -> None
             )
