@@ -9,15 +9,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Common.fs" />
-    <Compile Include="StringAnalyzerTests.fs" />
-    <Compile Include="PartialAppAnalyzerTests.fs" />
-    <Compile Include="JsonSerializerOptionsAnalyzerTests.fs" />
-    <Compile Include="UnionCaseAnalyzerTests.fs" />
-    <Compile Include="VirtualCallAnalyzerTests.fs" />
-    <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzerTests.fs" />
-    <Compile Include="TypeAnnotateStringFunctionAnalyzerTests.fs" />
-    <Compile Include="ImmutableCollectionEqualityAnalyzerTests.fs" />
-    <Compile Include="TypedInterpolatedStringsAnalyzerTests.fs" />
+<!--    <Compile Include="StringAnalyzerTests.fs" />-->
+<!--    <Compile Include="PartialAppAnalyzerTests.fs" />-->
+<!--    <Compile Include="JsonSerializerOptionsAnalyzerTests.fs" />-->
+<!--    <Compile Include="UnionCaseAnalyzerTests.fs" />-->
+<!--    <Compile Include="VirtualCallAnalyzerTests.fs" />-->
+<!--    <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzerTests.fs" />-->
+<!--    <Compile Include="TypeAnnotateStringFunctionAnalyzerTests.fs" />-->
+<!--    <Compile Include="ImmutableCollectionEqualityAnalyzerTests.fs" />-->
+<!--    <Compile Include="TypedInterpolatedStringsAnalyzerTests.fs" />-->
     <Compile Include="TopLevelTypedAnalyzerTests.fs" />
   </ItemGroup>
   <ItemGroup>

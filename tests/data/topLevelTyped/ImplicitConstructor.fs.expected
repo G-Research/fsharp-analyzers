@@ -1,2 +1,2 @@
 GRA-UNTYPEDAPI-001 | Warning | (3,5 - 3,8) | `The constructor of Foo` is not private, not fully typed and not used outside `A.fs` in the current project.
-Add type annotation for parameter `length`
+Add type annotation for parameter `length`.

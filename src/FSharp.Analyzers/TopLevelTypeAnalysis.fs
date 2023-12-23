@@ -17,7 +17,7 @@ type MissingReturnType =
         Equals : range
     }
 
-type MissingParameterType =
+type MissingParameterTypeInfo =
     {
         /// Return type name formatted using proper DisplayContext.
         TypeName : string
@@ -25,13 +25,27 @@ type MissingParameterType =
         SourceText : string
         /// Range of the parameter pattern
         Range : range
-        /// Friendly name of the parameter. Might not be present.
-        ParameterName : string option
-        /// Index in the function signature.
-        Index : int
-        /// Indicates if the current pattern requires to be wrapped in additional parentheses.
-        AddParentheses : bool
+        /// Friendly name of the parameter.
+        ParameterName : string
     }
+
+type MissingParameterPatternTypeInfo =
+    {
+        /// Return type name formatted using proper DisplayContext.
+        TypeName : string
+        /// Source text of the parameter pattern
+        SourceText : string
+        /// Range of the parameter pattern
+        Range : range
+        /// Index in the untyped tree
+        Index : int
+    }
+
+[<RequireQualifiedAccess>]
+type MissingParameterType =
+    | SingleParameter of info : MissingParameterTypeInfo
+    | SimpleTupleParameter of items : MissingParameterTypeInfo list
+    | Pattern of info : MissingParameterPatternTypeInfo
 
 type MissingGenericParameterInfo =
     {
@@ -85,7 +99,7 @@ type FSharpGenericParameter with
             if not c.IsCoercesToConstraint then
                 None
             else
-                let t = c.CoercesToTarget.Format (dp)
+                let t = c.CoercesToTarget.Format dp
                 Some $"%s{gp.Name} :> %s{t}"
         )
         |> Seq.toList
@@ -234,7 +248,7 @@ let private findMissingGenericParameterInfos
                     // Check if each constraint was found in the source
                     match Map.tryFind gp.Name untypedConstraints with
                     | None ->
-                        let subtypeConstraints = gp.SubtypesOfTypeConstraint (symbolUse.DisplayContext)
+                        let subtypeConstraints = gp.SubtypesOfTypeConstraint symbolUse.DisplayContext
 
                         [
                             if gp.HasEqualityConstraint then
@@ -242,7 +256,7 @@ let private findMissingGenericParameterInfos
                             yield! subtypeConstraints
                         ]
                     | Some untypedConstraint ->
-                        let subtypeConstraints = gp.SubtypesOfTypeConstraint (symbolUse.DisplayContext)
+                        let subtypeConstraints = gp.SubtypesOfTypeConstraint symbolUse.DisplayContext
 
                         [
                             if untypedConstraint.IsEqualityConstraint <> gp.HasEqualityConstraint then
@@ -270,6 +284,35 @@ let private findMissingGenericParameterInfos
         )
         |> Seq.toList
     | _ -> []
+
+let (|TuplePatWithUntyped|_|) (p : SynPat) =
+    match p with
+    | SynPat.Tuple (elementPats = elements) ->
+        let totalCount = elements.Length
+
+        let untypedParameters =
+            elements
+            |> List.indexed
+            |> List.choose (fun (idx, pat) ->
+                match pat with
+                | SynPat.Named (ident = SynIdent (ident = ident)) -> Some (idx, ident)
+                | _ -> None
+            )
+
+        if untypedParameters.IsEmpty then
+            None
+        else
+            Some (totalCount, untypedParameters)
+    | _ -> None
+
+// TODO: SynPat.Typed isn't strictly enough
+let private allTypedPatterns (pats : SynPat list) : bool =
+    pats
+    |> List.forall (
+        function
+        | SynPat.Typed _ -> true
+        | _ -> false
+    )
 
 let private processBinding
     (env : Env)
@@ -321,52 +364,81 @@ let private processBinding
                 let pat = removePatternParens pat
 
                 match pat with
+                | SynPat.Const (constant = SynConst.Unit) -> None
                 | SynPat.Typed (targetType = targetType) ->
                     // TODO: the type might be incomplete, if it has wildcard for example.
                     None
+                | SynPat.Tuple (elementPats = elements) when allTypedPatterns elements -> None
                 | untypedPat ->
                     match Seq.tryItem idx mfv.CurriedParameterGroups with
                     | None ->
                         failwithf
                             $"There is no curried parameter group for this untyped parameter (%i{idx}) in %s{ident.idText}"
                     | Some pg ->
+                        let sourceText = env.SourceText.GetContentAt untypedPat.Range
+
                         if pg.Count = 1 then
                             let singleParameter = pg.[0]
+                            let t = singleParameter.Type.Format symbol.DisplayContext
 
-                            let parameterName =
-                                match untypedPat with
-                                | SynPat.Named (ident = SynIdent (ident = ident)) -> Some ident.idText
-                                | _ -> None
-
-                            let sourceText = env.SourceText.GetContentAt (untypedPat.Range)
-
-                            Some
-                                {
-                                    Index = idx
-                                    TypeName = singleParameter.Type.Format symbol.DisplayContext
-                                    Range = untypedPat.Range
-                                    ParameterName = parameterName
-                                    AddParentheses = Option.isNone parameterName
-                                    SourceText = sourceText
-                                }
+                            match untypedPat with
+                            | SynPat.Named (ident = SynIdent (ident = ident)) ->
+                                Some (
+                                    MissingParameterType.SingleParameter
+                                        {
+                                            TypeName = t
+                                            Range = untypedPat.Range
+                                            ParameterName = ident.idText
+                                            SourceText = sourceText
+                                        }
+                                )
+                            | _ ->
+                                Some (
+                                    MissingParameterType.Pattern
+                                        {
+                                            TypeName = t
+                                            SourceText = sourceText
+                                            Range = untypedPat.Range
+                                            Index = idx
+                                        }
+                                )
                         else
+                            match untypedPat with
+                            | TuplePatWithUntyped (total, untypedInTuple) when total = pg.Count ->
+                                untypedInTuple
+                                |> List.map (fun (idx, untypedPat) ->
+                                    let t = pg.[idx].Type.Format symbol.DisplayContext
+                                    let sourceText = env.SourceText.GetContentAt untypedPat.idRange
+
+                                    {
+                                        TypeName = t
+                                        Range = untypedPat.idRange
+                                        ParameterName = untypedPat.idText
+                                        SourceText = sourceText
+                                    }
+                                )
+                                |> MissingParameterType.SimpleTupleParameter
+                                |> Some
+                            | _ ->
+
+                            // This is a tuple which was has some more complex pattern to it.
                             let tupleType =
                                 // TODO: maybe wrap in parentheses to be on the safe side?
                                 pg
                                 |> Seq.map (fun p -> p.Type.Format symbol.DisplayContext)
                                 |> String.concat " * "
 
-                            let sourceText = env.SourceText.GetContentAt (untypedPat.Range)
+                            let sourceText = env.SourceText.GetContentAt untypedPat.Range
 
-                            Some
-                                {
-                                    Index = idx
-                                    ParameterName = None
-                                    TypeName = tupleType
-                                    Range = untypedPat.Range
-                                    AddParentheses = true
-                                    SourceText = sourceText
-                                }
+                            Some (
+                                MissingParameterType.Pattern
+                                    {
+                                        Index = idx
+                                        Range = untypedPat.Range
+                                        SourceText = sourceText
+                                        TypeName = tupleType
+                                    }
+                            )
             )
         | _ ->
             // There were no parameters
@@ -408,14 +480,14 @@ let private processBinding
                         let skip =
                             // In case of a value member like  `member this.V = 4`
                             // The return type will be: `OwnerType -> unit -> value`
-                            if
-                                mfv.IsMember
-                                && allTypesFromFunctionType.Length = 3
-                                && untypedParameters.Length = 0
-                            then
+                            if mfv.IsMember && allTypesFromFunctionType.Length = 3 && untypedParameterCount = 0 then
                                 2
-                            elif mfv.IsMember then
+                            // member this.F (x:int) = 5 - x
+                            elif mfv.IsInstanceMember then
                                 1 + untypedParameterCount
+                            // static member V = 5
+                            elif mfv.IsMember && not mfv.IsInstanceMember && untypedParameterCount = 0 then
+                                1
                             else
                                 untypedParameterCount
 
@@ -488,17 +560,17 @@ let private processSimplePats (env : Env) (SynSimplePats.SimplePats (pats = pats
             |> Option.bind (fun symbolUse ->
                 match symbolUse.Symbol with
                 | :? FSharpMemberOrFunctionOrValue as mfv ->
-                    let sourceText = env.SourceText.GetContentAt (simplePat.Range)
+                    let sourceText = env.SourceText.GetContentAt simplePat.Range
 
-                    Some
-                        {
-                            TypeName = mfv.FullType.Format symbolUse.DisplayContext
-                            Range = ident.idRange
-                            Index = idx
-                            ParameterName = Some ident.idText
-                            AddParentheses = false
-                            SourceText = sourceText
-                        }
+                    Some (
+                        MissingParameterType.SingleParameter
+                            {
+                                TypeName = mfv.FullType.Format symbolUse.DisplayContext
+                                Range = ident.idRange
+                                ParameterName = ident.idText
+                                SourceText = sourceText
+                            }
+                    )
                 | _ -> None
             )
         // TODO: what was the deal again with attributes?

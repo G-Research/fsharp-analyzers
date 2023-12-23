@@ -37,9 +37,17 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                         let parameters () =
                             missingInfo.Parameters
                             |> List.map (fun p ->
-                                p.ParameterName
-                                |> Option.defaultValue $"parameter at index %i{p.Index}"
-                                |> sprintf "Add type annotation for parameter `%s`"
+                                match p with
+                                | MissingParameterType.SingleParameter ({ ParameterName = name }) ->
+                                    $"Add type annotation for parameter `%s{name}`."
+                                | MissingParameterType.SimpleTupleParameter (items = items) ->
+                                    items
+                                    |> List.map (fun { ParameterName = name } ->
+                                        $"Add type annotation for parameter `%s{name}`."
+                                    )
+                                    |> String.concat "\n"
+                                | MissingParameterType.Pattern ({ Index = idx }) ->
+                                    $"Add type annotation for parameter at index `%i{idx}`."
                             )
                             |> String.concat "\n"
 

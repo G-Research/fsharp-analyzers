@@ -14,18 +14,18 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="StringAnalyzer.fsi" />
-    <Compile Include="StringAnalyzer.fs" />
-    <Compile Include="JsonSerializerOptionsAnalyzer.fs" />
-    <Compile Include="UnionCaseAnalyzer.fs" />
-    <Compile Include="PartialAppAnalyzer.fs" />
-    <Compile Include="VirtualCallAnalyzer.fsi" />
-    <Compile Include="VirtualCallAnalyzer.fs" />
-    <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fsi" />
-    <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fs" />
-    <Compile Include="TypeAnnotateStringFunctionAnalyzer.fs" />
-    <Compile Include="ImmutableCollectionEqualityAnalyzer.fs" />
-    <Compile Include="TypedInterpolatedStringsAnalyzer.fs" />
+<!--    <Compile Include="StringAnalyzer.fsi" />-->
+<!--    <Compile Include="StringAnalyzer.fs" />-->
+<!--    <Compile Include="JsonSerializerOptionsAnalyzer.fs" />-->
+<!--    <Compile Include="UnionCaseAnalyzer.fs" />-->
+<!--    <Compile Include="PartialAppAnalyzer.fs" />-->
+<!--    <Compile Include="VirtualCallAnalyzer.fsi" />-->
+<!--    <Compile Include="VirtualCallAnalyzer.fs" />-->
+<!--    <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fsi" />-->
+<!--    <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fs" />-->
+<!--    <Compile Include="TypeAnnotateStringFunctionAnalyzer.fs" />-->
+<!--    <Compile Include="ImmutableCollectionEqualityAnalyzer.fs" />-->
+<!--    <Compile Include="TypedInterpolatedStringsAnalyzer.fs" />-->
     <Compile Include="TopLevelTypeAnalysis.fs" />
     <Compile Include="TopLevelTypedAnalyzer.fs" />
   </ItemGroup>
