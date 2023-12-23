@@ -140,7 +140,7 @@ let rec private removePatternParens (p : SynPat) =
 
 let private symbolHasUsesOutsideFile (env : Env) (symbolUse : FSharpSymbolUse) =
     env.CheckProjectResults.GetUsesOfSymbol symbolUse.Symbol
-    |> Array.exists (fun symbolUse -> symbolUse.FileName <> symbolUse.FileName)
+    |> Array.exists (fun su -> su.FileName <> symbolUse.FileName)
 
 let private findMissingGenericParameterInfos
     (env : Env)
