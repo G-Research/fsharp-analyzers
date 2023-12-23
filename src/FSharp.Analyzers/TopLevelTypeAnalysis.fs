@@ -303,8 +303,8 @@ let private processBinding
 
         checkFileResults.GetSymbolUseAtLocation (ident.idRange.EndLine, ident.idRange.EndColumn, line, [ ident.idText ])
         |> Option.bind (fun symbolUse ->
-            match symbolUse.Symbol with
-            | :? FSharpMemberOrFunctionOrValue as mfv -> Some (symbolUse, mfv)
+            match symbolUse with
+            | Mfv mfv -> Some (symbolUse, mfv)
             | _ -> None
         )
         |> Option.defaultWith (fun () -> failwithf $"Could not find symbol for %s{ident.idText}")
@@ -405,8 +405,14 @@ let private processBinding
                     if allTypesFromFunctionType.Length <= untypedParameterCount then
                         mfv.ReturnParameter.Type.Format symbol.DisplayContext
                     else
+                        let skip =
+                            if mfv.IsMember then
+                                1 + untypedParameterCount
+                            else
+                                untypedParameterCount
+
                         allTypesFromFunctionType
-                        |> List.skip untypedParameterCount
+                        |> List.skip skip
                         |> List.map (fun t ->
                             let formattedType = t.Format symbol.DisplayContext
 

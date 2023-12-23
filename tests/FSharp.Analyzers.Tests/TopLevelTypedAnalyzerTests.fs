@@ -7,6 +7,7 @@ open FSharp.Compiler.CodeAnalysis
 open FSharp.Analyzers.SDK.Testing
 open GR.FSharp.Analyzers
 open GR.FSharp.Analyzers.Tests.Common
+open TopLevelTypeAnalysis
 
 let mutable projectOptions : FSharpProjectOptions = FSharpProjectOptions.zero
 
@@ -53,4 +54,56 @@ let NegativeTests (fileName : string) =
             |> TopLevelTypedAnalyzer.topLevelTypedAnalyzer
 
         Assert.That (messages, Is.Empty)
+    }
+
+[<Test>]
+let ``Type definition of static member`` () =
+    async {
+        let source =
+            """
+module M
+
+type T =
+    static member V = 5
+    """
+
+        let ctx = getContext projectOptions source
+
+        let missingInfo =
+            findMissingTypeInformation
+                ctx.SourceText
+                ctx.ParseFileResults.ParseTree
+                ctx.CheckFileResults
+                ctx.CheckProjectResults
+            |> List.head
+
+        match missingInfo.Declaration with
+        | Declaration.Binding (returnType = Some returnType) -> Assert.That (returnType.TypeName, Is.EqualTo "int")
+        | d -> Assert.Fail $"Unexpected declaration %A{d}"
+    }
+
+[<Test>]
+let ``Type definition of member`` () =
+    async {
+        let source =
+            """
+module M
+
+type T =
+    member this.V (x:int) = 5 - x
+    """
+
+        let ctx = getContext projectOptions source
+
+        let missingInfo =
+            findMissingTypeInformation
+                ctx.SourceText
+                ctx.ParseFileResults.ParseTree
+                ctx.CheckFileResults
+                ctx.CheckProjectResults
+            |> List.head
+
+        match missingInfo.Declaration with
+        | Declaration.Binding (returnType = Some returnType) -> Assert.That (returnType.TypeName, Is.EqualTo "int")
+        | d -> Assert.Fail $"Unexpected declaration %A{d}"
     }
