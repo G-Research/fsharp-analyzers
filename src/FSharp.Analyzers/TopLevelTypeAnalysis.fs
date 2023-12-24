@@ -385,6 +385,14 @@ let private mkReturnType
                 else
                     untypedParameterCount
 
+            // Always ensure one type remains
+            // This is a last resort measure though.
+            let skip =
+                if skip = allTypesFromFunctionType.Length then
+                    allTypesFromFunctionType.Length - 1
+                else
+                    skip
+
             allTypesFromFunctionType
             |> List.skip skip
             |> List.map (fun t ->

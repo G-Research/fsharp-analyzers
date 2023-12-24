@@ -255,6 +255,45 @@ type Bar(content: string, idx: int) =
         | d -> Assert.Fail $"Unexpected declaration %A{d}"
     }
 
+[<Test>]
+let ``Types of override members`` () =
+    async {
+        let source =
+            """
+namespace Foo
+
+open System
+
+[<CustomEquality; CustomComparison>]
+type F =
+    | V of int
+    override x.Equals(other: obj) = false
+    override x.GetHashCode() = 0
+    interface IComparable with
+        member x.CompareTo other = -1
+    """
+
+        let ctx = getContext projectOptions source
+
+        let missingInfo =
+            findMissingTypeInformation
+                ctx.SourceText
+                ctx.ParseFileResults.ParseTree
+                ctx.CheckFileResults
+                ctx.CheckProjectResults
+
+        match missingInfo with
+        | [ {
+                Declaration = Declaration.Binding (returnType = Some equalsReturnType)
+            }
+            {
+                Declaration = Declaration.Binding (returnType = Some getHashCodeReturnType)
+            } ] ->
+            Assert.That (equalsReturnType.TypeName, Is.EqualTo "bool")
+            Assert.That (getHashCodeReturnType.TypeName, Is.EqualTo "int")
+        | d -> Assert.Fail $"Unexpected declaration %A{d}"
+    }
+
 // [<Test>]
 let foobar () =
     async {
