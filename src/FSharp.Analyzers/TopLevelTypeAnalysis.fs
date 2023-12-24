@@ -76,6 +76,17 @@ type Declaration =
         /// Return type name formatted using proper DisplayContext.
         TypeName : string
 
+    member x.IsLetBinding : bool =
+        match x with
+        | AutoProperty _
+        | ImplicitCtor _ -> false
+        | Binding (leadingKeyword = leadingKeyword) ->
+            match leadingKeyword with
+            | SynLeadingKeyword.Let _
+            | SynLeadingKeyword.And _
+            | SynLeadingKeyword.LetRec _
+            | SynLeadingKeyword.Extern _ -> true
+            | _ -> false
 
 /// Missing information for a binding to extract signature data.
 type MissingTypeInfo =

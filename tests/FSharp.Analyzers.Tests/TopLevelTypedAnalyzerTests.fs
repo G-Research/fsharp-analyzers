@@ -2,6 +2,8 @@ module GR.FSharp.Analyzers.Tests.TopLevelTypedAnalyzerTests
 
 open System.Collections
 open System.IO
+open FSharp.Analyzers.SDK
+open FSharp.Compiler.Text
 open NUnit.Framework
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Analyzers.SDK.Testing
@@ -253,7 +255,35 @@ type Bar(content: string, idx: int) =
         | d -> Assert.Fail $"Unexpected declaration %A{d}"
     }
 
+// [<Test>]
+let foobar () =
+    async {
+        let checker = FSharpChecker.Create ()
 
+        let args =
+            File.ReadAllLines @"C:\Users\nojaf\Projects\fantomas\src\Fantomas.Core\Fantomas.Core.rsp"
+
+        let options =
+            checker.GetProjectOptionsFromCommandLineArgs ("Fantomas.Core.fsproj", args)
+
+        let file = @"C:\Users\nojaf\Projects\fantomas\src\Fantomas.Core\ASTTransformer.fs"
+
+        do! checker.NotifyFileChanged (file, options) // workaround for https://github.com/dotnet/fsharp/issues/15960
+        let! projectCheckResults = checker.ParseAndCheckProject options
+        let allSymbolUses = projectCheckResults.GetAllUsesOfAllSymbols ()
+
+        let sourceText = SourceText.ofString (File.ReadAllText file)
+
+        let! parseResult, checkResults = checker.ParseAndCheckFileInProject (file, 1, sourceText, options)
+
+        match checkResults with
+        | FSharpCheckFileAnswer.Aborted -> ()
+        | FSharpCheckFileAnswer.Succeeded checkResults ->
+            let missingInfo =
+                findMissingTypeInformation sourceText parseResult.ParseTree checkResults projectCheckResults
+
+            ignore missingInfo
+    }
 
 
 // TODO: bindings in nested module can not be private when the module is private?
