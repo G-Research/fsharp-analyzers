@@ -67,8 +67,8 @@ type Declaration =
         leadingKeyword : SynLeadingKeyword *
         returnType : MissingReturnType option
     | ImplicitCtor of
-        /// Friendly name of the type.
-        typeName : LongIdent *
+        /// The last ident of the type name.
+        typeName : Ident *
         /// Constructor arguments range, does include parentheses.
         simplePatsRange : range
     | AutoProperty of
@@ -88,6 +88,8 @@ type MissingTypeInfo =
         /// Were any symbol uses found inside the project for this value?
         /// It might still be used outside the project.
         ValueIsUsedOutsideTheFileInTheProject : bool
+        /// The current generic parameter definition in the untyped tree.
+        CurrentGenericParameters : SynTyparDecls option
     }
 
 type FSharpGenericParameter with
@@ -166,6 +168,14 @@ let private symbolHasUsesOutsideFile (env : Env) (symbolUse : FSharpSymbolUse) =
     env.CheckProjectResults.GetUsesOfSymbol symbolUse.Symbol
     |> Array.exists (fun su -> su.FileName <> symbolUse.FileName)
 
+type SynTypar with
+    member x.Name : string =
+        let (SynTypar (ident = ident ; staticReq = sr)) = x
+
+        match sr with
+        | TyparStaticReq.HeadType -> $"^%s{ident.idText}"
+        | TyparStaticReq.None -> $"'%s{ident.idText}"
+
 let private findMissingGenericParameterInfos
     (env : Env)
     (symbolUse : FSharpSymbolUse)
@@ -181,9 +191,7 @@ let private findMissingGenericParameterInfos
         | SynTyparDecls.PostfixList (decls = decls ; constraints = constraints) ->
             let typars =
                 decls
-                |> List.map (fun (SynTyparDecl (typar = SynTypar (ident = ident))) ->
-                    ident.idText, UntypedGenericParameterInfo.Empty
-                )
+                |> List.map (fun (SynTyparDecl (typar = typar)) -> typar.Name, UntypedGenericParameterInfo.Empty)
                 |> Map.ofList
 
             (typars, constraints)
@@ -199,28 +207,28 @@ let private findMissingGenericParameterInfos
                     failwithf "todo: SynTypeConstraint.WhereTyparSupportsNull %A %s" range range.FileName
                 | SynTypeConstraint.WhereTyparIsComparable (typar, range) ->
                     failwithf "todo: SynTypeConstraint.WhereTyparIsComparable %A %s" range range.FileName
-                | SynTypeConstraint.WhereTyparIsEquatable (SynTypar (ident = ident), range) ->
+                | SynTypeConstraint.WhereTyparIsEquatable (typar, range) ->
                     let typarInfo =
-                        Map.tryFind ident.idText map
+                        Map.tryFind typar.Name map
                         |> Option.defaultValue UntypedGenericParameterInfo.Empty
 
                     Map.add
-                        ident.idText
+                        typar.Name
                         { typarInfo with
                             IsEqualityConstraint = true
                         }
                         map
                 | SynTypeConstraint.WhereTyparDefaultsToType (typar, typeName, range) ->
                     failwithf "todo: SynTypeConstraint.WhereTyparDefaultsToType %A %s" range range.FileName
-                | SynTypeConstraint.WhereTyparSubtypeOfType (SynTypar (ident = ident), typeName, range) ->
+                | SynTypeConstraint.WhereTyparSubtypeOfType (typar, typeName, range) ->
                     let typarInfo =
-                        Map.tryFind ident.idText map
+                        Map.tryFind typar.Name map
                         |> Option.defaultValue UntypedGenericParameterInfo.Empty
 
                     let typeText = env.SourceText.GetContentAt typeName.Range
 
                     Map.add
-                        ident.idText
+                        typar.Name
                         { typarInfo with
                             SubtypesOfType = typeText :: typarInfo.SubtypesOfType
                         }
@@ -243,18 +251,26 @@ let private findMissingGenericParameterInfos
     | :? FSharpMemberOrFunctionOrValue as mfv ->
         mfv.GenericParameters
         |> Seq.choose (fun gp ->
+            let name =
+                if gp.IsSolveAtCompileTime then
+                    $"^%s{gp.Name}"
+                else
+                    $"'%s{gp.Name}"
+
+            ignore name
+
             let missingConstraints =
                 if Seq.isEmpty gp.Constraints then
                     List.empty
                 else
                     // Check if each constraint was found in the source
-                    match Map.tryFind gp.Name untypedConstraints with
+                    match Map.tryFind name untypedConstraints with
                     | None ->
                         let subtypeConstraints = gp.SubtypesOfTypeConstraint symbolUse.DisplayContext
 
                         [
                             if gp.HasEqualityConstraint then
-                                yield $"%s{gp.Name} : equality"
+                                yield $"%s{name} : equality"
                             yield! subtypeConstraints
                         ]
                     | Some untypedConstraint ->
@@ -262,25 +278,25 @@ let private findMissingGenericParameterInfos
 
                         [
                             if untypedConstraint.IsEqualityConstraint <> gp.HasEqualityConstraint then
-                                yield $"%s{gp.Name} : equality"
+                                yield $"%s{name} : equality"
                             if untypedConstraint.SubtypesOfType.Length <> subtypeConstraints.Length then
                                 yield! subtypeConstraints
                         ]
 
             match missingConstraints with
             | [] ->
-                if Map.containsKey gp.Name untypedConstraints then
+                if Map.containsKey name untypedConstraints then
                     None
                 else
                     Some
                         {
-                            Name = gp.Name
+                            Name = name
                             MissingConstraints = []
                         }
             | missingConstraints ->
                 Some
                     {
-                        Name = gp.Name
+                        Name = name
                         MissingConstraints = missingConstraints
                     }
         )
@@ -525,15 +541,15 @@ let private processBinding
         | Some _ -> None
 
     // Are there inferred constraints not in the source.
-    let missingGenericParameterInfos =
+    let typarDeclsOpt =
         match headPat with
         | SynPat.LongIdent (typarDecls = typarDecls) ->
-            let typeParams =
-                typarDecls
-                |> Option.bind (fun (SynValTyparDecls (typars = typarDecls)) -> typarDecls)
+            typarDecls
+            |> Option.bind (fun (SynValTyparDecls (typars = typarDecls)) -> typarDecls)
+        | _ -> None
 
-            findMissingGenericParameterInfos env symbol typeParams
-        | _ -> []
+    let missingGenericParameterInfos =
+        findMissingGenericParameterInfos env symbol typarDeclsOpt
 
     // Are all potential inferred constraints present?
     let isNotMissingInformation =
@@ -551,6 +567,7 @@ let private processBinding
                 Parameters = untypedParameters
                 GenericParameters = missingGenericParameterInfos
                 ValueIsUsedOutsideTheFileInTheProject = hasUsesOutsideOfFile
+                CurrentGenericParameters = typarDeclsOpt
             }
 
 let private processSimplePats (env : Env) (SynSimplePats.SimplePats (pats = pats)) =
@@ -631,10 +648,11 @@ let private processMember
                 else
                     Some
                         {
-                            Declaration = Declaration.ImplicitCtor (typeName, ctorArgs.Range)
+                            Declaration = Declaration.ImplicitCtor (List.last typeName, ctorArgs.Range)
                             Parameters = parameters
                             GenericParameters = genericParameters
                             ValueIsUsedOutsideTheFileInTheProject = valueIsUsedOutsideTheFileInTheProject
+                            CurrentGenericParameters = typeParams
                         }
             )
             |> Option.toList
@@ -666,6 +684,8 @@ let private processMember
                         Parameters = []
                         GenericParameters = []
                         ValueIsUsedOutsideTheFileInTheProject = usedOutsideFile
+                        // I think auto properties cannot have generics, not sure though
+                        CurrentGenericParameters = None
                     }
             | _ -> None
         )

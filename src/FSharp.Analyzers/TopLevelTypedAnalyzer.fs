@@ -38,7 +38,7 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                             missingInfo.Parameters
                             |> List.map (fun p ->
                                 match p with
-                                | MissingParameterType.SingleParameter ({ ParameterName = name }) ->
+                                | MissingParameterType.SingleParameter { ParameterName = name } ->
                                     $"Add type annotation for parameter `%s{name}`."
                                 | MissingParameterType.SimpleTupleParameter (items = items) ->
                                     items
@@ -46,7 +46,7 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                                         $"Add type annotation for parameter `%s{name}`."
                                     )
                                     |> String.concat "\n"
-                                | MissingParameterType.Pattern ({ Index = idx }) ->
+                                | MissingParameterType.Pattern { Index = idx } ->
                                     $"Add type annotation for parameter at index `%i{idx}`."
                             )
                             |> String.concat "\n"
@@ -66,9 +66,7 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                         let identifier =
                             match missingInfo.Declaration with
                             | Declaration.Binding (name = ident) -> ident.idText
-                            | Declaration.ImplicitCtor (typeName = typeName) ->
-                                let typeName = typeName |> List.map (fun ident -> ident.idText) |> String.concat "."
-                                $"The constructor of %s{typeName}"
+                            | Declaration.ImplicitCtor (typeName = ident) -> $"The constructor of %s{ident.idText}"
                             | Declaration.AutoProperty (name, _) -> name.idText
 
                         [
@@ -92,11 +90,8 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
 
                     let m =
                         match missingInfo.Declaration with
-                        | Declaration.Binding (name = ident) -> ident.idRange
-                        | Declaration.ImplicitCtor (typeName = typeName) ->
-                            typeName
-                            |> List.map (fun ident -> ident.idRange)
-                            |> List.reduce FSharp.Compiler.Text.Range.unionRanges
+                        | Declaration.Binding (name = ident)
+                        | Declaration.ImplicitCtor (typeName = ident) -> ident.idRange
                         | Declaration.AutoProperty (name, _) -> name.idRange
 
                     {
