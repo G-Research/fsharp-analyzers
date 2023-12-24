@@ -27,6 +27,8 @@ type MissingParameterTypeInfo =
         Range : range
         /// Friendly name of the parameter.
         ParameterName : string
+        /// Used in a type constructor
+        InsideConstructor : bool
     }
 
 type MissingParameterPatternTypeInfo =
@@ -314,6 +316,60 @@ let private allTypedPatterns (pats : SynPat list) : bool =
         | _ -> false
     )
 
+let private mkReturnType
+    (untypedParameterCount : int)
+    (symbolUse : FSharpSymbolUse)
+    (mfv : FSharpMemberOrFunctionOrValue)
+    =
+    if not mfv.FullType.IsFunctionType then
+        mfv.ReturnParameter.Type.Format symbolUse.DisplayContext
+    else
+        // We can't really be trust mfv.ReturnParameter, it will only contain the last type in a function type.
+        // Instead we collect all types and skip the amount of parameters we have in the function definition.
+        let allTypesFromFunctionType : FSharpType list =
+            let rec visit (t : FSharpType) (continuation : FSharpType list -> FSharpType list) =
+                if not t.IsFunctionType then
+                    continuation [ t ]
+                else
+                    let funcType = t.GenericArguments.[0]
+                    let argType = t.GenericArguments.[1]
+
+                    if not argType.IsFunctionType then
+                        continuation [ funcType ; argType ]
+                    else
+                        visit argType (fun types -> funcType :: types |> continuation)
+
+            visit mfv.FullType id
+
+        if allTypesFromFunctionType.Length <= untypedParameterCount then
+            mfv.ReturnParameter.Type.Format symbolUse.DisplayContext
+        else
+            let skip =
+                // In case of a value member like  `member this.V = 4`
+                // The return type will be: `OwnerType -> unit -> value`
+                if mfv.IsMember && allTypesFromFunctionType.Length = 3 && untypedParameterCount = 0 then
+                    2
+                // member this.F (x:int) = 5 - x
+                elif mfv.IsInstanceMember then
+                    1 + untypedParameterCount
+                // static member V = 5
+                elif mfv.IsMember && not mfv.IsInstanceMember && untypedParameterCount = 0 then
+                    1
+                else
+                    untypedParameterCount
+
+            allTypesFromFunctionType
+            |> List.skip skip
+            |> List.map (fun t ->
+                let formattedType = t.Format symbolUse.DisplayContext
+
+                if t.IsFunctionType then
+                    $"({formattedType})"
+                else
+                    formattedType
+            )
+            |> String.concat " -> "
+
 let private processBinding
     (env : Env)
     (SynBinding (headPat = headPat ; returnInfo = returnInfo ; trivia = trivia))
@@ -390,6 +446,7 @@ let private processBinding
                                             Range = untypedPat.Range
                                             ParameterName = ident.idText
                                             SourceText = sourceText
+                                            InsideConstructor = false
                                         }
                                 )
                             | _ ->
@@ -415,6 +472,7 @@ let private processBinding
                                         Range = untypedPat.idRange
                                         ParameterName = untypedPat.idText
                                         SourceText = sourceText
+                                        InsideConstructor = false
                                     }
                                 )
                                 |> MissingParameterType.SimpleTupleParameter
@@ -453,55 +511,7 @@ let private processBinding
     let missingReturnType =
         match returnInfo with
         | None ->
-            let returnTypeText =
-                if not mfv.FullType.IsFunctionType then
-                    mfv.ReturnParameter.Type.Format symbol.DisplayContext
-                else
-                    // We can't really be trust mfv.ReturnParameter, it will only contain the last type in a function type.
-                    // Instead we collect all types and skip the amount of parameters we have in the function definition.
-                    let allTypesFromFunctionType : FSharpType list =
-                        let rec visit (t : FSharpType) (continuation : FSharpType list -> FSharpType list) =
-                            if not t.IsFunctionType then
-                                continuation [ t ]
-                            else
-                                let funcType = t.GenericArguments.[0]
-                                let argType = t.GenericArguments.[1]
-
-                                if not argType.IsFunctionType then
-                                    continuation [ funcType ; argType ]
-                                else
-                                    visit argType (fun types -> funcType :: types |> continuation)
-
-                        visit mfv.FullType id
-
-                    if allTypesFromFunctionType.Length <= untypedParameterCount then
-                        mfv.ReturnParameter.Type.Format symbol.DisplayContext
-                    else
-                        let skip =
-                            // In case of a value member like  `member this.V = 4`
-                            // The return type will be: `OwnerType -> unit -> value`
-                            if mfv.IsMember && allTypesFromFunctionType.Length = 3 && untypedParameterCount = 0 then
-                                2
-                            // member this.F (x:int) = 5 - x
-                            elif mfv.IsInstanceMember then
-                                1 + untypedParameterCount
-                            // static member V = 5
-                            elif mfv.IsMember && not mfv.IsInstanceMember && untypedParameterCount = 0 then
-                                1
-                            else
-                                untypedParameterCount
-
-                        allTypesFromFunctionType
-                        |> List.skip skip
-                        |> List.map (fun t ->
-                            let formattedType = t.Format symbol.DisplayContext
-
-                            if t.IsFunctionType then
-                                $"({formattedType})"
-                            else
-                                formattedType
-                        )
-                        |> String.concat " -> "
+            let returnTypeText = mkReturnType untypedParameterCount symbol mfv
 
             Some
                 {
@@ -569,6 +579,7 @@ let private processSimplePats (env : Env) (SynSimplePats.SimplePats (pats = pats
                                 Range = ident.idRange
                                 ParameterName = ident.idText
                                 SourceText = sourceText
+                                InsideConstructor = true
                             }
                     )
                 | _ -> None
@@ -646,7 +657,7 @@ let private processMember
         |> Option.bind (fun symbolUse ->
             match symbolUse with
             | Mfv mfv ->
-                let t = mfv.FullType.Format symbolUse.DisplayContext
+                let t = mkReturnType 0 symbolUse mfv
                 let usedOutsideFile = symbolHasUsesOutsideFile env symbolUse
 
                 Some

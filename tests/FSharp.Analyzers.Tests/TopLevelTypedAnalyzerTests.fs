@@ -223,5 +223,38 @@ type CodeFormatter =
         | d -> Assert.Fail $"Unexpected declaration %A{d}"
     }
 
+[<Test>]
+let ``Type of auto property`` () =
+    async {
+        let source =
+            """
+namespace Foo
+
+type Bar(content: string, idx: int) =
+    member val Content = content
+    """
+
+        let ctx = getContext projectOptions source
+
+        let missingInfo =
+            findMissingTypeInformation
+                ctx.SourceText
+                ctx.ParseFileResults.ParseTree
+                ctx.CheckFileResults
+                ctx.CheckProjectResults
+            |> List.head
+
+        match missingInfo with
+        | {
+              Declaration = Declaration.AutoProperty (name, typeName)
+          } ->
+            Assert.That (name.idText, Is.EqualTo "Content")
+            Assert.That (typeName, Is.EqualTo "string")
+        | d -> Assert.Fail $"Unexpected declaration %A{d}"
+    }
+
+
+
+
 // TODO: bindings in nested module can not be private when the module is private?
 // See Context.fs
