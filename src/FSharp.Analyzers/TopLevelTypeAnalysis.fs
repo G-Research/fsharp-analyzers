@@ -323,7 +323,8 @@ let (|TuplePatWithUntyped|_|) (p : SynPat) =
             |> List.indexed
             |> List.choose (fun (idx, pat) ->
                 match pat with
-                | SynPat.Named (ident = SynIdent (ident = ident)) -> Some (idx, ident)
+                | SynPat.Named (ident = SynIdent (ident = ident)) -> Some (idx, ident.idText, ident.idRange, false)
+                | SynPat.OptionalVal (ident = ident ; range = m) -> Some (idx, ident.idText, m, true)
                 | _ -> None
             )
 
@@ -503,14 +504,23 @@ let private processBinding
                             match untypedPat with
                             | TuplePatWithUntyped (total, untypedInTuple) when total = pg.Count ->
                                 untypedInTuple
-                                |> List.map (fun (idx, untypedPat) ->
-                                    let t = pg.[idx].Type.Format symbol.DisplayContext
-                                    let sourceText = env.SourceText.GetContentAt untypedPat.idRange
+                                |> List.map (fun (idx, parameterName, m, isOptional) ->
+                                    let t =
+                                        // Strip the option type
+                                        let fsharpType =
+                                            if not isOptional then
+                                                pg.[idx].Type
+                                            else
+                                                pg.[idx].Type.GenericArguments.[0]
+
+                                        fsharpType.Format symbol.DisplayContext
+
+                                    let sourceText = env.SourceText.GetContentAt m
 
                                     {
                                         TypeName = t
-                                        Range = untypedPat.idRange
-                                        ParameterName = untypedPat.idText
+                                        Range = m
+                                        ParameterName = parameterName
                                         SourceText = sourceText
                                         InsideConstructor = false
                                     }

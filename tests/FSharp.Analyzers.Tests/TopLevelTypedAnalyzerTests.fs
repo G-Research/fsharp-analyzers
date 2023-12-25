@@ -324,7 +324,7 @@ type Queue<'T>(data: 'T array list, length: int) =
     }
 
 [<Test>]
-let ``A binding in a nested module `` () =
+let ``A binding in a nested module`` () =
     async {
         let source =
             """
@@ -348,7 +348,32 @@ module WriterModel =
         | d -> Assert.Fail $"Unexpected declaration %A{d}"
     }
 
+[<Test>]
+let ``Option parameter type is missing`` () =
+    async {
+        let source =
+            """
+namespace Foo
 
+type Bar() =
+    member x.SomeMethod(maxWidth: int, ?startColumn) : int = ignore<int option> startColumn ; 7
+    """
+
+        let ctx = getContext projectOptions source
+
+        let missingInfo =
+            findMissingTypeInformation
+                ctx.SourceText
+                ctx.ParseFileResults.ParseTree
+                ctx.CheckFileResults
+                ctx.CheckProjectResults
+
+        match missingInfo with
+        | [ {
+                Parameters = [ MissingParameterType.SimpleTupleParameter (items = [ { TypeName = "int" } ]) ]
+            } ] -> Assert.Pass ()
+        | d -> Assert.Fail $"Unexpected declaration %A{d}"
+    }
 
 // [<Test>]
 let foobar () =
