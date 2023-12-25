@@ -65,6 +65,7 @@ type Declaration =
         name : Ident *
         /// Let keyword range
         leadingKeyword : SynLeadingKeyword *
+        inlineKeyword : range option *
         returnType : MissingReturnType option
     | ImplicitCtor of
         /// The last ident of the type name.
@@ -76,18 +77,6 @@ type Declaration =
         /// Return type name formatted using proper DisplayContext.
         TypeName : string
 
-    member x.IsLetBinding : bool =
-        match x with
-        | AutoProperty _
-        | ImplicitCtor _ -> false
-        | Binding (leadingKeyword = leadingKeyword) ->
-            match leadingKeyword with
-            | SynLeadingKeyword.Let _
-            | SynLeadingKeyword.And _
-            | SynLeadingKeyword.LetRec _
-            | SynLeadingKeyword.Extern _ -> true
-            | _ -> false
-
 /// Missing information for a binding to extract signature data.
 type MissingTypeInfo =
     {
@@ -97,8 +86,9 @@ type MissingTypeInfo =
         /// If a generic parameter is missing a constraint it won't
         GenericParameters : MissingGenericParameterInfo list
         /// Were any symbol uses found inside the project for this value?
+        /// This only applies to top level let bindings.
         /// It might still be used outside the project.
-        ValueIsUsedOutsideTheFileInTheProject : bool
+        ValueCouldBeMadePrivateToFile : bool
         /// The current generic parameter definition in the untyped tree.
         CurrentGenericParameters : SynTyparDecls option
     }
@@ -144,6 +134,7 @@ type private Env =
         SourceText : ISourceText
         CheckFileResults : FSharpCheckFileResults
         CheckProjectResults : FSharpCheckProjectResults
+        InsideNestedModule : bool
     }
 
 /// Type that bridges untyped tree with FSharpGenericParameterConstraint
@@ -170,14 +161,18 @@ let (|Mfv|_|) (symbolUse : FSharpSymbolUse) =
     | :? FSharpMemberOrFunctionOrValue as mfv -> Some mfv
     | _ -> None
 
-let private symbolHasUsesOutsideFile (env : Env) (symbolUse : FSharpSymbolUse) =
+let private valueCouldBeMadePrivateToFile (env : Env) (symbolUse : FSharpSymbolUse) =
     match symbolUse with
     // Active patterns can't be detected it seems.
     | Mfv mfv when mfv.IsActivePattern -> true
     | _ ->
 
+    if env.InsideNestedModule then
+        false
+    else
+
     env.CheckProjectResults.GetUsesOfSymbol symbolUse.Symbol
-    |> Array.exists (fun su -> su.FileName <> symbolUse.FileName)
+    |> Array.forall (fun su -> su.FileName = symbolUse.FileName)
 
 type SynTypar with
     member x.Name : string =
@@ -447,7 +442,13 @@ let private processBinding
         )
         |> Option.defaultWith (fun () -> failwithf $"Could not find symbol for %s{ident.idText}")
 
-    let hasUsesOutsideOfFile = symbolHasUsesOutsideFile env symbol
+    let valueCouldBeMadePrivateToFile =
+        match trivia.LeadingKeyword with
+        | SynLeadingKeyword.And _
+        | SynLeadingKeyword.Extern _
+        | SynLeadingKeyword.Let _
+        | SynLeadingKeyword.LetRec _ -> valueCouldBeMadePrivateToFile env symbol
+        | _ -> false
 
     // Does every parameter has a fully type?
     let untypedParameters =
@@ -586,10 +587,11 @@ let private processBinding
     else
         Some
             {
-                Declaration = Declaration.Binding (ident, trivia.LeadingKeyword, missingReturnType)
+                Declaration =
+                    Declaration.Binding (ident, trivia.LeadingKeyword, trivia.InlineKeyword, missingReturnType)
                 Parameters = untypedParameters
                 GenericParameters = missingGenericParameterInfos
-                ValueIsUsedOutsideTheFileInTheProject = hasUsesOutsideOfFile
+                ValueCouldBeMadePrivateToFile = valueCouldBeMadePrivateToFile
                 CurrentGenericParameters = typarDeclsOpt
             }
 
@@ -662,7 +664,7 @@ let private processMember
                 )
             )
             |> Option.bind (fun symbolUse ->
-                let valueIsUsedOutsideTheFileInTheProject = symbolHasUsesOutsideFile env symbolUse
+                let valueCouldBeMadePrivateToFile = valueCouldBeMadePrivateToFile env symbolUse
                 let parameters = processSimplePats env ctorArgs
                 let genericParameters = findMissingGenericParameterInfos env symbolUse typeParams
 
@@ -674,7 +676,7 @@ let private processMember
                             Declaration = Declaration.ImplicitCtor (List.last typeName, ctorArgs.Range)
                             Parameters = parameters
                             GenericParameters = genericParameters
-                            ValueIsUsedOutsideTheFileInTheProject = valueIsUsedOutsideTheFileInTheProject
+                            ValueCouldBeMadePrivateToFile = valueCouldBeMadePrivateToFile
                             CurrentGenericParameters = typeParams
                         }
             )
@@ -699,14 +701,14 @@ let private processMember
             match symbolUse with
             | Mfv mfv ->
                 let t = mkReturnType 0 symbolUse mfv
-                let usedOutsideFile = symbolHasUsesOutsideFile env symbolUse
+                let valueCouldBeMadePrivateToFile = valueCouldBeMadePrivateToFile env symbolUse
 
                 Some
                     {
                         Declaration = Declaration.AutoProperty (ident, t)
                         Parameters = []
                         GenericParameters = []
-                        ValueIsUsedOutsideTheFileInTheProject = usedOutsideFile
+                        ValueCouldBeMadePrivateToFile = valueCouldBeMadePrivateToFile
                         // I think auto properties cannot have generics, not sure though
                         CurrentGenericParameters = None
                     }
@@ -742,7 +744,9 @@ let rec private processModuleDecl (env : Env) (mdl : SynModuleDecl) =
     | SynModuleDecl.NestedModule (moduleInfo = SynComponentInfo (accessibility = vis) ; decls = decls) ->
         match vis with
         | Some (SynAccess.Private _) -> []
-        | _ -> decls |> List.collect (processModuleDecl env)
+        | _ ->
+            let innerEnv = { env with InsideNestedModule = true }
+            decls |> List.collect (processModuleDecl innerEnv)
     | _ -> []
 
 let private processModuleOrNamespace (env : Env) (SynModuleOrNamespace (decls = decls)) =
@@ -763,6 +767,7 @@ let findMissingTypeInformation
                 SourceText = sourceText
                 CheckFileResults = checkFileResults
                 CheckProjectResults = checkProjectResults
+                InsideNestedModule = false
             }
 
         modules |> List.collect (processModuleOrNamespace env)

@@ -72,10 +72,8 @@ let topLevelTypedAnalyzer : Analyzer<CliContext> =
                         [
                             $"`%s{identifier}` is not private"
                             ", not fully typed"
-                            if missingInfo.ValueIsUsedOutsideTheFileInTheProject then
-                                $" and used outside `%s{ctx.FileName}`."
-                            else
-                                $" and not used outside `%s{ctx.FileName}` in the current project."
+                            if missingInfo.ValueCouldBeMadePrivateToFile then
+                                $" and could be made private to file."
                             if not missingInfo.Parameters.IsEmpty then
                                 "\n"
                                 parameters ()

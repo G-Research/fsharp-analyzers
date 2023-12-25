@@ -323,6 +323,33 @@ type Queue<'T>(data: 'T array list, length: int) =
         | d -> Assert.Fail $"Unexpected declaration %A{d}"
     }
 
+[<Test>]
+let ``A binding in a nested module `` () =
+    async {
+        let source =
+            """
+namespace Foo
+
+module WriterModel =
+    let init = 4
+    """
+
+        let ctx = getContext projectOptions source
+
+        let missingInfo =
+            findMissingTypeInformation
+                ctx.SourceText
+                ctx.ParseFileResults.ParseTree
+                ctx.CheckFileResults
+                ctx.CheckProjectResults
+
+        match missingInfo with
+        | [ { GenericParameters = [] } ] -> Assert.Pass ()
+        | d -> Assert.Fail $"Unexpected declaration %A{d}"
+    }
+
+
+
 // [<Test>]
 let foobar () =
     async {
