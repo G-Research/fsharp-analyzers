@@ -294,6 +294,35 @@ type F =
         | d -> Assert.Fail $"Unexpected declaration %A{d}"
     }
 
+[<Test>]
+let ``A property cannot have explicit type parameters`` () =
+    async {
+        let source =
+            """
+namespace Foo
+
+type Queue<'T>(data: 'T array list, length: int) =
+    member x.Head =
+        if length > 0 then
+            (List.head data).[0]
+        else
+            raise (System.Exception("Queue is empty"))
+    """
+
+        let ctx = getContext projectOptions source
+
+        let missingInfo =
+            findMissingTypeInformation
+                ctx.SourceText
+                ctx.ParseFileResults.ParseTree
+                ctx.CheckFileResults
+                ctx.CheckProjectResults
+
+        match missingInfo with
+        | [ { GenericParameters = [] } ] -> Assert.Pass ()
+        | d -> Assert.Fail $"Unexpected declaration %A{d}"
+    }
+
 // [<Test>]
 let foobar () =
     async {
@@ -324,6 +353,19 @@ let foobar () =
             ignore missingInfo
     }
 
+(*
+Up next:
+
+type Queue<'T>(data: 'T array list, length: int) =
+    member x.Head<'T> : 'T =
+        if length > 0 then
+            (List.head data).[0]
+        else
+            raise (System.Exception("Queue is empty"))
+            
+            
+==> A property cannot have explicit type parameters. Consider using a method instead.
+*)
 
 // TODO: bindings in nested module can not be private when the module is private?
 // See Context.fs

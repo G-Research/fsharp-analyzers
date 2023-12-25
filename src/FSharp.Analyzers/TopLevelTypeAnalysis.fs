@@ -193,6 +193,10 @@ let private findMissingGenericParameterInfos
     (typarDecls : SynTyparDecls option)
     : MissingGenericParameterInfo list
     =
+    match symbolUse with
+    | Mfv mfv when mfv.IsPropertyGetterMethod -> []
+    | _ ->
+
     let untypedConstraints : Map<string, UntypedGenericParameterInfo> =
         match typarDecls with
         | None -> Map.empty
