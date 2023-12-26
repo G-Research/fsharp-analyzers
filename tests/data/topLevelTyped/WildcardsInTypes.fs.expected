@@ -1,0 +1,6 @@
+GRA-UNTYPEDAPI-001 | Warning | (3,4 - 3,5) | `f` is not private, not fully typed and could be made private to file.
+Add type annotation for parameter `g`.
+GRA-UNTYPEDAPI-001 | Warning | (5,4 - 5,5) | `h` is not private, not fully typed and could be made private to file.
+Add type annotation for parameter `j`.
+GRA-UNTYPEDAPI-001 | Warning | (7,4 - 7,5) | `k` is not private, not fully typed and could be made private to file.
+Specify the return type.

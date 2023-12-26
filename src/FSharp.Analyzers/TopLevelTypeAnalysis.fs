@@ -313,6 +313,37 @@ let private findMissingGenericParameterInfos
         |> Seq.toList
     | _ -> []
 
+let rec private hasWildCardInSynType (t : SynType) : bool =
+    match t with
+    | SynType.Anon _ -> true
+    | SynType.LongIdentApp (typeName = typeName ; typeArgs = typeArgs)
+    | SynType.App (typeName = typeName ; typeArgs = typeArgs) ->
+        hasWildCardInSynType typeName || List.exists hasWildCardInSynType typeArgs
+    | SynType.Array (elementType = t) -> hasWildCardInSynType t
+    | SynType.Fun (argType = t ; returnType = rt) -> hasWildCardInSynType t || hasWildCardInSynType rt
+    | SynType.Intersection (types = ts) -> List.exists hasWildCardInSynType ts
+    | SynType.Or (lhsType = lhs ; rhsType = rhs) -> hasWildCardInSynType lhs || hasWildCardInSynType rhs
+    | SynType.Paren (innerType = t) -> hasWildCardInSynType t
+    | SynType.Tuple (path = path) ->
+        path
+        |> List.exists (
+            function
+            | SynTupleTypeSegment.Slash _
+            | SynTupleTypeSegment.Star _ -> false
+            | SynTupleTypeSegment.Type t -> hasWildCardInSynType t
+        )
+    | SynType.Var _ -> false
+    | SynType.AnonRecd (fields = fields) -> fields |> List.exists (snd >> hasWildCardInSynType)
+    | SynType.HashConstraint (innerType = t) -> hasWildCardInSynType t
+    | SynType.LongIdent _ -> false
+    | SynType.MeasurePower (baseMeasure = t) -> hasWildCardInSynType t
+    | SynType.SignatureParameter (usedType = t) -> hasWildCardInSynType t
+    | SynType.StaticConstant _
+    | SynType.FromParseError _
+    | SynType.StaticConstantExpr _ -> false
+    | SynType.StaticConstantNamed (value = t)
+    | SynType.WithGlobalConstraints (typeName = t) -> hasWildCardInSynType t
+
 let (|TuplePatWithUntyped|_|) (p : SynPat) =
     match p with
     | SynPat.Tuple (elementPats = elements) ->
@@ -323,6 +354,10 @@ let (|TuplePatWithUntyped|_|) (p : SynPat) =
             |> List.indexed
             |> List.choose (fun (idx, pat) ->
                 match pat with
+                | SynPat.Typed (targetType = t ; pat = SynPat.Named (ident = SynIdent (ident = ident))) when
+                    hasWildCardInSynType t
+                    ->
+                    Some (idx, ident.idText, ident.idRange, false)
                 | SynPat.Named (ident = SynIdent (ident = ident)) -> Some (idx, ident.idText, ident.idRange, false)
                 | SynPat.OptionalVal (ident = ident ; range = m) -> Some (idx, ident.idText, m, true)
                 | _ -> None
@@ -334,12 +369,16 @@ let (|TuplePatWithUntyped|_|) (p : SynPat) =
             Some (totalCount, untypedParameters)
     | _ -> None
 
-// TODO: SynPat.Typed isn't strictly enough
+let private (|TypedPatWithoutWildcards|_|) (p : SynPat) =
+    match p with
+    | SynPat.Typed (targetType = t) when not (hasWildCardInSynType t) -> Some p
+    | _ -> None
+
 let private allTypedPatterns (pats : SynPat list) : bool =
     pats
     |> List.forall (
         function
-        | SynPat.Typed _ -> true
+        | SynPat.Typed (targetType = t) -> not (hasWildCardInSynType t)
         | _ -> false
     )
 
@@ -462,9 +501,7 @@ let private processBinding
 
                 match pat with
                 | SynPat.Const (constant = SynConst.Unit) -> None
-                | SynPat.Typed (targetType = targetType) ->
-                    // TODO: the type might be incomplete, if it has wildcard for example.
-                    None
+                | TypedPatWithoutWildcards _ -> None
                 | SynPat.Tuple (elementPats = elements) when allTypedPatterns elements -> None
                 | untypedPat ->
                     match Seq.tryItem idx mfv.CurriedParameterGroups with
@@ -479,6 +516,7 @@ let private processBinding
                             let t = singleParameter.Type.Format symbol.DisplayContext
 
                             match untypedPat with
+                            | SynPat.Typed (pat = SynPat.Named (ident = SynIdent (ident = ident)))
                             | SynPat.Named (ident = SynIdent (ident = ident)) ->
                                 Some (
                                     MissingParameterType.SingleParameter
@@ -559,8 +597,7 @@ let private processBinding
 
     // Is there a return type?
     let missingReturnType =
-        match returnInfo with
-        | None ->
+        let mkMissingReturnType () =
             let returnTypeText = mkReturnType untypedParameterCount symbol mfv
 
             Some
@@ -571,8 +608,13 @@ let private processBinding
                         |> Option.defaultWith (fun () -> failwithf $"No equals sign in binding %s{ident.idText}")
                 }
 
-        // TODO: again incomplete, type cannot have wildcards.
-        | Some _ -> None
+        match returnInfo with
+        | None -> mkMissingReturnType ()
+        | Some (SynBindingReturnInfo (typeName = t)) ->
+            if not (hasWildCardInSynType t) then
+                None
+            else
+                mkMissingReturnType ()
 
     // Are there inferred constraints not in the source.
     let typarDeclsOpt =
