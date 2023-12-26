@@ -414,7 +414,7 @@ let foobar () =
         let options =
             checker.GetProjectOptionsFromCommandLineArgs ("Fantomas.Core.fsproj", args)
 
-        let file = @"C:\Users\nojaf\Projects\fantomas\src\Fantomas.Core\ASTTransformer.fs"
+        let file = @"C:\Users\nojaf\Projects\fantomas\src\Fantomas.Core\Context.fs"
 
         do! checker.NotifyFileChanged (file, options) // workaround for https://github.com/dotnet/fsharp/issues/15960
         let! projectCheckResults = checker.ParseAndCheckProject options

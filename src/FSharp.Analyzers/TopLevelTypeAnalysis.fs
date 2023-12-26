@@ -525,7 +525,7 @@ let private processBinding
                                             TypeName = t
                                             Range = mPat
                                             ParameterName = ident.idText
-                                            SourceText = sourceText
+                                            SourceText = ident.idText
                                             InsideConstructor = false
                                         }
                                 )
