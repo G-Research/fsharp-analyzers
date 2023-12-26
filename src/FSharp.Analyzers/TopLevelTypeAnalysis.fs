@@ -497,6 +497,7 @@ let private processBinding
             pats
             |> List.indexed
             |> List.choose (fun (idx, pat) ->
+                let mPat = pat.Range
                 let pat = removePatternParens pat
 
                 match pat with
@@ -522,7 +523,7 @@ let private processBinding
                                     MissingParameterType.SingleParameter
                                         {
                                             TypeName = t
-                                            Range = untypedPat.Range
+                                            Range = mPat
                                             ParameterName = ident.idText
                                             SourceText = sourceText
                                             InsideConstructor = false
@@ -534,7 +535,7 @@ let private processBinding
                                         {
                                             TypeName = t
                                             SourceText = sourceText
-                                            Range = untypedPat.Range
+                                            Range = mPat
                                             Index = idx
                                         }
                                 )
@@ -580,7 +581,7 @@ let private processBinding
                                 MissingParameterType.Pattern
                                     {
                                         Index = idx
-                                        Range = untypedPat.Range
+                                        Range = mPat
                                         SourceText = sourceText
                                         TypeName = tupleType
                                     }

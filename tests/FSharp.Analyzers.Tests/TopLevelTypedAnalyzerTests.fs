@@ -375,6 +375,34 @@ type Bar() =
         | d -> Assert.Fail $"Unexpected declaration %A{d}"
     }
 
+[<Test>]
+let ``Missing parameter type is missing should include parentheses in reported range`` () =
+    async {
+        let source =
+            """
+module X
+
+let f (g: _): int = ignore<string> g; 0
+    """
+
+        let ctx = getContext projectOptions source
+
+        let missingInfo =
+            findMissingTypeInformation
+                ctx.SourceText
+                ctx.ParseFileResults.ParseTree
+                ctx.CheckFileResults
+                ctx.CheckProjectResults
+
+        match missingInfo with
+        | [ {
+                Parameters = [ MissingParameterType.SingleParameter ({ ParameterName = "g" ; Range = m }) ]
+            } ] ->
+            Assert.That ((m.StartLine, m.StartColumn), Is.EqualTo (4, 6))
+            Assert.That ((m.EndLine, m.EndColumn), Is.EqualTo (4, 12))
+        | d -> Assert.Fail $"Unexpected declaration %A{d}"
+    }
+
 // [<Test>]
 let foobar () =
     async {
@@ -408,15 +436,7 @@ let foobar () =
 (*
 Up next:
 
-type Queue<'T>(data: 'T array list, length: int) =
-    member x.Head<'T> : 'T =
-        if length > 0 then
-            (List.head data).[0]
-        else
-            raise (System.Exception("Queue is empty"))
-            
-            
-==> A property cannot have explicit type parameters. Consider using a method instead.
+
 *)
 
 // TODO: bindings in nested module can not be private when the module is private?
