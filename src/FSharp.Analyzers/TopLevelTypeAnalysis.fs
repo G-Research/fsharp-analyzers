@@ -444,6 +444,11 @@ let private mkReturnType
             )
             |> String.concat " -> "
 
+let private (|NewPattern|_|) (pat : SynPat) =
+    match pat with
+    | SynPat.LongIdent (longDotId = SynLongIdent (id = [ newIdent ])) when newIdent.idText = "new" -> Some ()
+    | _ -> None
+
 let private processBinding
     (env : Env)
     (SynBinding (headPat = headPat ; returnInfo = returnInfo ; trivia = trivia))
@@ -610,7 +615,10 @@ let private processBinding
                 }
 
         match returnInfo with
-        | None -> mkMissingReturnType ()
+        | None ->
+            match headPat with
+            | NewPattern -> None
+            | _ -> mkMissingReturnType ()
         | Some (SynBindingReturnInfo (typeName = t)) ->
             if not (hasWildCardInSynType t) then
                 None
@@ -626,7 +634,10 @@ let private processBinding
         | _ -> None
 
     let missingGenericParameterInfos =
-        findMissingGenericParameterInfos env symbol typarDeclsOpt
+        match headPat with
+        // Secondary constructors cannot have generic type parameters
+        | NewPattern -> []
+        | _ -> findMissingGenericParameterInfos env symbol typarDeclsOpt
 
     // Are all potential inferred constraints present?
     let isNotMissingInformation =
