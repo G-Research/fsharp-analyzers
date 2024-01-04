@@ -77,84 +77,87 @@ let seqFuncsWithEquivalentsInArrayAndList =
             "Microsoft.FSharp.Collections.Seq.tryPick"
         ]
 
-[<CliAnalyzer("VirtualCall Analyzer",
-              "Checks if calls of Seq functions can be replaced with functions from the collection modules",
-              "https://g-research.github.io/fsharp-analyzers/analyzers/VirtualCallAnalyzer.html")>]
-let virtualCallAnalyzer : Analyzer<CliContext> =
-    fun (ctx : CliContext) ->
-        async {
-            let state = ResizeArray<string * string * range> ()
+let analyze (typedTree : FSharpImplementationFileContents) =
+    let state = ResizeArray<string * string * range> ()
 
-            let walker =
-                { new TypedTreeCollectorBase() with
-                    override _.WalkCall
-                        _
-                        (mfv : FSharpMemberOrFunctionOrValue)
-                        _
-                        _
-                        (args : FSharpExpr list)
-                        (range : range)
-                        =
+    let walker =
+        { new TypedTreeCollectorBase() with
+            override _.WalkCall _ (mfv : FSharpMemberOrFunctionOrValue) _ _ (args : FSharpExpr list) (range : range) =
 
-                        // check if we are calling a function in the Seq module that has an equivalent function in the (Array|List|Set) modules
-                        // check if all collection parameters were coerced from the same type (array|list|set) to seq
-                        // If yes, we could have used a function from the (Array|List|Set) modules
+                // check if we are calling a function in the Seq module that has an equivalent function in the (Array|List|Set) modules
+                // check if all collection parameters were coerced from the same type (array|list|set) to seq
+                // If yes, we could have used a function from the (Array|List|Set) modules
 
-                        let inAllCollections =
-                            seqFuncsWithEquivalentsInAllCollections |> Set.contains mfv.FullName
+                let inAllCollections =
+                    seqFuncsWithEquivalentsInAllCollections |> Set.contains mfv.FullName
 
-                        let inArrayAndList =
-                            seqFuncsWithEquivalentsInArrayAndList |> Set.contains mfv.FullName
+                let inArrayAndList =
+                    seqFuncsWithEquivalentsInArrayAndList |> Set.contains mfv.FullName
 
-                        if inAllCollections || inArrayAndList then
-                            let seqParamIndexes =
-                                mfv.CurriedParameterGroups
-                                |> Seq.indexed
-                                |> Seq.choose (fun (idx, g) ->
-                                    if
-                                        g.Count = 1
-                                        && g[0].Type.HasTypeDefinition
-                                        && g[0].Type.TypeDefinition.LogicalName = "seq`1"
-                                    then
-                                        Some idx
-                                    else
-                                        None
+                if inAllCollections || inArrayAndList then
+                    let seqParamIndexes =
+                        mfv.CurriedParameterGroups
+                        |> Seq.indexed
+                        |> Seq.choose (fun (idx, g) ->
+                            if
+                                g.Count = 1
+                                && g[0].Type.HasTypeDefinition
+                                && g[0].Type.TypeDefinition.LogicalName = "seq`1"
+                            then
+                                Some idx
+                            else
+                                None
+                        )
+                        |> List.ofSeq
+
+                    if not seqParamIndexes.IsEmpty then
+
+                        let maxSeqParamIdx = Seq.last seqParamIndexes
+
+                        if args.Length > maxSeqParamIdx then
+
+                            let modules =
+                                seqParamIndexes
+                                |> List.choose (fun i ->
+                                    match args[i] with
+                                    | CoerceToSeq inAllCollections m -> Some m
+                                    | _ -> None
                                 )
-                                |> List.ofSeq
 
-                            if not seqParamIndexes.IsEmpty then
-
-                                let maxSeqParamIdx = Seq.last seqParamIndexes
-
-                                if args.Length > maxSeqParamIdx then
-
-                                    let modules =
-                                        seqParamIndexes
-                                        |> List.choose (fun i ->
-                                            match args[i] with
-                                            | CoerceToSeq inAllCollections m -> Some m
-                                            | _ -> None
-                                        )
-
-                                    if
-                                        modules.Length = seqParamIndexes.Length && (List.distinct modules).Length = 1
-                                    then
-                                        state.Add (mfv.DisplayName, modules[0], range)
-                }
-
-            ctx.TypedTree |> Option.iter (walkTast walker)
-
-            return
-                [
-                    for seqFunc, valType, range in state do
-                        {
-                            Type = "VirtualCall analyzer"
-                            Message =
-                                $"Consider replacing the call of Seq.{seqFunc} with a function from the {valType} module to avoid the costs of virtual calls."
-                            Code = Code
-                            Severity = Warning
-                            Range = range
-                            Fixes = []
-                        }
-                ]
+                            if modules.Length = seqParamIndexes.Length && (List.distinct modules).Length = 1 then
+                                state.Add (mfv.DisplayName, modules[0], range)
         }
+
+    walkTast walker typedTree
+
+    [
+        for seqFunc, valType, range in state do
+            {
+                Type = "VirtualCall analyzer"
+                Message =
+                    $"Consider replacing the call of Seq.{seqFunc} with a function from the {valType} module to avoid the costs of virtual calls."
+                Code = Code
+                Severity = Warning
+                Range = range
+                Fixes = []
+            }
+    ]
+
+[<Literal>]
+let Name = "VirtualCall Analyzer"
+
+[<Literal>]
+let ShortDescription =
+    "Checks if calls of Seq functions can be replaced with functions from the collection modules"
+
+[<Literal>]
+let HelpUri =
+    "https://g-research.github.io/fsharp-analyzers/analyzers/VirtualCallAnalyzer.html"
+
+[<CliAnalyzer(Name, ShortDescription, HelpUri)>]
+let virtualCallCliAnalyzer : Analyzer<CliContext> =
+    fun (ctx : CliContext) -> async { return ctx.TypedTree |> Option.map analyze |> Option.defaultValue [] }
+
+[<EditorAnalyzer(Name, ShortDescription, HelpUri)>]
+let virtualCallEditorAnalyzer : Analyzer<EditorContext> =
+    fun (ctx : EditorContext) -> async { return ctx.TypedTree |> Option.map analyze |> Option.defaultValue [] }

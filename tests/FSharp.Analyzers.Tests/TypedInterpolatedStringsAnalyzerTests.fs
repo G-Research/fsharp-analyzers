@@ -31,7 +31,7 @@ let TypedInterpolatedStringsAnalyzerTests (fileName : string) =
         let! messages =
             File.ReadAllText fileName
             |> getContext projectOptions
-            |> TypedInterpolatedStringsAnalyzer.typedInterpolatedStringsAnalyzer
+            |> TypedInterpolatedStringsAnalyzer.typedInterpolatedStringsCliAnalyzer
 
         do! assertExpected fileName messages
     }
@@ -50,7 +50,7 @@ let NegativeTests (fileName : string) =
         let! messages =
             File.ReadAllText fileName
             |> getContext projectOptions
-            |> TypedInterpolatedStringsAnalyzer.typedInterpolatedStringsAnalyzer
+            |> TypedInterpolatedStringsAnalyzer.typedInterpolatedStringsCliAnalyzer
 
         Assert.That (messages, Is.Empty)
     }

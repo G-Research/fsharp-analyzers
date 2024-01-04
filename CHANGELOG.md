@@ -5,6 +5,9 @@
 ### Fixed
 * Don't report FormattableStrings in TypedInterpolatedStringsAnalyzer. [#46](https://github.com/G-Research/fsharp-analyzers/pull/46)
 
+### Added
+* Add editor support to all analyzers. [#50](https://github.com/G-Research/fsharp-analyzers/pull/50)
+
 ## 0.6.0 - 2023-12-20
 
 ### Added

@@ -33,9 +33,9 @@ let findStringAnalyzerFor (fileName : string) =
     |> Array.skip 1
     |> Array.head
     |> function
-        | "endswith" -> StringAnalyzer.endsWithAnalyzer
-        | "startswith" -> StringAnalyzer.startsWithAnalyzer
-        | "indexof" -> StringAnalyzer.indexOfAnalyzer
+        | "endswith" -> StringAnalyzer.endsWithCliAnalyzer
+        | "startswith" -> StringAnalyzer.startsWithCliAnalyzer
+        | "indexof" -> StringAnalyzer.indexOfCliAnalyzer
         | unknown -> failwithf $"Unknown subfolder \"%s{unknown}\", please configure analyzer"
 
 [<TestCaseSource(typeof<TestCases>)>]

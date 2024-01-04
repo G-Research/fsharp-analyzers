@@ -31,7 +31,7 @@ let ImmutableCollectionEqualityAnalyzerTests (fileName : string) =
         let! messages =
             File.ReadAllText fileName
             |> getContext projectOptions
-            |> ImmutableCollectionEqualityAnalyzer.immutableCollectionEqualityAnalyzer
+            |> ImmutableCollectionEqualityAnalyzer.immutableCollectionEqualityCliAnalyzer
 
         do! assertExpected fileName messages
     }
@@ -50,7 +50,7 @@ let NegativeTests (fileName : string) =
         let! messages =
             File.ReadAllText fileName
             |> getContext projectOptions
-            |> ImmutableCollectionEqualityAnalyzer.immutableCollectionEqualityAnalyzer
+            |> ImmutableCollectionEqualityAnalyzer.immutableCollectionEqualityCliAnalyzer
 
         Assert.That (messages, Is.Empty)
     }

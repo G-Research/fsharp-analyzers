@@ -42,7 +42,7 @@ module JsonSerializerOptionsAnalyzerTests =
             let! messages =
                 File.ReadAllText fileName
                 |> getContext projectOptions
-                |> JsonSerializerOptionsAnalyzer.jsonSerializerOptionsAnalyzer
+                |> JsonSerializerOptionsAnalyzer.jsonSerializerOptionsCliAnalyzer
 
             do! assertExpected fileName messages
         }

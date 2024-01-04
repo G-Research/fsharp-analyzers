@@ -46,7 +46,7 @@ module LoggingArgFuncNotFullyAppliedAnalyzerTests =
             let! messages =
                 File.ReadAllText fileName
                 |> getContext projectOptions
-                |> LoggingArgFuncNotFullyAppliedAnalyzer.loggingArgFuncNotFullyAppliedAnalyzer
+                |> LoggingArgFuncNotFullyAppliedAnalyzer.loggingArgFuncNotFullyAppliedCliAnalyzer
 
             do! assertExpected fileName messages
         }
@@ -65,7 +65,7 @@ module LoggingArgFuncNotFullyAppliedAnalyzerTests =
             let! messages =
                 File.ReadAllText fileName
                 |> getContext projectOptions
-                |> LoggingArgFuncNotFullyAppliedAnalyzer.loggingArgFuncNotFullyAppliedAnalyzer
+                |> LoggingArgFuncNotFullyAppliedAnalyzer.loggingArgFuncNotFullyAppliedCliAnalyzer
 
             Assert.That (messages, Is.Empty)
         }

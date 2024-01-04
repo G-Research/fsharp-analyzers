@@ -34,7 +34,7 @@ module VirtualCallAnalyzerTests =
             let! messages =
                 File.ReadAllText fileName
                 |> getContext projectOptions
-                |> VirtualCallAnalyzer.virtualCallAnalyzer
+                |> VirtualCallAnalyzer.virtualCallCliAnalyzer
 
             do! assertExpected fileName messages
         }
@@ -53,7 +53,7 @@ module VirtualCallAnalyzerTests =
             let! messages =
                 File.ReadAllText fileName
                 |> getContext projectOptions
-                |> VirtualCallAnalyzer.virtualCallAnalyzer
+                |> VirtualCallAnalyzer.virtualCallCliAnalyzer
 
             Assert.That (messages, Is.Empty)
         }
