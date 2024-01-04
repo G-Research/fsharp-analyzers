@@ -98,6 +98,12 @@ type FSharpGenericParameter with
     member private gp.HasEqualityConstraint =
         gp.Constraints |> Seq.exists (fun c -> c.IsEqualityConstraint)
 
+    member private gp.NameWithTick =
+        if gp.IsSolveAtCompileTime then
+            $"^%s{gp.Name}"
+        else
+            $"'%s{gp.Name}"
+
     member private gp.SubtypesOfTypeConstraint (dp : FSharpDisplayContext) =
         gp.Constraints
         |> Seq.choose (fun c ->
@@ -105,7 +111,7 @@ type FSharpGenericParameter with
                 None
             else
                 let t = c.CoercesToTarget.Format dp
-                Some $"%s{gp.Name} :> %s{t}"
+                Some $"%s{gp.NameWithTick} :> %s{t}"
         )
         |> Seq.toList
 
@@ -261,26 +267,18 @@ let private findMissingGenericParameterInfos
     | :? FSharpMemberOrFunctionOrValue as mfv ->
         mfv.GenericParameters
         |> Seq.choose (fun gp ->
-            let name =
-                if gp.IsSolveAtCompileTime then
-                    $"^%s{gp.Name}"
-                else
-                    $"'%s{gp.Name}"
-
-            ignore name
-
             let missingConstraints =
                 if Seq.isEmpty gp.Constraints then
                     List.empty
                 else
                     // Check if each constraint was found in the source
-                    match Map.tryFind name untypedConstraints with
+                    match Map.tryFind gp.NameWithTick untypedConstraints with
                     | None ->
                         let subtypeConstraints = gp.SubtypesOfTypeConstraint symbolUse.DisplayContext
 
                         [
                             if gp.HasEqualityConstraint then
-                                yield $"%s{name} : equality"
+                                yield $"%s{gp.NameWithTick} : equality"
                             yield! subtypeConstraints
                         ]
                     | Some untypedConstraint ->
@@ -288,25 +286,25 @@ let private findMissingGenericParameterInfos
 
                         [
                             if untypedConstraint.IsEqualityConstraint <> gp.HasEqualityConstraint then
-                                yield $"%s{name} : equality"
+                                yield $"%s{gp.NameWithTick} : equality"
                             if untypedConstraint.SubtypesOfType.Length <> subtypeConstraints.Length then
                                 yield! subtypeConstraints
                         ]
 
             match missingConstraints with
             | [] ->
-                if Map.containsKey name untypedConstraints then
+                if Map.containsKey gp.NameWithTick untypedConstraints then
                     None
                 else
                     Some
                         {
-                            Name = name
+                            Name = gp.NameWithTick
                             MissingConstraints = []
                         }
             | missingConstraints ->
                 Some
                     {
-                        Name = name
+                        Name = gp.NameWithTick
                         MissingConstraints = missingConstraints
                     }
         )
