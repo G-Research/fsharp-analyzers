@@ -1,0 +1,5 @@
+GRA-UNTYPEDAPI-001 | Warning | (5,12 - 5,44) | `DisableInMemoryProjectReferences` is not private, not fully typed
+Specify the return type.
+GRA-UNTYPEDAPI-001 | Warning | (5,12 - 5,44) | `DisableInMemoryProjectReferences` is not private, not fully typed
+Add type annotation for parameter at index `0`.
+Specify the return type.

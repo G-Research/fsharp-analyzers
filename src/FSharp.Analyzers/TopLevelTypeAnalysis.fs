@@ -696,10 +696,14 @@ let private processMember
     | SynMemberDefn.Open _
     | SynMemberDefn.ImplicitInherit _
     | SynMemberDefn.Interface _
-    | SynMemberDefn.AbstractSlot _ -> []
+    | SynMemberDefn.AbstractSlot _
+    | SynMemberDefn.Inherit _ -> []
     | SynMemberDefn.Member (memberDefn = memberDefn) -> processBinding env memberDefn |> Option.toList
     | SynMemberDefn.GetSetMember (memberDefnForGet, memberDefnForSet, range, trivia) ->
-        failwithf "todo: SynMemberDefn.GetSetMember %A %s" range range.FileName
+        let mkForBinding b =
+            b |> Option.bind (processBinding env) |> Option.toList
+
+        [ yield! mkForBinding memberDefnForGet ; yield! mkForBinding memberDefnForSet ]
     | SynMemberDefn.ImplicitCtor (accessibility, attributes, ctorArgs, selfIdentifier, xmlDoc, range, trivia) ->
         match accessibility with
         | Some (SynAccess.Private _) -> []
@@ -734,8 +738,6 @@ let private processMember
                         }
             )
             |> Option.toList
-    | SynMemberDefn.Inherit (baseType, asIdent, range) ->
-        failwithf "todo: SynMemberDefn.Inherit %A %s" range range.FileName
     | SynMemberDefn.ValField (fieldInfo, range) -> failwithf "todo: SynMemberDefn.ValField %A %s" range range.FileName
     | SynMemberDefn.AutoProperty (ident = ident ; typeOpt = typeOpt) ->
         match typeOpt with
