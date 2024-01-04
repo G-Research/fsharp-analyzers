@@ -379,13 +379,21 @@ let analyze parseTree (checkFileResults : FSharpCheckFileResults) =
 
     msgs
 
-[<CliAnalyzer("PartialAppAnalyzer",
-              "Warns when partial application is being used.",
-              "https://g-research.github.io/fsharp-analyzers/analyzers/PartialAppAnalyzer.html")>]
+[<Literal>]
+let name = "PartialAppAnalyzer"
+
+[<Literal>]
+let shortDescription = "Warns when partial application is being used."
+
+[<Literal>]
+let helpUri =
+    "https://g-research.github.io/fsharp-analyzers/analyzers/PartialAppAnalyzer.html"
+
+[<CliAnalyzer(name, shortDescription, helpUri)>]
 let partialAppCliAnalyzer : Analyzer<CliContext> =
     fun context -> async { return analyze context.ParseFileResults.ParseTree context.CheckFileResults }
 
-[<EditorAnalyzer "PartialAppAnalyzer">]
+[<EditorAnalyzer(name, shortDescription, helpUri)>]
 let partialAppEditorAnalyzer : Analyzer<EditorContext> =
     fun context ->
         async {

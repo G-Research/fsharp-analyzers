@@ -32,7 +32,7 @@ let TypeAnnotateStringFunctionsTests (fileName : string) =
         let! messages =
             File.ReadAllText fileName
             |> getContext projectOptions
-            |> TypeAnnotateStringFunctionAnalyzer.typeAnnotateStringFunctionsAnalyzer
+            |> TypeAnnotateStringFunctionAnalyzer.typeAnnotateStringFunctionsCliAnalyzer
 
         do! assertExpected fileName messages
     }
@@ -51,7 +51,7 @@ let NegativeTests (fileName : string) =
         let! messages =
             File.ReadAllText fileName
             |> getContext projectOptions
-            |> TypeAnnotateStringFunctionAnalyzer.typeAnnotateStringFunctionsAnalyzer
+            |> TypeAnnotateStringFunctionAnalyzer.typeAnnotateStringFunctionsCliAnalyzer
 
         Assert.That (messages, Is.Empty)
     }

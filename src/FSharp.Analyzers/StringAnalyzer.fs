@@ -14,6 +14,10 @@ let StringStartsWithCode = "GRA-STRING-002"
 [<Literal>]
 let StringIndexOfCode = "GRA-STRING-003"
 
+[<Literal>]
+let HelpUri =
+    "https://g-research.github.io/fsharp-analyzers/analyzers/StringAnalyzer.html"
+
 let tryGetFullName (e : FSharpExpr) =
     if e.Type.ErasedType.HasTypeDefinition then
         e.Type.ErasedType.TypeDefinition.TryGetFullName ()
@@ -70,72 +74,88 @@ let invalidStringFunctionUseAnalyzer
     )
     |> Seq.toList
 
-[<CliAnalyzer("String.EndsWith Analyzer",
-              "Verifies the correct usage of System.String.EndsWith",
-              "https://g-research.github.io/fsharp-analyzers/analyzers/StringAnalyzer.html")>]
-let endsWithAnalyzer (ctx : CliContext) : Async<Message list> =
-    async {
-        match ctx.TypedTree with
-        | None -> return List.empty
-        | Some typedTree ->
+let endsWithAnalyze (typedTree : FSharpImplementationFileContents) =
+    invalidStringFunctionUseAnalyzer
+        "EndsWith"
+        StringEndsWithCode
+        "The usage of String.EndsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
+        Warning
+        typedTree
+        (fun (args : FSharpExpr list) ->
+            match args with
+            | [ StringExpr ] -> true
+            | _ -> false
+        )
 
-        return
-            invalidStringFunctionUseAnalyzer
-                "EndsWith"
-                StringEndsWithCode
-                "The usage of String.EndsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
-                Warning
-                typedTree
-                (fun (args : FSharpExpr list) ->
-                    match args with
-                    | [ StringExpr ] -> true
-                    | _ -> false
-                )
-    }
+[<Literal>]
+let StringEndsWithName = "String.EndsWith Analyzer"
 
-[<CliAnalyzer("String.StartsWith Analyzer",
-              "Verifies the correct usage of System.String.StartsWith",
-              "https://g-research.github.io/fsharp-analyzers/analyzers/StringAnalyzer.html")>]
-let startsWithAnalyzer (ctx : CliContext) : Async<Message list> =
-    async {
-        match ctx.TypedTree with
-        | None -> return List.empty
-        | Some typedTree ->
-            return
-                invalidStringFunctionUseAnalyzer
-                    "StartsWith"
-                    StringStartsWithCode
-                    "The usage of String.StartsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
-                    Warning
-                    typedTree
-                    (fun (args : FSharpExpr list) ->
-                        match args with
-                        | [ StringExpr ] -> true
-                        | _ -> false
-                    )
-    }
+[<Literal>]
+let StringEndsWithShortDescription =
+    "Verifies the correct usage of System.String.EndsWith"
 
-[<CliAnalyzer("String.IndexOf Analyzer",
-              "Verifies the correct usage of System.String.IndexOf",
-              "https://g-research.github.io/fsharp-analyzers/analyzers/StringAnalyzer.html")>]
-let indexOfAnalyzer (ctx : CliContext) : Async<Message list> =
-    async {
-        match ctx.TypedTree with
-        | None -> return List.empty
-        | Some typedTree ->
+[<CliAnalyzer(StringEndsWithName, StringEndsWithShortDescription, HelpUri)>]
+let endsWithCliAnalyzer (ctx : CliContext) : Async<Message list> =
+    async { return ctx.TypedTree |> Option.map endsWithAnalyze |> Option.defaultValue [] }
 
-        return
-            invalidStringFunctionUseAnalyzer
-                "IndexOf"
-                StringIndexOfCode
-                "The usage of String.IndexOf with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
-                Warning
-                typedTree
-                (fun args ->
-                    match args with
-                    | [ StringExpr ]
-                    | [ StringExpr ; IntExpr ]
-                    | [ StringExpr ; IntExpr ; IntExpr ] -> true
-                    | _ -> false
-                )
-    }
+[<EditorAnalyzer(StringEndsWithName, StringEndsWithShortDescription, HelpUri)>]
+let endsWithEditorAnalyzer (ctx : EditorContext) : Async<Message list> =
+    async { return ctx.TypedTree |> Option.map endsWithAnalyze |> Option.defaultValue [] }
+
+let startsWithAnalyze (typedTree : FSharpImplementationFileContents) =
+    invalidStringFunctionUseAnalyzer
+        "StartsWith"
+        StringStartsWithCode
+        "The usage of String.StartsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
+        Warning
+        typedTree
+        (fun (args : FSharpExpr list) ->
+            match args with
+            | [ StringExpr ] -> true
+            | _ -> false
+        )
+
+[<Literal>]
+let StringStartsWithName = "String.StartsWith Analyzer"
+
+[<Literal>]
+let StringStartsWithShortDescription =
+    "Verifies the correct usage of System.String.StartsWith"
+
+[<CliAnalyzer(StringStartsWithName, StringStartsWithShortDescription, HelpUri)>]
+let startsWithCliAnalyzer (ctx : CliContext) : Async<Message list> =
+    async { return ctx.TypedTree |> Option.map startsWithAnalyze |> Option.defaultValue [] }
+
+[<EditorAnalyzer(StringStartsWithName, StringStartsWithShortDescription, HelpUri)>]
+let startsWithEditorAnalyzer (ctx : EditorContext) : Async<Message list> =
+    async { return ctx.TypedTree |> Option.map startsWithAnalyze |> Option.defaultValue [] }
+
+let indexOfAnalyze (typedTree : FSharpImplementationFileContents) =
+    invalidStringFunctionUseAnalyzer
+        "IndexOf"
+        StringIndexOfCode
+        "The usage of String.IndexOf with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
+        Warning
+        typedTree
+        (fun args ->
+            match args with
+            | [ StringExpr ]
+            | [ StringExpr ; IntExpr ]
+            | [ StringExpr ; IntExpr ; IntExpr ] -> true
+            | _ -> false
+        )
+
+[<Literal>]
+let StringIndexOfName = "String.IndexOf Analyzer"
+
+[<Literal>]
+let StringIndexOfShortDescription =
+    "Verifies the correct usage of System.String.IndexOf"
+
+[<CliAnalyzer(StringIndexOfName, StringIndexOfShortDescription, HelpUri)>]
+let indexOfCliAnalyzer (ctx : CliContext) : Async<Message list> =
+    async { return ctx.TypedTree |> Option.map indexOfAnalyze |> Option.defaultValue [] }
+
+[<EditorAnalyzer(StringIndexOfName, StringIndexOfShortDescription, HelpUri)>]
+let indexOfEditorAnalyzer (ctx : EditorContext) : Async<Message list> =
+    async { return ctx.TypedTree |> Option.map indexOfAnalyze |> Option.defaultValue [] }

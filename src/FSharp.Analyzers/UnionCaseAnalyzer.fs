@@ -109,29 +109,46 @@ let findAllShadowingCases
 
     collector |> Seq.toList
 
-[<CliAnalyzer("UnionCaseAnalyzer",
-              "Warns for reusing any default FSharp.Core union case name without RequireQualifiedAccessAttribute",
-              "https://g-research.github.io/fsharp-analyzers/analyzers/UnionCaseAnalyzer.html")>]
-let unionCaseAnalyzer : Analyzer<CliContext> =
+let analyze parseTree sourceText checkFileResults =
+    let ranges = findAllShadowingCases parseTree checkFileResults sourceText
+
+    let msgs =
+        ranges
+        |> List.map (fun r ->
+            {
+                Type = "UnionCase analyzer"
+                Message =
+                    "This discriminated union contains a case with the same name as a case from FSharp.Core. Consider renaming it or applying RequireQualifiedAccess to avoid clashes."
+                Code = Code
+                Severity = Warning
+                Range = r
+                Fixes = []
+            }
+        )
+
+    msgs
+
+[<Literal>]
+let Name = "UnionCaseAnalyzer"
+
+[<Literal>]
+let ShortDescription =
+    "Warns for reusing any default FSharp.Core union case name without RequireQualifiedAccessAttribute"
+
+[<Literal>]
+let HelpUri =
+    "https://g-research.github.io/fsharp-analyzers/analyzers/UnionCaseAnalyzer.html"
+
+[<CliAnalyzer(Name, ShortDescription, HelpUri)>]
+let unionCaseCliAnalyzer : Analyzer<CliContext> =
+    fun ctx -> async { return analyze ctx.ParseFileResults.ParseTree ctx.SourceText ctx.CheckFileResults }
+
+[<EditorAnalyzer(Name, ShortDescription, HelpUri)>]
+let unionCaseEditorAnalyzer : Analyzer<EditorContext> =
     fun ctx ->
         async {
-
-            let ranges =
-                findAllShadowingCases ctx.ParseFileResults.ParseTree ctx.CheckFileResults ctx.SourceText
-
-            let msgs =
-                ranges
-                |> List.map (fun r ->
-                    {
-                        Type = "UnionCase analyzer"
-                        Message =
-                            "This discriminated union contains a case with the same name as a case from FSharp.Core. Consider renaming it or applying RequireQualifiedAccess to avoid clashes."
-                        Code = Code
-                        Severity = Warning
-                        Range = r
-                        Fixes = []
-                    }
-                )
-
-            return msgs
+            return
+                ctx.CheckFileResults
+                |> Option.map (analyze ctx.ParseFileResults.ParseTree ctx.SourceText)
+                |> Option.defaultValue []
         }

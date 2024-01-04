@@ -34,7 +34,7 @@ module UnionCaseAnalyzerTests =
             let! messages =
                 File.ReadAllText fileName
                 |> getContext projectOptions
-                |> UnionCaseAnalyzer.unionCaseAnalyzer
+                |> UnionCaseAnalyzer.unionCaseCliAnalyzer
 
             do! assertExpected fileName messages
         }
@@ -53,7 +53,7 @@ module UnionCaseAnalyzerTests =
             let! messages =
                 File.ReadAllText fileName
                 |> getContext projectOptions
-                |> UnionCaseAnalyzer.unionCaseAnalyzer
+                |> UnionCaseAnalyzer.unionCaseCliAnalyzer
 
             Assert.That (messages, Is.Empty)
         }
