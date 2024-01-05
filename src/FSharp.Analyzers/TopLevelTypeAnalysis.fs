@@ -400,6 +400,7 @@ let (|TuplePatWithUntyped|_|) (p : SynPat) =
 
 let private (|TypedPatWithoutWildcards|_|) (p : SynPat) =
     match p with
+    | SynPat.Attrib (pat = SynPat.Typed (targetType = t))
     | SynPat.Typed (targetType = t) when not (hasWildCardInSynType t) -> Some p
     | _ -> None
 
@@ -407,7 +408,7 @@ let private allTypedPatterns (pats : SynPat list) : bool =
     pats
     |> List.forall (
         function
-        | SynPat.Typed (targetType = t) -> not (hasWildCardInSynType t)
+        | TypedPatWithoutWildcards _ -> true
         | _ -> false
     )
 
