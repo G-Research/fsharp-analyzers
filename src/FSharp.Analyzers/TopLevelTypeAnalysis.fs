@@ -216,7 +216,7 @@ let private findMissingGenericParameterInfos
     : MissingGenericParameterInfo list
     =
     match symbolUse with
-    | Mfv mfv when mfv.IsPropertyGetterMethod -> []
+    | Mfv mfv when mfv.IsPropertyGetterMethod || mfv.IsActivePattern -> []
     | _ ->
 
     let untypedConstraints : Map<string, UntypedGenericParameterInfo> =
