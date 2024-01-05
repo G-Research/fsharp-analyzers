@@ -403,6 +403,49 @@ let f (g: _): int = ignore<string> g; 0
         | d -> Assert.Fail $"Unexpected declaration %A{d}"
     }
 
+[<Test>]
+let ``Missing generic parameter type is only reported once`` () =
+    async {
+        let source =
+            """
+module X
+
+open System
+open System.Threading.Tasks
+    
+let mapWithAdditionalDependencies (mapping: 'a -> 'b) (value: Task<'a>) : Task<'b> =
+    let o : 'a = failwith "meh"
+    let aa = value.Result
+    ignore<bool> (aa = o)
+    let b = mapping aa
+    let bb = b :> IDisposable
+    let bbb = b :> ICloneable
+    failwith<Task<'b>> "meh"
+    """
+
+        let ctx = getContext projectOptions source
+
+        let missingInfo =
+            findMissingTypeInformation
+                ctx.SourceText
+                ctx.ParseFileResults.ParseTree
+                ctx.CheckFileResults
+                ctx.CheckProjectResults
+
+        match missingInfo with
+        | [ {
+                GenericParameters = [ {
+                                          Name = "'a"
+                                          MissingConstraints = [ "'a : equality" ]
+                                      }
+                                      {
+                                          Name = "'b"
+                                          MissingConstraints = [ "'b :> IDisposable" ; "'b :> ICloneable" ]
+                                      } ]
+            } ] -> Assert.Pass ()
+        | d -> Assert.Fail $"Unexpected declaration %A{d}"
+    }
+
 // [<Test>]
 let foobar () =
     async {

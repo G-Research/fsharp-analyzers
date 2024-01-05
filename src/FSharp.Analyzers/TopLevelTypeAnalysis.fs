@@ -93,6 +93,27 @@ type MissingTypeInfo =
         CurrentGenericParameters : SynTyparDecls option
     }
 
+[<RequireQualifiedAccess>]
+module private Constraints =
+    let hasEqualityConstraint (constraints : FSharpGenericParameterConstraint array) : bool =
+        constraints |> Array.exists (fun c -> c.IsEqualityConstraint)
+
+    let getSubtypesOfTypeConstraint
+        (dp : FSharpDisplayContext)
+        (name : string)
+        (constraints : FSharpGenericParameterConstraint array)
+        : string list
+        =
+        constraints
+        |> Array.choose (fun c ->
+            if not c.IsCoercesToConstraint then
+                None
+            else
+                let t = c.CoercesToTarget.Format dp
+                Some $"%s{name} :> %s{t}"
+        )
+        |> Array.toList
+
 type FSharpGenericParameter with
 
     member private gp.HasEqualityConstraint =
@@ -266,45 +287,55 @@ let private findMissingGenericParameterInfos
     match symbolUse.Symbol with
     | :? FSharpMemberOrFunctionOrValue as mfv ->
         mfv.GenericParameters
-        |> Seq.choose (fun gp ->
-            let missingConstraints =
-                if Seq.isEmpty gp.Constraints then
-                    List.empty
+        |> Seq.groupBy (fun gp -> gp.NameWithTick)
+        |> Seq.choose (fun (name, gps) ->
+            let constraints = gps |> Seq.collect (fun gp -> gp.Constraints) |> Seq.toArray
+
+            let gpName, missingConstraints =
+                if Array.isEmpty constraints then
+                    name, List.empty
                 else
                     // Check if each constraint was found in the source
-                    match Map.tryFind gp.NameWithTick untypedConstraints with
+                    match Map.tryFind name untypedConstraints with
                     | None ->
-                        let subtypeConstraints = gp.SubtypesOfTypeConstraint symbolUse.DisplayContext
+                        let subtypeConstraints =
+                            Constraints.getSubtypesOfTypeConstraint symbolUse.DisplayContext name constraints
 
+                        name,
                         [
-                            if gp.HasEqualityConstraint then
-                                yield $"%s{gp.NameWithTick} : equality"
+                            if Constraints.hasEqualityConstraint constraints then
+                                yield $"%s{name} : equality"
                             yield! subtypeConstraints
                         ]
                     | Some untypedConstraint ->
-                        let subtypeConstraints = gp.SubtypesOfTypeConstraint symbolUse.DisplayContext
+                        let subtypeConstraints =
+                            Constraints.getSubtypesOfTypeConstraint symbolUse.DisplayContext name constraints
 
+                        name,
                         [
-                            if untypedConstraint.IsEqualityConstraint <> gp.HasEqualityConstraint then
-                                yield $"%s{gp.NameWithTick} : equality"
+                            if
+                                untypedConstraint.IsEqualityConstraint
+                                <> Constraints.hasEqualityConstraint constraints
+                            then
+                                yield $"%s{name} : equality"
                             if untypedConstraint.SubtypesOfType.Length <> subtypeConstraints.Length then
                                 yield! subtypeConstraints
                         ]
 
             match missingConstraints with
             | [] ->
-                if Map.containsKey gp.NameWithTick untypedConstraints then
+                if Map.containsKey gpName untypedConstraints then
                     None
                 else
                     Some
                         {
-                            Name = gp.NameWithTick
+                            Name = gpName
                             MissingConstraints = []
                         }
             | missingConstraints ->
                 Some
                     {
-                        Name = gp.NameWithTick
+                        Name = gpName
                         MissingConstraints = missingConstraints
                     }
         )
