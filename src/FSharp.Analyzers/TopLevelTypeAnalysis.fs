@@ -98,6 +98,9 @@ module private Constraints =
     let hasEqualityConstraint (constraints : FSharpGenericParameterConstraint array) : bool =
         constraints |> Array.exists (fun c -> c.IsEqualityConstraint)
 
+    let hasComparisonConstraint (constraints : FSharpGenericParameterConstraint array) : bool =
+        constraints |> Array.exists (fun c -> c.IsComparisonConstraint)
+
     let getSubtypesOfTypeConstraint
         (dp : FSharpDisplayContext)
         (name : string)
@@ -169,12 +172,14 @@ type private Env =
 type private UntypedGenericParameterInfo =
     {
         IsEqualityConstraint : bool
+        IsComparisonConstraint : bool
         SubtypesOfType : string list
     }
 
     static member Empty =
         {
             IsEqualityConstraint = false
+            IsComparisonConstraint = false
             SubtypesOfType = []
         }
 
@@ -243,7 +248,16 @@ let private findMissingGenericParameterInfos
                 | SynTypeConstraint.WhereTyparSupportsNull (typar, range) ->
                     failwithf "todo: SynTypeConstraint.WhereTyparSupportsNull %A %s" range range.FileName
                 | SynTypeConstraint.WhereTyparIsComparable (typar, range) ->
-                    failwithf "todo: SynTypeConstraint.WhereTyparIsComparable %A %s" range range.FileName
+                    let typarInfo =
+                        Map.tryFind typar.Name map
+                        |> Option.defaultValue UntypedGenericParameterInfo.Empty
+
+                    Map.add
+                        typar.Name
+                        { typarInfo with
+                            IsComparisonConstraint = true
+                        }
+                        map
                 | SynTypeConstraint.WhereTyparIsEquatable (typar, range) ->
                     let typarInfo =
                         Map.tryFind typar.Name map
@@ -305,6 +319,8 @@ let private findMissingGenericParameterInfos
                         [
                             if Constraints.hasEqualityConstraint constraints then
                                 yield $"%s{name} : equality"
+                            if Constraints.hasComparisonConstraint constraints then
+                                yield $"%s{name} : comparison"
                             yield! subtypeConstraints
                         ]
                     | Some untypedConstraint ->
@@ -318,6 +334,11 @@ let private findMissingGenericParameterInfos
                                 <> Constraints.hasEqualityConstraint constraints
                             then
                                 yield $"%s{name} : equality"
+                            if
+                                untypedConstraint.IsComparisonConstraint
+                                <> Constraints.hasComparisonConstraint constraints
+                            then
+                                yield $"%s{name} : comparison"
                             if untypedConstraint.SubtypesOfType.Length <> subtypeConstraints.Length then
                                 yield! subtypeConstraints
                         ]
