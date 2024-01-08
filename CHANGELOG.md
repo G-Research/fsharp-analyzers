@@ -7,6 +7,11 @@
 
 ### Added
 * Add editor support to all analyzers. [#50](https://github.com/G-Research/fsharp-analyzers/pull/50)
+* Add fix to VirtualCall Analyzer. [#51](https://github.com/G-Research/fsharp-analyzers/pull/51)
+* Add fix to UnionCaseAnalyzer. [#51](https://github.com/G-Research/fsharp-analyzers/pull/51)
+
+### Changed
+* Update FSharp.Analyzers.SDK to `0.23.0`. [#51](https://github.com/G-Research/fsharp-analyzers/pull/45)
 
 ## 0.6.0 - 2023-12-20
 
