@@ -2,11 +2,13 @@
 /// equivalent functions from the Array,List,Set modules.
 module GR.FSharp.Analyzers.VirtualCallAnalyzer
 
+open System
 open FSharp.Analyzers.SDK
 open FSharp.Analyzers.SDK.TASTCollecting
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Symbols.FSharpExprPatterns
 open FSharp.Compiler.Text
+open Util
 
 [<Literal>]
 let Code = "GRA-VIRTUALCALL-001"
@@ -77,8 +79,35 @@ let seqFuncsWithEquivalentsInArrayAndList =
             "Microsoft.FSharp.Collections.Seq.tryPick"
         ]
 
-let analyze (typedTree : FSharpImplementationFileContents) =
-    let state = ResizeArray<string * string * range> ()
+let constructFix (origRange : Range) (origSource : string) (fixedModuleName : string) =
+
+    let fixText, lengthToReplace =
+        if fixedModuleName = "Set" then // deal with the 3 differently named equivalents of Set
+            if origSource.StartsWith ("Seq.length", StringComparison.Ordinal) then
+                "Set.count", 10
+            elif origSource.StartsWith ("Seq.max", StringComparison.Ordinal) then
+                "Set.maxElement", 7
+            elif origSource.StartsWith ("Seq.min", StringComparison.Ordinal) then
+                "Set.minElement", 7
+            else
+                "Set", 3
+        else
+            fixedModuleName, 3
+
+    let fixRange =
+        Range.mkRange
+            origRange.FileName
+            origRange.Start
+            (Position.mkPos origRange.StartLine (origRange.StartColumn + lengthToReplace))
+
+    {
+        FromRange = fixRange
+        FromText = ""
+        ToText = fixText
+    }
+
+let analyze (sourceText : ISourceText) (typedTree : FSharpImplementationFileContents) =
+    let state = ResizeArray<string * string * range * Fix> ()
 
     let walker =
         { new TypedTreeCollectorBase() with
@@ -112,7 +141,7 @@ let analyze (typedTree : FSharpImplementationFileContents) =
 
                     if not seqParamIndexes.IsEmpty then
 
-                        let maxSeqParamIdx = Seq.last seqParamIndexes
+                        let maxSeqParamIdx = List.last seqParamIndexes
 
                         if args.Length > maxSeqParamIdx then
 
@@ -125,21 +154,24 @@ let analyze (typedTree : FSharpImplementationFileContents) =
                                 )
 
                             if modules.Length = seqParamIndexes.Length && (List.distinct modules).Length = 1 then
-                                state.Add (mfv.DisplayName, modules[0], range)
+                                let origSource = sourceText.GetContentAt range
+                                let m = modules[0]
+                                let fix = constructFix range origSource m
+                                state.Add (mfv.DisplayName, m, range, fix)
         }
 
     walkTast walker typedTree
 
     [
-        for seqFunc, valType, range in state do
+        for seqFunc, valType, range, fix in state do
             {
                 Type = "VirtualCall analyzer"
                 Message =
-                    $"Consider replacing the call of Seq.{seqFunc} with a function from the {valType} module to avoid the costs of virtual calls."
+                    $"Consider replacing the call of Seq.%s{seqFunc} with a function from the %s{valType} module to avoid the costs of virtual calls."
                 Code = Code
                 Severity = Warning
                 Range = range
-                Fixes = []
+                Fixes = [ fix ]
             }
     ]
 
@@ -156,8 +188,10 @@ let HelpUri =
 
 [<CliAnalyzer(Name, ShortDescription, HelpUri)>]
 let virtualCallCliAnalyzer : Analyzer<CliContext> =
-    fun (ctx : CliContext) -> async { return ctx.TypedTree |> Option.map analyze |> Option.defaultValue [] }
+    fun (ctx : CliContext) ->
+        async { return ctx.TypedTree |> Option.map (analyze ctx.SourceText) |> Option.defaultValue [] }
 
 [<EditorAnalyzer(Name, ShortDescription, HelpUri)>]
 let virtualCallEditorAnalyzer : Analyzer<EditorContext> =
-    fun (ctx : EditorContext) -> async { return ctx.TypedTree |> Option.map analyze |> Option.defaultValue [] }
+    fun (ctx : EditorContext) ->
+        async { return ctx.TypedTree |> Option.map (analyze ctx.SourceText) |> Option.defaultValue [] }
