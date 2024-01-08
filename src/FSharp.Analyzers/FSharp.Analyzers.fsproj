@@ -14,6 +14,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Util.fs" />
     <Compile Include="StringAnalyzer.fsi" />
     <Compile Include="StringAnalyzer.fs" />
     <Compile Include="JsonSerializerOptionsAnalyzer.fs" />

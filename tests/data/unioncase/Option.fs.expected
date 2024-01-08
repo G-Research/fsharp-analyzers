@@ -1,1 +1,1 @@
-GRA-UNIONCASE-001 | Warning | (5,6 - 5,10) | This discriminated union contains a case with the same name as a case from FSharp.Core. Consider renaming it or applying RequireQualifiedAccess to avoid clashes.
+GRA-UNIONCASE-001 | Warning | (5,6 - 5,10) | This discriminated union contains a case with the same name as a case from FSharp.Core. Consider renaming it or applying RequireQualifiedAccess to avoid clashes. | []

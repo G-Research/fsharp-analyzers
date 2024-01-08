@@ -1,6 +1,6 @@
-GRA-JSONOPTS-001 | Warning | (6,12 - 6,80) | JsonSerializerOptions instances should be cached.
-GRA-JSONOPTS-001 | Warning | (7,12 - 7,97) | JsonSerializerOptions instances should be cached.
-GRA-JSONOPTS-001 | Warning | (8,12 - 8,90) | JsonSerializerOptions instances should be cached.
-GRA-JSONOPTS-001 | Warning | (9,12 - 9,89) | JsonSerializerOptions instances should be cached.
-GRA-JSONOPTS-001 | Warning | (10,12 - 10,86) | JsonSerializerOptions instances should be cached.
-GRA-JSONOPTS-001 | Warning | (11,12 - 11,91) | JsonSerializerOptions instances should be cached.
+GRA-JSONOPTS-001 | Warning | (6,12 - 6,80) | JsonSerializerOptions instances should be cached. | []
+GRA-JSONOPTS-001 | Warning | (7,12 - 7,97) | JsonSerializerOptions instances should be cached. | []
+GRA-JSONOPTS-001 | Warning | (8,12 - 8,90) | JsonSerializerOptions instances should be cached. | []
+GRA-JSONOPTS-001 | Warning | (9,12 - 9,89) | JsonSerializerOptions instances should be cached. | []
+GRA-JSONOPTS-001 | Warning | (10,12 - 10,86) | JsonSerializerOptions instances should be cached. | []
+GRA-JSONOPTS-001 | Warning | (11,12 - 11,91) | JsonSerializerOptions instances should be cached. | []
