@@ -1,5 +1,5 @@
-GRA-PARTAPP-001 | Warning | (8,8 - 8,14) | Partial application should not be used.
-GRA-PARTAPP-001 | Warning | (9,16 - 9,22) | Partial application should not be used.
-GRA-PARTAPP-001 | Warning | (12,27 - 12,33) | Partial application should not be used.
-GRA-PARTAPP-001 | Warning | (16,12 - 16,18) | Partial application should not be used.
-GRA-PARTAPP-001 | Warning | (17,20 - 17,26) | Partial application should not be used.
+GRA-PARTAPP-001 | Warning | (8,8 - 8,14) | Partial application should not be used. | []
+GRA-PARTAPP-001 | Warning | (9,16 - 9,22) | Partial application should not be used. | []
+GRA-PARTAPP-001 | Warning | (12,27 - 12,33) | Partial application should not be used. | []
+GRA-PARTAPP-001 | Warning | (16,12 - 16,18) | Partial application should not be used. | []
+GRA-PARTAPP-001 | Warning | (17,20 - 17,26) | Partial application should not be used. | []

@@ -21,7 +21,14 @@ let assertExpected sourceFile messages =
         let actualContents =
             messages
             |> List.map (fun (m : Message) ->
-                $"%s{m.Code} | %A{m.Severity} | (%i{m.Range.StartLine},%i{m.Range.StartColumn} - %i{m.Range.EndLine},%i{m.Range.EndColumn}) | %s{m.Message}"
+                let fixes =
+                    m.Fixes
+                    |> List.map (fun fix ->
+                        $"(%i{fix.FromRange.StartLine},%i{fix.FromRange.StartColumn} - %i{fix.FromRange.EndLine},%i{fix.FromRange.EndColumn}) %s{fix.ToText}"
+                    )
+                    |> String.concat ", "
+
+                $"%s{m.Code} | %A{m.Severity} | (%i{m.Range.StartLine},%i{m.Range.StartColumn} - %i{m.Range.EndLine},%i{m.Range.EndColumn}) | %s{m.Message} | [%s{fixes}]"
             )
             |> String.concat "\n"
             |> fun contents -> String.Concat (contents, "\n")

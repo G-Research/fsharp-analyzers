@@ -30,3 +30,7 @@ type MyU =
     | None
     | Case3
 ```
+
+If you use the Ionide integration, there's a quick fix available:
+
+![UnionCaseShadow](../img/UnionCaseAnalyzerFix.gif)

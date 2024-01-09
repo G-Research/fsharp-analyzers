@@ -5,6 +5,7 @@ open FSharp.Analyzers.SDK.ASTCollecting
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
 
 [<Literal>]
@@ -14,9 +15,9 @@ let findAllShadowingCases
     (ast : ParsedInput)
     (checkFileResults : FSharpCheckFileResults)
     (sourceText : ISourceText)
-    : range list
+    : (range * Fix) list
     =
-    let collector = ResizeArray<range> ()
+    let collector = ResizeArray<range * Fix> ()
 
     let namesToWarnAbount =
         set
@@ -56,9 +57,24 @@ let findAllShadowingCases
                 "Error"
             ]
 
-    let handleCase (SynUnionCase (ident = (SynIdent (ident, _)))) =
+    let handleCase (leadingKeyWord : SynTypeDefnLeadingKeyword) (SynUnionCase (ident = (SynIdent (ident, _)))) =
         if (namesToWarnAbount |> Set.contains ident.idText) then
-            collector.Add ident.idRange
+            let fromRange, toText =
+                match leadingKeyWord with
+                | SynTypeDefnLeadingKeyword.And _ -> leadingKeyWord.Range.EndRange, " [<RequireQualifiedAccess>]"
+                | SynTypeDefnLeadingKeyword.Type _ ->
+                    let indent = String.replicate leadingKeyWord.Range.StartRange.StartColumn " "
+                    leadingKeyWord.Range.StartRange, $"[<RequireQualifiedAccess>]\n%s{indent}"
+                | _ -> failwith "SynTypeDefnLeadingKeyword case not supported"
+
+            let fix =
+                {
+                    FromText = ""
+                    FromRange = fromRange
+                    ToText = toText
+                }
+
+            collector.Add (ident.idRange, fix)
 
         ()
 
@@ -67,14 +83,15 @@ let findAllShadowingCases
             override _.WalkTypeDefn
                 (
                     _,
-                    SynTypeDefn (typeInfo = SynComponentInfo (attributes = synAttributeLists) ; typeRepr = repr)
+                    SynTypeDefn (
+                        typeInfo = SynComponentInfo (attributes = synAttributeLists) ; typeRepr = repr ; trivia = trivia)
                 )
                 =
                 let hasReqQualAccAttribute =
                     synAttributeLists
                     |> List.exists (fun lst ->
                         lst.Attributes
-                        |> Seq.exists (fun (a : SynAttribute) ->
+                        |> List.exists (fun (a : SynAttribute) ->
                             let lineText = sourceText.GetLineString (a.Range.EndLine - 1)
                             let name = (List.last a.TypeName.LongIdent).idText
 
@@ -99,7 +116,7 @@ let findAllShadowingCases
                 if not hasReqQualAccAttribute then
                     match repr with
                     | SynTypeDefnRepr.Simple (SynTypeDefnSimpleRepr.Union (unionCases = synUnionCases), _) ->
-                        synUnionCases |> List.iter handleCase
+                        synUnionCases |> List.iter (handleCase trivia.LeadingKeyword)
                     | _ -> ()
                 else
                     ()
@@ -110,11 +127,11 @@ let findAllShadowingCases
     collector |> Seq.toList
 
 let analyze parseTree sourceText checkFileResults =
-    let ranges = findAllShadowingCases parseTree checkFileResults sourceText
+    let rangesAndFixes = findAllShadowingCases parseTree checkFileResults sourceText
 
     let msgs =
-        ranges
-        |> List.map (fun r ->
+        rangesAndFixes
+        |> List.map (fun (r, f) ->
             {
                 Type = "UnionCase analyzer"
                 Message =
@@ -122,7 +139,7 @@ let analyze parseTree sourceText checkFileResults =
                 Code = Code
                 Severity = Warning
                 Range = r
-                Fixes = []
+                Fixes = [ f ]
             }
         )
 

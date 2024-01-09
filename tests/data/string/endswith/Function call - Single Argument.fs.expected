@@ -1,1 +1,1 @@
-GRA-STRING-001 | Warning | (4,0 - 4,17) | The usage of String.EndsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload.
+GRA-STRING-001 | Warning | (4,0 - 4,17) | The usage of String.EndsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload. | []

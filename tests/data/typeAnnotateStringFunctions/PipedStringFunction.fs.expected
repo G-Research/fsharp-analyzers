@@ -1,1 +1,1 @@
-GRA-TYPE-ANNOTATE-001 | Warning | (5,7 - 5,13) | Please annotate your type when using the `string` function.
+GRA-TYPE-ANNOTATE-001 | Warning | (5,7 - 5,13) | Please annotate your type when using the `string` function. | []

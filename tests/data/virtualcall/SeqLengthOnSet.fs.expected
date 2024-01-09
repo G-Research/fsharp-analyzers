@@ -1,0 +1,1 @@
+GRA-VIRTUALCALL-001 | Warning | (5,4 - 5,20) | Consider replacing the call of Seq.length with a function from the Set module to avoid the costs of virtual calls. | [(5,4 - 5,14) Set.count]

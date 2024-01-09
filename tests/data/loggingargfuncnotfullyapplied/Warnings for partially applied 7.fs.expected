@@ -1,1 +1,1 @@
-GRA-LOGARGFUNCFULLAPP-001 | Warning | (11,8 - 11,52) | You have passed a function as one of the display arguments to ILogger.Log{Warning, Error, ...}. You have probably not applied this function fully.
+GRA-LOGARGFUNCFULLAPP-001 | Warning | (11,8 - 11,52) | You have passed a function as one of the display arguments to ILogger.Log{Warning, Error, ...}. You have probably not applied this function fully. | []
