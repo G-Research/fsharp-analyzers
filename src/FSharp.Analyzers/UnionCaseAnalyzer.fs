@@ -5,6 +5,7 @@ open FSharp.Analyzers.SDK.ASTCollecting
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
 
 [<Literal>]
@@ -56,15 +57,21 @@ let findAllShadowingCases
                 "Error"
             ]
 
-    let handleCase (typeKeywordRange : Range) (SynUnionCase (ident = (SynIdent (ident, _)))) =
+    let handleCase (leadingKeyWord : SynTypeDefnLeadingKeyword) (SynUnionCase (ident = (SynIdent (ident, _)))) =
         if (namesToWarnAbount |> Set.contains ident.idText) then
-            let indent = String.replicate typeKeywordRange.StartColumn " "
+            let fromRange, toText =
+                match leadingKeyWord with
+                | SynTypeDefnLeadingKeyword.And _ -> leadingKeyWord.Range.EndRange, " [<RequireQualifiedAccess>]"
+                | SynTypeDefnLeadingKeyword.Type _ ->
+                    let indent = String.replicate leadingKeyWord.Range.StartRange.StartColumn " "
+                    leadingKeyWord.Range.StartRange, $"[<RequireQualifiedAccess>]\n%s{indent}"
+                | _ -> failwith "SynTypeDefnLeadingKeyword case not supported"
 
             let fix =
                 {
                     FromText = ""
-                    FromRange = typeKeywordRange.StartRange
-                    ToText = $"[<RequireQualifiedAccess>]\n{indent}"
+                    FromRange = fromRange
+                    ToText = toText
                 }
 
             collector.Add (ident.idRange, fix)
@@ -109,7 +116,7 @@ let findAllShadowingCases
                 if not hasReqQualAccAttribute then
                     match repr with
                     | SynTypeDefnRepr.Simple (SynTypeDefnSimpleRepr.Union (unionCases = synUnionCases), _) ->
-                        synUnionCases |> List.iter (handleCase trivia.LeadingKeyword.Range)
+                        synUnionCases |> List.iter (handleCase trivia.LeadingKeyword)
                     | _ -> ()
                 else
                     ()
