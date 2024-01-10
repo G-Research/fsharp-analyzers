@@ -15,6 +15,7 @@
     <Compile Include="UnionCaseAnalyzerTests.fs" />
     <Compile Include="VirtualCallAnalyzerTests.fs" />
     <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzerTests.fs" />
+    <Compile Include="LoggingTemplateMissingValuesAnalyzerTests.fs" />
     <Compile Include="TypeAnnotateStringFunctionAnalyzerTests.fs" />
     <Compile Include="ImmutableCollectionEqualityAnalyzerTests.fs" />
     <Compile Include="TypedInterpolatedStringsAnalyzerTests.fs" />
