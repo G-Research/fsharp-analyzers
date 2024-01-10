@@ -20,7 +20,7 @@ let (|StringConst|_|) (e : FSharpExpr) =
 
 
 let analyze (typedTree : FSharpImplementationFileContents) =
-    let state = ResizeArray<range> ()
+    let state = ResizeArray<range * string> ()
 
     let namesToWarnAbout =
         set
@@ -82,17 +82,16 @@ let analyze (typedTree : FSharpImplementationFileContents) =
                     && Set.contains name namesToWarnAbout
                     && provided <> expected
                 then
-                    state.Add range
+                    state.Add (range, m.DisplayName)
         }
 
     walkTast walker typedTree
 
     [
-        for range in state do
+        for range, name in state do
             {
                 Type = "LoggingTemplateMissingValuesAnalyzer"
-                Message =
-                    "The given values in your call to ILogger.Log{Warning, Error, ...} don't match the expected templated args."
+                Message = $"The given values in your call to ILogger.%s{name} don't match the expected templated args."
                 Code = Code
                 Severity = Warning
                 Range = range
