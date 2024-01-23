@@ -1,0 +1,1 @@
+GRA-DISPBEFOREASYNC-001 | Warning | (10,8 - 10,9) | Object is disposed before returned task is run | []
