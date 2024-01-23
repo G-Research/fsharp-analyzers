@@ -104,7 +104,8 @@ open FSharp.Compiler.Text
 [<CliAnalyzer("%s{analyzerName}",
               "", // TODO: add description.
               "https://g-research.github.io/fsharp-analyzers/analyzers/%s{analyzerName}.html")>]
-let %s{camelCasedName} : Analyzer<CliContext> = fun (ctx : CliContext) -> async {{ return List.empty<Message> }}
+let %s{camelCasedName} : Analyzer<CliContext> =
+    fun (ctx : CliContext) -> async {{ return List.empty<Message> }}
 """
 
             File.WriteAllText (analyzerFilePath, analyzerContent)
@@ -184,7 +185,7 @@ let NegativeTests (fileName : string) =
             |> getContext projectOptions
             |> %s{analyzerName}.%s{camelCasedName}
 
-        Assert.IsEmpty messages
+        Assert.That (messages, Is.Empty)
     }}
 """
 
