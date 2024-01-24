@@ -2,18 +2,62 @@ module GR.FSharp.Analyzers.DisposedBeforeAsyncRunAnalyzer
 
 open System
 open FSharp.Analyzers.SDK
-open FSharp.Analyzers.SDK.TASTCollecting
 open FSharp.Analyzers.SDK.ASTCollecting
+open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Symbols
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
-open FSharp.Compiler.Symbols.FSharpExprPatterns
 
 [<Literal>]
 let Code = "GRA-DISPBEFOREASYNC-001"
 
-let collectUses (ast : ParsedInput) (sourceText : ISourceText) =
+let getType (checkFileResults : FSharpCheckFileResults) (sourceText : ISourceText) (synPat : SynPat) =
+    let lineText = sourceText.GetLineString (synPat.Range.EndLine - 1) // 0-based
+
+    match synPat with
+    | SynPat.LongIdent (longDotId = SynLongIdent (id = idents)) -> idents |> List.tryLast
+    | SynPat.Named (ident = SynIdent (ident = ident)) -> Some ident
+    | _ -> None
+    |> Option.map (fun i ->
+        checkFileResults.GetSymbolUseAtLocation (synPat.Range.EndLine, synPat.Range.EndColumn, lineText, [ i.idText ])
+        |> Option.map (fun symbolUse ->
+            match symbolUse.Symbol with
+            | :? FSharpMemberOrFunctionOrValue as mfv when mfv.IsFunction -> mfv.FullTypeSafe
+            | _ -> None
+        )
+    )
+    |> Option.flatten
+    |> Option.flatten
+
+let asyncOrTask (t : FSharpType) =
+    t.GenericArguments
+    |> Seq.tryLast
+    |> Option.map (fun t ->
+        if t.HasTypeDefinition then
+            match t.TypeDefinition.TryGetFullName () with
+            | Some fullName when fullName.StartsWith ("Microsoft.FSharp.Control.FSharpAsync", StringComparison.Ordinal) ->
+                Some "async"
+            | Some fullName when fullName.StartsWith ("System.Threading.Tasks.Task", StringComparison.Ordinal) ->
+                Some "task"
+            | _ -> None
+        else
+            None
+    )
+    |> Option.flatten
+
+let pathContainsComputationExpr (path : SyntaxVisitorPath) =
+    path
+    |> Seq.exists (
+        function
+        | SyntaxNode.SynExpr (SynExpr.ComputationExpr _) -> true
+        | _ -> false
+    )
+
+[<Literal>]
+let SwitchOffComment = "Note: disposed before returned"
+
+let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults : FSharpCheckFileResults) =
     let comments =
         match ast with
         | ParsedInput.ImplFile parsedImplFileInput -> parsedImplFileInput.Trivia.CodeComments
@@ -26,92 +70,62 @@ let collectUses (ast : ParsedInput) (sourceText : ISourceText) =
             | CommentTrivia.LineComment r ->
                 if r.StartLine = useRange.StartLine - 1 then
                     let lineOfComment = sourceText.GetLineString (r.StartLine - 1) // 0-based
-                    lineOfComment.Contains ("Note: disposed before returned", StringComparison.Ordinal)
+                    lineOfComment.Contains (SwitchOffComment, StringComparison.Ordinal)
                 else
                     false
             | _ -> false
         )
 
-    let state = ResizeArray<range> ()
+    let uses = ResizeArray<range> () // range of use expressions in async/task returning functions outside of CE
+    let asyncOrTaskReturningFunctions = ResizeArray<range * string> () // range and CE name of async/task returning functions
 
     let walker =
         { new SyntaxCollectorBase() with
-            override _.WalkExpr (_path : SyntaxVisitorPath, synExpr : SynExpr) : unit =
-                match synExpr with
-                | SynExpr.LetOrUse (isUse = true ; bindings = [ binding ]) ->
-                    if not (isSwitchedOffPerCommment binding.RangeOfBindingWithoutRhs) then
-                        state.Add (binding.RangeOfBindingWithoutRhs)
-                | _ -> ()
+            override _.WalkExpr (path : SyntaxVisitorPath, synExpr : SynExpr) : unit =
+                if not (pathContainsComputationExpr path) then
+                    match synExpr with
+                    | SynExpr.LetOrUse (isUse = true ; bindings = [ binding ]) ->
+                        if not (isSwitchedOffPerCommment binding.RangeOfBindingWithoutRhs) then
+                            uses.Add binding.RangeOfBindingWithoutRhs
+                    | _ -> ()
 
-                ()
+            override _.WalkBinding (_path : SyntaxVisitorPath, binding : SynBinding) : unit =
+                let (SynBinding (headPat = headPat)) = binding
+
+                match getType checkFileResults sourceText headPat |> Option.map asyncOrTask with
+                | Some asyOrTsk ->
+                    match asyOrTsk with
+                    | Some ce -> asyncOrTaskReturningFunctions.Add (binding.RangeOfBindingWithRhs, ce)
+                    | None -> ()
+                | None -> ()
         }
 
     walkAst walker ast
-    state.ToArray ()
+    uses.ToArray (), asyncOrTaskReturningFunctions.ToArray ()
 
-let getUseRanges (uses : Range array) (expr : FSharpExpr) =
-    let ranges = ResizeArray<Range> ()
+let analyze (sourceText : ISourceText) ast (checkFileResults : FSharpCheckFileResults) =
+    let uses, asyncOrTaskReturningFunctions =
+        collectUses sourceText ast checkFileResults
 
-    let rec traverse (expr : FSharpExpr) =
-        match expr with
-        | Let ((bindingVar, _bindingExpr, _debugPointAtBinding), bodyExpr) ->
-            let rangesToAdd =
-                uses
-                |> Array.filter (fun r -> Range.rangeContainsRange r bindingVar.DeclarationLocation)
+    seq {
+        for funcRange, ce in asyncOrTaskReturningFunctions do
+            let useRanges = uses |> Array.filter (Range.rangeContainsRange funcRange)
 
-            ranges.AddRange rangesToAdd
-            traverse bodyExpr
-        | TryFinally (fsharpExpr, _FSharpExpr, _debugPointAtTry, _debugPointAtFinally) -> traverse fsharpExpr
-        | _ -> ()
+            for useRange in useRanges do
+                let msg =
+                    {
+                        Type = "DisposedBeforeAsyncRun analyzer"
+                        Message = $"Object is disposed before returned %s{ce} is run"
+                        Code = Code
+                        Severity = Warning
+                        Range = useRange
+                        Fixes = []
+                    }
 
-    traverse expr
-    ranges.ToArray ()
-
-let analyzeAsyncOrTaskReturningDecls (uses : Range array) (decl : FSharpImplementationFileDeclaration) =
-    let state = ResizeArray<string * range> ()
-
-    let rec traverseDecl (decl : FSharpImplementationFileDeclaration) =
-        match decl with
-        | FSharpImplementationFileDeclaration.Entity (declarations = declarations) ->
-            declarations |> List.iter (traverseDecl)
-        | FSharpImplementationFileDeclaration.InitAction _action -> ()
-        | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue (value = mfv ; body = body) ->
-            if mfv.IsFunction then
-                let asyncOrTask =
-                    match body.Type.TypeDefinition.TryGetFullName () with
-                    | Some fullName ->
-                        if fullName.StartsWith ("Microsoft.FSharp.Control.FSharpAsync", StringComparison.Ordinal) then
-                            Some "async"
-                        elif fullName.StartsWith ("System.Threading.Tasks.Task", StringComparison.Ordinal) then
-                            Some "task"
-                        else
-                            None
-
-                    | None -> None
-
-                match asyncOrTask with
-                | Some ce ->
-                    let rangesToWarnAbout = getUseRanges uses body |> Array.map (fun r -> (ce, r))
-                    state.AddRange rangesToWarnAbout
-                | None -> ()
-
-    traverseDecl decl
-
-    [
-        for ce, range in state do
-            {
-                Type = "DisposedBeforeAsyncRun analyzer"
-                Message = $"Object is disposed before returned %s{ce} is run"
-                Code = Code
-                Severity = Warning
-                Range = range
-                Fixes = []
-            }
-    ]
-
-let analyze (sourceText : ISourceText) parseTree (typedTree : FSharpImplementationFileContents) =
-    let uses = collectUses parseTree sourceText
-    typedTree.Declarations |> List.collect (analyzeAsyncOrTaskReturningDecls uses)
+                yield msg
+    }
+    |> Seq.toList
+    |> List.distinct // for cases like UseBeforeAsyncInNestedFunc.fs
 
 [<Literal>]
 let Name = "DisposedBeforeAsyncRunAnalyzer"
@@ -127,19 +141,14 @@ let HelpUri =
 [<CliAnalyzer(Name, ShortDescription, HelpUri)>]
 let disposedBeforeAsyncRunCliAnalyzer : Analyzer<CliContext> =
     fun (ctx : CliContext) ->
-        async {
-            return
-                ctx.TypedTree
-                |> Option.map (analyze ctx.SourceText ctx.ParseFileResults.ParseTree)
-                |> Option.defaultValue []
-        }
+        async { return analyze ctx.SourceText ctx.ParseFileResults.ParseTree ctx.CheckFileResults }
 
 [<EditorAnalyzer(Name, ShortDescription, HelpUri)>]
 let disposedBeforeAsyncRunEditorAnalyzer : Analyzer<EditorContext> =
     fun (ctx : EditorContext) ->
         async {
             return
-                ctx.TypedTree
+                ctx.CheckFileResults
                 |> Option.map (analyze ctx.SourceText ctx.ParseFileResults.ParseTree)
                 |> Option.defaultValue []
         }
