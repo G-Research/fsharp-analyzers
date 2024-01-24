@@ -208,7 +208,6 @@ let NegativeTests (fileName : string) =
 
             let documentationContent =
                 $"""---
----
 title: %s{title} Analyzer
 category: analyzers
 categoryindex: 1
