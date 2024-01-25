@@ -46,6 +46,20 @@ let asyncOrTask (t : FSharpType) =
     )
     |> Option.flatten
 
+let pathContainsAsyncOrTaskReturningFunc
+    (checkFileResults : FSharpCheckFileResults)
+    (sourceText : ISourceText)
+    (path : SyntaxVisitorPath)
+    =
+    path
+    |> Seq.tryPick (fun node ->
+        match node with
+        | SyntaxNode.SynBinding (SynBinding (headPat = headPat)) ->
+            getType checkFileResults sourceText headPat |> Option.map asyncOrTask
+        | _ -> None
+    )
+    |> Option.flatten
+
 let pathContainsComputationExpr (path : SyntaxVisitorPath) =
     path
     |> Seq.exists (
@@ -76,56 +90,50 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
             | _ -> false
         )
 
-    let uses = ResizeArray<range> () // range of use expressions in async/task returning functions outside of CE
-    let asyncOrTaskReturningFunctions = ResizeArray<range * string> () // range and CE name of async/task returning functions
+    let uses = ResizeArray<range * string> ()
+
+    let rec hasAsyncOrTaskInBody (body : SynExpr) =
+        match body with
+        | SynExpr.App (funcExpr = SynExpr.Ident (ident = ident)) when ident.idText = "async" || ident.idText = "task" ->
+            true
+        | SynExpr.LetOrUse (body = body) -> hasAsyncOrTaskInBody body
+        | SynExpr.Sequential (expr2 = expr2) -> hasAsyncOrTaskInBody expr2
+        | _ -> false
 
     let walker =
         { new SyntaxCollectorBase() with
             override _.WalkExpr (path : SyntaxVisitorPath, synExpr : SynExpr) : unit =
+
                 if not (pathContainsComputationExpr path) then
                     match synExpr with
-                    | SynExpr.LetOrUse (isUse = true ; bindings = [ binding ]) ->
-                        if not (isSwitchedOffPerCommment binding.RangeOfBindingWithoutRhs) then
-                            uses.Add binding.RangeOfBindingWithoutRhs
+                    | SynExpr.LetOrUse (isUse = true ; bindings = [ binding ] ; body = body) ->
+                        if
+                            not (isSwitchedOffPerCommment binding.RangeOfBindingWithoutRhs)
+                            && hasAsyncOrTaskInBody body
+                        then
+                            match pathContainsAsyncOrTaskReturningFunc checkFileResults sourceText path with
+                            | Some ce -> uses.Add (binding.RangeOfBindingWithoutRhs, ce)
+                            | _ -> ()
                     | _ -> ()
-
-            override _.WalkBinding (_path : SyntaxVisitorPath, binding : SynBinding) : unit =
-                let (SynBinding (headPat = headPat)) = binding
-
-                match getType checkFileResults sourceText headPat |> Option.map asyncOrTask with
-                | Some asyOrTsk ->
-                    match asyOrTsk with
-                    | Some ce -> asyncOrTaskReturningFunctions.Add (binding.RangeOfBindingWithRhs, ce)
-                    | None -> ()
-                | None -> ()
         }
 
     walkAst walker ast
-    uses.ToArray (), asyncOrTaskReturningFunctions.ToArray ()
+    uses.ToArray ()
 
 let analyze (sourceText : ISourceText) ast (checkFileResults : FSharpCheckFileResults) =
-    let uses, asyncOrTaskReturningFunctions =
-        collectUses sourceText ast checkFileResults
+    let uses = collectUses sourceText ast checkFileResults
 
-    seq {
-        for funcRange, ce in asyncOrTaskReturningFunctions do
-            let useRanges = uses |> Array.filter (Range.rangeContainsRange funcRange)
-
-            for useRange in useRanges do
-                let msg =
-                    {
-                        Type = "DisposedBeforeAsyncRun analyzer"
-                        Message = $"Object is disposed before returned %s{ce} is run"
-                        Code = Code
-                        Severity = Warning
-                        Range = useRange
-                        Fixes = []
-                    }
-
-                yield msg
-    }
-    |> Seq.toList
-    |> List.distinct // for cases like UseBeforeAsyncInNestedFunc.fs
+    [
+        for useRange, ce in uses do
+            {
+                Type = "DisposedBeforeAsyncRun analyzer"
+                Message = $"Object is disposed before returned %s{ce} is run"
+                Code = Code
+                Severity = Warning
+                Range = useRange
+                Fixes = []
+            }
+    ]
 
 [<Literal>]
 let Name = "DisposedBeforeAsyncRunAnalyzer"

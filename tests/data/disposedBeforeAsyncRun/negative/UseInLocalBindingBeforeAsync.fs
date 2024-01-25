@@ -5,7 +5,7 @@ open System.IO
 
 let asyncReturningFunc () =
     let localFunc () =
-        // should warn
+        // should not warn
         use t = new System.IO.FileStream("", IO.FileMode.Open)
         t |> ignore
         ()
