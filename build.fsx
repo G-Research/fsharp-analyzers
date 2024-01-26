@@ -35,7 +35,7 @@ pipeline "EnsureTrailingNewline" {
     stage "TestData" {
         run (fun _ ->
             Directory.EnumerateFiles (
-                Path.Combine (__SOURCE_DIRECTORY__, "tests", "data"),
+                Path.Combine (__SOURCE_DIRECTORY__, "tests", "FSharp.Analyzers.Tests", "data"),
                 "*.*",
                 SearchOption.AllDirectories
             )
@@ -77,7 +77,7 @@ let getLastCompileItem (fsproj : string) =
 pipeline "NewAnalyzer" {
     stage "Scaffold" {
         run (fun _ctx ->
-            Console.Write ("Enter analyzer name:")
+            Console.Write "Enter analyzer name:"
             let analyzerName = Console.ReadLine().Trim ()
 
             let analyzerName =
@@ -195,7 +195,7 @@ let NegativeTests (fileName : string) =
             printfn "Created %s" analyzerTestsFilePath
 
             let testFolder =
-                DirectoryInfo (__SOURCE_DIRECTORY__ </> "tests/data" </> testFolderName)
+                DirectoryInfo (__SOURCE_DIRECTORY__ </> "tests/FSharp.Analyzers.Tests/data" </> testFolderName)
 
             testFolder.Create ()
             let sampleFilePath = testFolder.FullName </> "Sample.fs"
