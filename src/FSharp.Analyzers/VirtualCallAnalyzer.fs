@@ -20,9 +20,20 @@ let (|CoerceToSeq|_|) (includeFromSet : bool) (expr : FSharpExpr) =
         && t.TypeDefinition.LogicalName = "seq`1"
         && e.Type.HasTypeDefinition
         ->
-        match e.Type.TypeDefinition.LogicalName with
-        | "[]`1" -> Some "Array"
-        | "list`1" -> Some "List"
+        let coercedValueTypeName =
+            if
+                e.Type.TypeDefinition.IsFSharpAbbreviation
+                && e.Type.TypeDefinition.AbbreviatedType.HasTypeDefinition
+            then
+                e.Type.TypeDefinition.AbbreviatedType.TypeDefinition.LogicalName
+            else
+                e.Type.TypeDefinition.LogicalName
+
+        match coercedValueTypeName with
+        | "[]`1"
+        | "array`1" -> Some "Array"
+        | "list`1"
+        | "List`1" -> Some "List"
         | "Set`1" when includeFromSet -> Some "Set"
         | _ -> None
     | _ -> None
