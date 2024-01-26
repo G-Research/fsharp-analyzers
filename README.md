@@ -1,6 +1,6 @@
 # G-Research Fsharp Analyzers
 
-![GitHub Workflow Status (event)](https://img.shields.io/github/actions/workflow/status/G-Research/fsharp-analyzers/main.yml?branch=main&label=CI&style=flat-square)
+![GitHub Workflow Status (event)](https://img.shields.io/github/actions/workflow/status/G-Research/fsharp-analyzers/release.yml?branch=main&label=CI&style=flat-square)
 [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/G-Research.FSharp.Analyzers?style=flat-square)](https://www.nuget.org/packages/G-Research.FSharp.Analyzers/absoluteLatest)
 
 A curated set of [Ionide SDK analyzers](https://ionide.io/FSharp.Analyzers.SDK/) for F#.
