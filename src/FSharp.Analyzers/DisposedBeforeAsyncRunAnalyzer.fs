@@ -98,6 +98,11 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
             true
         | SynExpr.LetOrUse (body = body) -> hasAsyncOrTaskInBody body
         | SynExpr.Sequential (expr2 = expr2) -> hasAsyncOrTaskInBody expr2
+        | SynExpr.IfThenElse (thenExpr = thenExpr ; elseExpr = elseExpr) ->
+            hasAsyncOrTaskInBody thenExpr
+            || elseExpr |> Option.map hasAsyncOrTaskInBody |> Option.defaultValue false
+        | SynExpr.TryFinally (tryExpr = tryExpr) -> hasAsyncOrTaskInBody tryExpr
+        | SynExpr.TryWith (tryExpr = tryExpr) -> hasAsyncOrTaskInBody tryExpr
         | _ -> false
 
     let walker =
