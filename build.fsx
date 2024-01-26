@@ -35,7 +35,7 @@ pipeline "EnsureTrailingNewline" {
     stage "TestData" {
         run (fun _ ->
             Directory.EnumerateFiles (
-                Path.Combine (__SOURCE_DIRECTORY__, "tests", "data"),
+                Path.Combine (__SOURCE_DIRECTORY__, "tests", "FSharp.Analyzers.Tests", "data"),
                 "*.*",
                 SearchOption.AllDirectories
             )
