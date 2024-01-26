@@ -54,7 +54,7 @@ let assertExpected sourceFile messages =
         Assert.That (actualContents, Is.EqualTo expectedContents)
     }
 
-let dataFolder = Path.Combine (__SOURCE_DIRECTORY__, "..", "data")
+let dataFolder = Path.Combine (__SOURCE_DIRECTORY__, "data")
 
 let constructTestCaseEnumeratorAux (files : string seq) : IEnumerator =
     files
