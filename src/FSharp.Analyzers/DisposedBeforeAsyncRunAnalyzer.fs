@@ -52,7 +52,7 @@ let pathContainsAsyncOrTaskReturningFunc
     (path : SyntaxVisitorPath)
     =
     path
-    |> Seq.tryPick (fun node ->
+    |> List.tryPick (fun node ->
         match node with
         | SyntaxNode.SynBinding (SynBinding (headPat = headPat)) ->
             getType checkFileResults sourceText headPat |> Option.map asyncOrTask
@@ -62,7 +62,7 @@ let pathContainsAsyncOrTaskReturningFunc
 
 let pathContainsComputationExpr (path : SyntaxVisitorPath) =
     path
-    |> Seq.exists (
+    |> List.exists (
         function
         | SyntaxNode.SynExpr (SynExpr.ComputationExpr _) -> true
         | _ -> false
@@ -77,16 +77,16 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
         | ParsedInput.ImplFile parsedImplFileInput -> parsedImplFileInput.Trivia.CodeComments
         | _ -> []
 
-    let isSwitchedOffPerCommment (useRange : Range) =
+    let isSwitchedOffPerComment (range : Range) =
         comments
         |> List.exists (fun c ->
             match c with
             | CommentTrivia.LineComment r ->
-                if r.StartLine = useRange.StartLine - 1 then
+                if r.StartLine <> range.StartLine - 1 then
+                    false
+                else
                     let lineOfComment = sourceText.GetLineString (r.StartLine - 1) // 0-based
                     lineOfComment.Contains (SwitchOffComment, StringComparison.Ordinal)
-                else
-                    false
             | _ -> false
         )
 
@@ -94,8 +94,7 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
 
     let rec hasAsyncOrTaskInBody (body : SynExpr) =
         match body with
-        | SynExpr.App (funcExpr = SynExpr.Ident (ident = ident)) when ident.idText = "async" || ident.idText = "task" ->
-            true
+        | SynExpr.App (funcExpr = SynExpr.Ident (ident = ident)) -> ident.idText = "async" || ident.idText = "task"
         | SynExpr.LetOrUse (body = body) -> hasAsyncOrTaskInBody body
         | SynExpr.Sequential (expr2 = expr2) -> hasAsyncOrTaskInBody expr2
         | SynExpr.IfThenElse (thenExpr = thenExpr ; elseExpr = elseExpr) ->
@@ -113,7 +112,7 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
                     match synExpr with
                     | SynExpr.LetOrUse (isUse = true ; bindings = [ binding ] ; body = body) ->
                         if
-                            not (isSwitchedOffPerCommment binding.RangeOfBindingWithoutRhs)
+                            not (isSwitchedOffPerComment binding.RangeOfBindingWithoutRhs)
                             && hasAsyncOrTaskInBody body
                         then
                             match pathContainsAsyncOrTaskReturningFunc checkFileResults sourceText path with
