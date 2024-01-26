@@ -21,7 +21,17 @@ let f () =
 
 ## Fix
 
-If this is not an issue for your context, you can disable the warning with a comment on top of the `use` statement.
+If applicable to your context, move the `use` statement into the `async`.
+
+```fsharp
+let f () =
+    async {
+        use t = new DisposableThing()
+        return "hi"
+    }
+```
+
+If the `use` before the `async` is really your intent, you can disable the warning with a comment on top of the `use` statement.
 ```fsharp
 let f () =
     // Note: disposed before returned
