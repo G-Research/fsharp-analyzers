@@ -1,0 +1,1 @@
+GRA-VIRTUALCALL-001 | Warning | (11,4 - 11,19) | Consider replacing the call of Seq.length with a function from the List module to avoid the costs of virtual calls. | [(11,4 - 11,7) List]
