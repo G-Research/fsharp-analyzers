@@ -49,4 +49,11 @@
         <PackageReference Include="Ionide.KeepAChangelog.Tasks" PrivateAssets="all"/>
         <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all"/>
     </ItemGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="FSharp.Analyzers.Build">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>build</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
 </Project>

@@ -490,3 +490,6 @@ tests/data/**/*.actual
 .fsdocs/
 tmp/
 output/
+
+# Analyzer files
+*.sarif
