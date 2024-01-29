@@ -15,7 +15,7 @@ let (|StringConst|_|) (e : FSharpExpr) =
     let name = e.Type.ErasedType.TypeDefinition.TryGetFullName ()
 
     match name, e with
-    | Some ("System.String"), Const (o, _type) when not (isNull o) -> Some (string o)
+    | Some ("System.String"), Const (o, _type) when not (isNull o) -> Some (string<obj> o)
     | _ -> None
 
 
