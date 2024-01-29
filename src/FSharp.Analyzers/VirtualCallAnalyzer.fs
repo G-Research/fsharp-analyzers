@@ -24,6 +24,10 @@ let (|CoerceToSeq|_|) (includeFromSet : bool) (expr : FSharpExpr) =
             if
                 e.Type.TypeDefinition.IsFSharpAbbreviation
                 && e.Type.TypeDefinition.AbbreviatedType.HasTypeDefinition
+                && e.Type.TypeDefinition.AbbreviatedType.BasicQualifiedName.StartsWith (
+                    "Microsoft.FSharp",
+                    StringComparison.Ordinal
+                )
             then
                 e.Type.TypeDefinition.AbbreviatedType.TypeDefinition.LogicalName
             else
