@@ -19,16 +19,14 @@ let getType (checkFileResults : FSharpCheckFileResults) (sourceText : ISourceTex
     | SynPat.LongIdent (longDotId = SynLongIdent (id = idents)) -> idents |> List.tryLast
     | SynPat.Named (ident = SynIdent (ident = ident)) -> Some ident
     | _ -> None
-    |> Option.map (fun i ->
+    |> Option.bind (fun i ->
         checkFileResults.GetSymbolUseAtLocation (synPat.Range.EndLine, synPat.Range.EndColumn, lineText, [ i.idText ])
-        |> Option.map (fun symbolUse ->
+        |> Option.bind (fun symbolUse ->
             match symbolUse.Symbol with
             | :? FSharpMemberOrFunctionOrValue as mfv when mfv.IsFunction -> mfv.FullTypeSafe
             | _ -> None
         )
     )
-    |> Option.flatten
-    |> Option.flatten
 
 let asyncOrTask (t : FSharpType) =
     t.GenericArguments
@@ -69,7 +67,10 @@ let pathContainsComputationExpr (path : SyntaxVisitorPath) =
     )
 
 [<Literal>]
-let SwitchOffComment = "disposed before returned async runs"
+let SwitchOffAsyncComment = "disposed before returned async runs"
+
+[<Literal>]
+let SwitchOffTaskComment = "disposed before returned task runs"
 
 let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults : FSharpCheckFileResults) =
     let comments =
@@ -86,7 +87,9 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
                     false
                 else
                     let lineOfComment = sourceText.GetLineString (r.StartLine - 1) // 0-based
-                    lineOfComment.Contains (SwitchOffComment, StringComparison.OrdinalIgnoreCase)
+
+                    lineOfComment.Contains (SwitchOffAsyncComment, StringComparison.OrdinalIgnoreCase)
+                    || lineOfComment.Contains (SwitchOffTaskComment, StringComparison.OrdinalIgnoreCase)
             | _ -> false
         )
 

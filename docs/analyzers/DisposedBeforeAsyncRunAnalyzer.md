@@ -31,7 +31,7 @@ let f () =
     }
 ```
 
-If the `use` before the `async` is really your intent, you can disable the warning with a comment on top of the `use` statement containing `disposed before returned async runs`.
+If the `use` before the `async` is really your intent, you can disable the warning with a line comment on top of the `use` statement containing `disposed before returned async runs` or `disposed before returned task runs`.
 ```fsharp
 let f () =
     // Note: disposed before returned async runs
