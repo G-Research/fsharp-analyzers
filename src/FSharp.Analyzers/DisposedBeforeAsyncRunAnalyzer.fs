@@ -31,7 +31,7 @@ let getType (checkFileResults : FSharpCheckFileResults) (sourceText : ISourceTex
 let asyncOrTask (t : FSharpType) =
     t.GenericArguments
     |> Seq.tryLast
-    |> Option.map (fun t ->
+    |> Option.bind (fun t ->
         if t.HasTypeDefinition then
             match t.TypeDefinition.TryGetFullName () with
             | Some fullName when fullName.StartsWith ("Microsoft.FSharp.Control.FSharpAsync", StringComparison.Ordinal) ->
@@ -42,7 +42,6 @@ let asyncOrTask (t : FSharpType) =
         else
             None
     )
-    |> Option.flatten
 
 let pathContainsAsyncOrTaskReturningFunc
     (checkFileResults : FSharpCheckFileResults)
@@ -53,10 +52,9 @@ let pathContainsAsyncOrTaskReturningFunc
     |> List.tryPick (fun node ->
         match node with
         | SyntaxNode.SynBinding (SynBinding (headPat = headPat)) ->
-            getType checkFileResults sourceText headPat |> Option.map asyncOrTask
+            getType checkFileResults sourceText headPat |> Option.bind asyncOrTask
         | _ -> None
     )
-    |> Option.flatten
 
 let pathContainsComputationExpr (path : SyntaxVisitorPath) =
     path
