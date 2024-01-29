@@ -7,7 +7,7 @@ type DisposableThing () =
         member _.Dispose() = ()
 
 let asyncReturningFunc () =
-    // Note: disposed before returned async is run
+    // Note: disposed before returned async runs
     use t = new DisposableThing()
     async {
         return "hi"

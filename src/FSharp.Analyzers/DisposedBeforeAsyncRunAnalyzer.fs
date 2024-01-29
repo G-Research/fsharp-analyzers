@@ -69,7 +69,7 @@ let pathContainsComputationExpr (path : SyntaxVisitorPath) =
     )
 
 [<Literal>]
-let SwitchOffComment = "Note: disposed before returned"
+let SwitchOffComment = "disposed before returned async runs"
 
 let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults : FSharpCheckFileResults) =
     let comments =
@@ -86,7 +86,7 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
                     false
                 else
                     let lineOfComment = sourceText.GetLineString (r.StartLine - 1) // 0-based
-                    lineOfComment.Contains (SwitchOffComment, StringComparison.Ordinal)
+                    lineOfComment.Contains (SwitchOffComment, StringComparison.OrdinalIgnoreCase)
             | _ -> false
         )
 
