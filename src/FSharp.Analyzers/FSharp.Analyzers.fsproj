@@ -19,7 +19,6 @@
     <Compile Include="StringAnalyzer.fs" />
     <Compile Include="JsonSerializerOptionsAnalyzer.fs" />
     <Compile Include="UnionCaseAnalyzer.fs" />
-    <Compile Include="PartialAppAnalyzer.fs" />
     <Compile Include="VirtualCallAnalyzer.fsi" />
     <Compile Include="VirtualCallAnalyzer.fs" />
     <Compile Include="LoggingArgFuncNotFullyAppliedAnalyzer.fsi" />

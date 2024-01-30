@@ -10,7 +10,6 @@
     <ItemGroup>
         <Compile Include="Common.fs"/>
         <Compile Include="StringAnalyzerTests.fs"/>
-        <Compile Include="PartialAppAnalyzerTests.fs"/>
         <Compile Include="JsonSerializerOptionsAnalyzerTests.fs"/>
         <Compile Include="UnionCaseAnalyzerTests.fs"/>
         <Compile Include="VirtualCallAnalyzerTests.fs"/>
