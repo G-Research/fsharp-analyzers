@@ -1,0 +1,17 @@
+<Project>
+
+    <ItemGroup>
+        <ProjectsToAnalyze Include="src/**/*.fsproj" />
+    </ItemGroup>
+
+    <Target Name="AnalyzeSolution">
+        <PropertyGroup>
+            <CodeRoot>$(SolutionDir)</CodeRoot>
+        </PropertyGroup>
+        <RemoveDir Directories="$(SolutionDir)/analysisreports" />
+        <MSBuild Projects="@(ProjectsToAnalyze)" 
+                 Targets="AnalyzeFSharpProject"
+                 Properties="CodeRoot=$(CodeRoot)" ContinueOnError="true" />
+    </Target>
+
+</Project>

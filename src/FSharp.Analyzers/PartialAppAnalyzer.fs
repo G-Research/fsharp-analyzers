@@ -54,7 +54,7 @@ let collectPipedArgs (pipeHandler : PipeHandler) (funcExpr : SynExpr) (argExpr :
     match funcExpr with
     | SynExpr.App (funcExpr = SynExpr.LongIdent (longDotId = longDotId) ; argExpr = argExpr2) ->
         longDotId.LongIdent
-        |> Seq.tryHead
+        |> List.tryHead
         |> Option.iter (fun i ->
             let pipedArgs, target =
                 match i.idText with
@@ -85,7 +85,7 @@ let rec visitApp (handlers : Handlers) (depth : int) (expr : SynExpr) =
     | SynExpr.App (funcExpr = SynExpr.Ident i) -> handlers.AppHandler (i.idText, i.idRange, 1 + depth)
     | SynExpr.App (funcExpr = SynExpr.LongIdent (longDotId = longDotId) ; argExpr = argExpr) ->
         longDotId.IdentsWithTrivia
-        |> Seq.tryLast
+        |> List.tryLast
         |> Option.iter (fun (SynIdent.SynIdent (ident = ident)) ->
             handlers.AppHandler (ident.idText, longDotId.Range, 1 + depth)
         )
@@ -99,7 +99,7 @@ let rec visitApp (handlers : Handlers) (depth : int) (expr : SynExpr) =
         handlers.AppHandler (i.idText, i.idRange, 1 + depth)
     | SynExpr.App (funcExpr = SynExpr.TypeApp (expr = SynExpr.LongIdent (longDotId = longDotId))) ->
         longDotId.IdentsWithTrivia
-        |> Seq.tryLast
+        |> List.tryLast
         |> Option.iter (fun (SynIdent.SynIdent (ident = ident)) ->
             handlers.AppHandler (ident.idText, longDotId.Range, 1 + depth)
         )
