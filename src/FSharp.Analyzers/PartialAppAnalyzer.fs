@@ -367,7 +367,7 @@ let analyze parseTree (checkFileResults : FSharpCheckFileResults) =
                                 Type = "Partial Application Analyzer"
                                 Message = "Partial application should not be used."
                                 Code = Code
-                                Severity = Warning
+                                Severity = Severity.Warning
                                 Range = range
                                 Fixes = []
                             }

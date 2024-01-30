@@ -137,7 +137,7 @@ let analyze parseTree sourceText checkFileResults =
                 Message =
                     "This discriminated union contains a case with the same name as a case from FSharp.Core. Consider renaming it or applying RequireQualifiedAccess to avoid clashes."
                 Code = Code
-                Severity = Warning
+                Severity = Severity.Warning
                 Range = r
                 Fixes = [ f ]
             }

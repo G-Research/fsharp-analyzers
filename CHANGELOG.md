@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 - 2024-01-30
+
+### Fixed
+* Add support for abbreviated list/array/set types to the VirtualCallAnalyzer. [#63](https://github.com/G-Research/fsharp-analyzers/pull/63)
+
+### Added
+* Disposable will be disposed before async is run. [#54](https://github.com/G-Research/fsharp-analyzers/issues/54)
+
 ## 0.7.0 - 2024-01-10
 
 ### Fixed

@@ -52,7 +52,7 @@ let analyze (parseTree : ParsedInput) (typedTree : FSharpImplementationFileConte
                                         Message =
                                             "Interpolated hole expression without format detected. Use prefix with the correct % to enforce type safety."
                                         Code = Code
-                                        Severity = Warning
+                                        Severity = Severity.Warning
                                         Range = e.Range
                                         Fixes = []
                                     }

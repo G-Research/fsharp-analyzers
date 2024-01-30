@@ -62,7 +62,7 @@ let analyze (typedTree : FSharpImplementationFileContents) =
             Type = "JsonSerializerOptions analyzer"
             Message = "JsonSerializerOptions instances should be cached."
             Code = Code
-            Severity = Warning
+            Severity = Severity.Warning
             Range = r
             Fixes = []
         }

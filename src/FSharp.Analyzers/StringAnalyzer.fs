@@ -79,7 +79,7 @@ let endsWithAnalyze (typedTree : FSharpImplementationFileContents) =
         "EndsWith"
         StringEndsWithCode
         "The usage of String.EndsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
-        Warning
+        Severity.Warning
         typedTree
         (fun (args : FSharpExpr list) ->
             match args with
@@ -107,7 +107,7 @@ let startsWithAnalyze (typedTree : FSharpImplementationFileContents) =
         "StartsWith"
         StringStartsWithCode
         "The usage of String.StartsWith with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
-        Warning
+        Severity.Warning
         typedTree
         (fun (args : FSharpExpr list) ->
             match args with
@@ -135,7 +135,7 @@ let indexOfAnalyze (typedTree : FSharpImplementationFileContents) =
         "IndexOf"
         StringIndexOfCode
         "The usage of String.IndexOf with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
-        Warning
+        Severity.Warning
         typedTree
         (fun args ->
             match args with
