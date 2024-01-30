@@ -39,7 +39,7 @@ let mkMessage typeName m =
         Message =
             $"%s{typeName} does not implement structural equality. Use Object.ReferenceEquals instead of .Equals, = or <> to emphasize this."
         Code = Code
-        Severity = Warning
+        Severity = Severity.Warning
         Range = m
         Fixes = []
     }

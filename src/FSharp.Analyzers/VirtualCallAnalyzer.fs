@@ -184,7 +184,7 @@ let analyze (sourceText : ISourceText) (typedTree : FSharpImplementationFileCont
                 Message =
                     $"Consider replacing the call of Seq.%s{seqFunc} with a function from the %s{valType} module to avoid the costs of virtual calls."
                 Code = Code
-                Severity = Warning
+                Severity = Severity.Warning
                 Range = range
                 Fixes = [ fix ]
             }

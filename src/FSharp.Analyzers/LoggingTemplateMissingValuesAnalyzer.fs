@@ -15,7 +15,7 @@ let (|StringConst|_|) (e : FSharpExpr) =
     let name = e.Type.ErasedType.TypeDefinition.TryGetFullName ()
 
     match name, e with
-    | Some ("System.String"), Const (o, _type) when not (isNull o) -> Some (string o)
+    | Some "System.String", Const (o, _type) when not (isNull o) -> Some (string o)
     | _ -> None
 
 
@@ -35,7 +35,7 @@ let analyze (typedTree : FSharpImplementationFileContents) =
             ]
 
     let pattern = @"(?<opening>{+)[a-zA-Z0-9]*(?<closing>}+)"
-    let regex = Regex (pattern)
+    let regex = Regex pattern
 
     let walker =
         { new TypedTreeCollectorBase() with
@@ -56,13 +56,13 @@ let analyze (typedTree : FSharpImplementationFileContents) =
                         args
                         |> List.tryPick (
                             function
-                            | StringConst (s) -> Some s
+                            | StringConst s -> Some s
                             | _ -> None
                         )
 
                     match logString with
                     | Some s ->
-                        let matches = regex.Matches (s)
+                        let matches = regex.Matches s
 
                         let escapedMatches =
                             Seq.sumBy
@@ -93,7 +93,7 @@ let analyze (typedTree : FSharpImplementationFileContents) =
                 Type = "LoggingTemplateMissingValuesAnalyzer"
                 Message = $"The given values in your call to ILogger.%s{name} don't match the expected templated args."
                 Code = Code
-                Severity = Warning
+                Severity = Severity.Warning
                 Range = range
                 Fixes = []
             }

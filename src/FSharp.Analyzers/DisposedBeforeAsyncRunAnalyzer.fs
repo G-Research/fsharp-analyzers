@@ -134,7 +134,7 @@ let analyze (sourceText : ISourceText) ast (checkFileResults : FSharpCheckFileRe
                 Type = "DisposedBeforeAsyncRun analyzer"
                 Message = $"Object is disposed before returned %s{ce} is run"
                 Code = Code
-                Severity = Warning
+                Severity = Severity.Warning
                 Range = useRange
                 Fixes = []
             }

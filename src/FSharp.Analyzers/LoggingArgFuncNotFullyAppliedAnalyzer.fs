@@ -62,7 +62,7 @@ let analyze (typedTree : FSharpImplementationFileContents) =
                 Message =
                     "You have passed a function as one of the display arguments to ILogger.Log{Warning, Error, ...}. You have probably not applied this function fully."
                 Code = Code
-                Severity = Warning
+                Severity = Severity.Warning
                 Range = range
                 Fixes = []
             }
