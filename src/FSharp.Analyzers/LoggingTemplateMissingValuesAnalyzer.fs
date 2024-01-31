@@ -34,7 +34,7 @@ let analyze (typedTree : FSharpImplementationFileContents) =
                 "Microsoft.Extensions.Logging.LoggerExtensions.LogWarning"
             ]
 
-    let pattern = @"(?<opening>{+)[a-zA-Z0-9]*(?<closing>}+)"
+    let pattern = @"(?<opening>{+)[a-zA-Z0-9_-]*(?<closing>}+)"
     let regex = Regex pattern
 
     let walker =
