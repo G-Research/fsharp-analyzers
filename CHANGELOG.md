@@ -4,7 +4,7 @@
 
 ### Removed
 
-* Removed the PartialAppAnalyzer
+* Removed the PartialAppAnalyzer. [#68](https://github.com/G-Research/fsharp-analyzers/issues/68)
 
 ## 0.8.0 - 2024-01-30
 
