@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Removed
+
+* Removed the PartialAppAnalyzer
+
 ## 0.8.0 - 2024-01-30
 
 ### Fixed
