@@ -38,7 +38,7 @@ And the [G-Research.FSharp.Analyzers](https://www.nuget.org/packages/G-Research.
 *)
 
 (*** hide ***)
-typeof<GR.FSharp.Analyzers.PartialAppAnalyzer.Handlers>.Assembly
+typeof<GR.FSharp.Analyzers.TypeAnnotateStringFunctionAnalyzer.StringApplicationResult>.Assembly
     .GetName()
     .Version
 |> fun v ->
