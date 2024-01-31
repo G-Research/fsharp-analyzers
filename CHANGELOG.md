@@ -6,6 +6,9 @@
 
 * Removed the PartialAppAnalyzer. [#68](https://github.com/G-Research/fsharp-analyzers/issues/68)
 
+### Fixed
+* Fixed a false positive of LoggingTemplateMissingValuesAnalyzer. [#69](https://github.com/G-Research/fsharp-analyzers/issues/69)
+
 ## 0.8.0 - 2024-01-30
 
 ### Fixed
