@@ -154,7 +154,44 @@ let HelpUri =
 [<CliAnalyzer(Name, ShortDescription, HelpUri)>]
 let disposedBeforeAsyncRunCliAnalyzer : Analyzer<CliContext> =
     fun (ctx : CliContext) ->
-        async { return analyze ctx.SourceText ctx.ParseFileResults.ParseTree ctx.CheckFileResults }
+        async {
+            let typeNames =
+                let collector = ResizeArray<LongIdent> ()
+
+                let walker =
+                    { new SyntaxCollectorBase() with
+                        override x.WalkTypeDefn (path, typeDefn) =
+                            match typeDefn with
+                            | SynTypeDefn (
+                                typeRepr = SynTypeDefnRepr.Simple (simpleRepr = SynTypeDefnSimpleRepr.Record _)
+                                typeInfo = SynComponentInfo (longId = lid)) -> collector.Add lid
+                            | _ -> ()
+                    }
+
+                ASTCollecting.walkAst walker ctx.ParseFileResults.ParseTree
+                Seq.toList collector
+
+            let recordTypeFields =
+                typeNames
+                |> List.choose (fun typeName ->
+                    let m =
+                        typeName
+                        |> List.map (fun l -> l.idRange)
+                        |> List.reduce FSharp.Compiler.Text.Range.unionRanges
+
+                    let line = ctx.SourceText.GetLineString(m.EndLine - 1)
+                    let name = typeName |> List.last |> fun ident -> ident.idText
+                    
+                    ctx.CheckFileResults.GetSymbolUseAtLocation(m.EndLine, m.EndColumn, line, [ name ])
+                    |> Option.bind (fun symbolUse ->
+                        match symbolUse.Symbol with
+                        | :? FSharpEntity as ft when ft.IsFSharpRecord ->  Some ft.FSharpFields
+                        | _ -> None
+                    )
+                )
+
+            return analyze ctx.SourceText ctx.ParseFileResults.ParseTree ctx.CheckFileResults
+        }
 
 [<EditorAnalyzer(Name, ShortDescription, HelpUri)>]
 let disposedBeforeAsyncRunEditorAnalyzer : Analyzer<EditorContext> =
