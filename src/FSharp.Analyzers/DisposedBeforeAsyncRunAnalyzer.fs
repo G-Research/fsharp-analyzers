@@ -93,6 +93,7 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
 
     let uses = ResizeArray<range * string> ()
 
+    // Note: not tailrecursive
     let rec hasAsyncOrTaskInBody (body : SynExpr) =
         match body with
         | SynExpr.App (funcExpr = SynExpr.Ident (ident = ident)) -> ident.idText = "async" || ident.idText = "task"
@@ -103,6 +104,9 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
             || elseExpr |> Option.map hasAsyncOrTaskInBody |> Option.defaultValue false
         | SynExpr.TryFinally (tryExpr = tryExpr) -> hasAsyncOrTaskInBody tryExpr
         | SynExpr.TryWith (tryExpr = tryExpr) -> hasAsyncOrTaskInBody tryExpr
+        | SynExpr.Match (clauses = clauses) ->
+            clauses
+            |> List.exists (fun (SynMatchClause (resultExpr = resultExpr)) -> hasAsyncOrTaskInBody resultExpr)
         | _ -> false
 
     let walker =
