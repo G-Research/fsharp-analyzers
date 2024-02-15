@@ -1,4 +1,8 @@
 # Changelog
+## 0.9.1 - 2024-02-15
+
+### Fixed
+* Fixed a false negative of DisposedBeforeAsyncRunAnalyzer. [#75](https://github.com/G-Research/fsharp-analyzers/issues/75)
 
 ## 0.9.0 - 2024-02-15
 
