@@ -103,6 +103,9 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
             || elseExpr |> Option.map hasAsyncOrTaskInBody |> Option.defaultValue false
         | SynExpr.TryFinally (tryExpr = tryExpr) -> hasAsyncOrTaskInBody tryExpr
         | SynExpr.TryWith (tryExpr = tryExpr) -> hasAsyncOrTaskInBody tryExpr
+        | SynExpr.Match (clauses = clauses) ->
+            clauses
+            |> List.exists (fun (SynMatchClause (resultExpr = resultExpr)) -> hasAsyncOrTaskInBody resultExpr)
         | _ -> false
 
     let walker =

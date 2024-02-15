@@ -9,6 +9,7 @@
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="Common.fs"/>
+        <Compile Include="data\disposedBeforeAsyncRun\LetBeforeUseThenMatch.fs" />
         <Compile Include="StringAnalyzerTests.fs"/>
         <Compile Include="JsonSerializerOptionsAnalyzerTests.fs"/>
         <Compile Include="UnionCaseAnalyzerTests.fs"/>
