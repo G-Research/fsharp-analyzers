@@ -15,7 +15,7 @@ module VirtualCallAnalyzerTests =
     [<SetUp>]
     let Setup () =
         task {
-            let! options = mkOptionsFromProject "net7.0" []
+            let! options = mkOptionsFromProject framework []
 
             projectOptions <- options
         }

@@ -7,6 +7,9 @@ open System.Threading.Tasks
 open NUnit.Framework
 open FSharp.Analyzers.SDK
 
+[<Literal>]
+let framework = "net7.0"
+
 let shouldUpdateBaseline () =
     Environment.GetEnvironmentVariable "TEST_UPDATE_BSL"
     |> Option.ofObj

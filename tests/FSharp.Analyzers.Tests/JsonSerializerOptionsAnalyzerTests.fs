@@ -17,7 +17,7 @@ module JsonSerializerOptionsAnalyzerTests =
         task {
             let! options =
                 mkOptionsFromProject
-                    "net7.0"
+                    framework
                     [
                         {
                             Name = "System.Text.Json"

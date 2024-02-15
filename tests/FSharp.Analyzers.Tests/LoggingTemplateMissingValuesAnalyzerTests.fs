@@ -17,7 +17,7 @@ module LoggingTemplateMissingValuesAnalyzerTests =
         task {
             let! options =
                 mkOptionsFromProject
-                    "net7.0"
+                    framework
                     [
                         {
                             Name = "Microsoft.Extensions.Logging"
