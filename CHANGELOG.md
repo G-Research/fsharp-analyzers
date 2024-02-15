@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 0.9.0 - 2024-02-15
 
 ### Removed
 
@@ -8,6 +8,9 @@
 
 ### Fixed
 * Fixed a false positive of LoggingTemplateMissingValuesAnalyzer. [#69](https://github.com/G-Research/fsharp-analyzers/issues/69)
+
+### Changed
+* Update FSharp.Analyzers.SDK to `0.25.0`. [#51](https://github.com/G-Research/fsharp-analyzers/pull/67)
 
 ## 0.8.0 - 2024-01-30
 
