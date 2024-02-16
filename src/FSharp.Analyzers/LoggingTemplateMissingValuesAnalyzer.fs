@@ -11,13 +11,37 @@ open FSharp.Compiler.Text
 [<Literal>]
 let Code = "GRA-LOGTEMPLMISSVALS-001"
 
-let (|StringConst|_|) (e : FSharpExpr) =
+let rec (|StringFormat|_|) (e : FSharpExpr) =
+    match e with
+    | Call (_exprOption, _mfv, _types, _l, exprs) ->
+        match exprs with
+        | Coerce (targetType, expr) :: _ when
+            targetType.BasicQualifiedName = "Microsoft.FSharp.Core.PrintfModule+StringFormat`1"
+            ->
+            match expr with
+            | NewObject (_mfv, _types, [ StringConst s ]) -> Some s
+            | _ -> None
+        | exprs ->
+            exprs
+            |> List.tryPick (
+                function
+                | StringConst s -> Some s
+                | _ -> None
+            )
+        | _ -> None
+    | _ -> None
+
+and (|StringConst|_|) (e : FSharpExpr) =
     let name = e.Type.ErasedType.TypeDefinition.TryGetFullName ()
 
     match name, e with
     | Some "System.String", Const (o, _type) when not (isNull o) -> Some (string o)
+    | Some "System.String", Application (expr, _, _) ->
+        match expr with
+        | Let ((_mfv, StringFormat s, _debugPointAtBinding), _expr) -> Some s
+        | _ -> None
+    | _, StringFormat s -> Some s
     | _ -> None
-
 
 let analyze (typedTree : FSharpImplementationFileContents) =
     let state = ResizeArray<range * string> ()
@@ -51,7 +75,7 @@ let analyze (typedTree : FSharpImplementationFileContents) =
                     else
                         0
 
-                let expected =
+                let calcExpected () =
                     let logString =
                         args
                         |> List.tryPick (
@@ -80,7 +104,7 @@ let analyze (typedTree : FSharpImplementationFileContents) =
                 if
                     m.Assembly.SimpleName = assemblyName
                     && Set.contains name namesToWarnAbout
-                    && provided <> expected
+                    && provided <> calcExpected ()
                 then
                     state.Add (range, m.DisplayName)
         }
