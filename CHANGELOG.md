@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.3 - 2024-02-16
+
+### Fixed
+* Fixed a false positive of LoggingTemplateMissingValuesAnalyzer. [#78](https://github.com/G-Research/fsharp-analyzers/issues/78)
+
 ## 0.9.2 - 2024-02-16
 
 ### Fixed

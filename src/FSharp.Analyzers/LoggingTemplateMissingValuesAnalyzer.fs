@@ -58,7 +58,7 @@ let analyze (typedTree : FSharpImplementationFileContents) =
                 "Microsoft.Extensions.Logging.LoggerExtensions.LogWarning"
             ]
 
-    let pattern = @"(?<opening>{+)[a-zA-Z0-9_-]*(?<closing>}+)"
+    let pattern = @"(?<opening>{+)[^{}]*(?<closing>}+)"
     let regex = Regex pattern
 
     let walker =
@@ -86,10 +86,15 @@ let analyze (typedTree : FSharpImplementationFileContents) =
 
                     match logString with
                     | Some s ->
-                        let matches = regex.Matches s
+                        let matches =
+                            regex.Matches s
+                            |> Seq.filter (fun matchItem ->
+                                matchItem.Groups["opening"].Value.Length = matchItem.Groups["closing"].Value.Length
+                            )
+                            |> Seq.toArray
 
                         let escapedMatches =
-                            Seq.sumBy
+                            Array.sumBy
                                 (fun (matchItem : Match) ->
                                     let opening = matchItem.Groups["opening"]
                                     let closing = matchItem.Groups["closing"]
@@ -98,7 +103,7 @@ let analyze (typedTree : FSharpImplementationFileContents) =
                                 )
                                 matches
 
-                        matches.Count - escapedMatches
+                        matches.Length - escapedMatches
                     | None -> 0
 
                 if
