@@ -6,19 +6,22 @@
       "version": "6.3.0-alpha-007",
       "commands": [
         "fantomas"
-      ]
+      ],
+      "rollForward": false
     },
     "fsdocs-tool": {
       "version": "20.0.0-alpha-019",
       "commands": [
         "fsdocs"
-      ]
+      ],
+      "rollForward": false
     },
     "fsharp-analyzers": {
-      "version": "0.25.0",
+      "version": "0.26.0",
       "commands": [
         "fsharp-analyzers"
-      ]
+      ],
+      "rollForward": false
     }
   }
 }
