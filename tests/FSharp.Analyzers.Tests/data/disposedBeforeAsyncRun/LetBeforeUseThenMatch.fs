@@ -1,4 +1,4 @@
-﻿namespace N
+namespace N
 
 open System
 
