@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.1 - 2024-01-08
+
+### Fixed
+* VirtualCall analyzer suggests quickfix on Collections.Generic.List. [#86](https://github.com/G-Research/fsharp-analyzers/issues/86)
+
 ## 0.12.0 - 2024-11-20
 
 ### Changed

@@ -29,17 +29,27 @@ let (|CoerceToSeq|_|) (includeFromSet : bool) (expr : FSharpExpr) =
                     StringComparison.Ordinal
                 )
             then
-                e.Type.TypeDefinition.AbbreviatedType.TypeDefinition.LogicalName
-            else
-                e.Type.TypeDefinition.LogicalName
+                Some e.Type.TypeDefinition.AbbreviatedType.TypeDefinition.LogicalName
+            elif
+                (let accessPath = e.Type.TypeDefinition.AccessPath in
 
-        match coercedValueTypeName with
-        | "[]`1"
-        | "array`1" -> Some "Array"
-        | "list`1"
-        | "List`1" -> Some "List"
-        | "Set`1" when includeFromSet -> Some "Set"
-        | _ -> None
+                 accessPath = "Microsoft.FSharp.Collections"
+                 || accessPath = "Microsoft.FSharp.Core")
+            then
+                Some e.Type.TypeDefinition.LogicalName
+            else
+                None
+
+        coercedValueTypeName
+        |> Option.bind (fun coercedValueTypeName ->
+            match coercedValueTypeName with
+            | "[]`1"
+            | "array`1" -> Some "Array"
+            | "list`1"
+            | "List`1" -> Some "List"
+            | "Set`1" when includeFromSet -> Some "Set"
+            | _ -> None
+        )
     | _ -> None
 
 let seqFuncsWithEquivalentsInAllCollections =

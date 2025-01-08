@@ -8,7 +8,7 @@ open NUnit.Framework
 open FSharp.Analyzers.SDK
 
 [<Literal>]
-let framework = "net7.0"
+let framework = "net8.0"
 
 let shouldUpdateBaseline () =
     Environment.GetEnvironmentVariable "TEST_UPDATE_BSL"
