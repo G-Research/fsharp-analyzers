@@ -15,6 +15,9 @@ let StringStartsWithCode = "GRA-STRING-002"
 let StringIndexOfCode = "GRA-STRING-003"
 
 [<Literal>]
+let StringLastIndexOfCode : string = "GRA-STRING-004"
+
+[<Literal>]
 let HelpUri =
     "https://g-research.github.io/fsharp-analyzers/analyzers/StringAnalyzer.html"
 
@@ -159,3 +162,33 @@ let indexOfCliAnalyzer (ctx : CliContext) : Async<Message list> =
 [<EditorAnalyzer(StringIndexOfName, StringIndexOfShortDescription, HelpUri)>]
 let indexOfEditorAnalyzer (ctx : EditorContext) : Async<Message list> =
     async { return ctx.TypedTree |> Option.map indexOfAnalyze |> Option.defaultValue [] }
+
+let lastIndexOfAnalyze (typedTree : FSharpImplementationFileContents) =
+    invalidStringFunctionUseAnalyzer
+        "LastIndexOf"
+        StringLastIndexOfCode
+        "The usage of String.LastIndexOf with a single string argument is discouraged. Signal your intention explicitly by calling an overload."
+        Severity.Warning
+        typedTree
+        (fun args ->
+            match args with
+            | [ StringExpr ]
+            | [ StringExpr ; IntExpr ]
+            | [ StringExpr ; IntExpr ; IntExpr ] -> true
+            | _ -> false
+        )
+
+[<Literal>]
+let StringLastIndexOfName = "String.LastIndexOf Analyzer"
+
+[<Literal>]
+let StringLastIndexOfShortDescription =
+    "Verifies the correct usage of System.String.LastIndexOf"
+
+[<CliAnalyzer(StringLastIndexOfName, StringLastIndexOfShortDescription, HelpUri)>]
+let lastIndexOfCliAnalyzer (ctx : CliContext) : Async<Message list> =
+    async { return ctx.TypedTree |> Option.map lastIndexOfAnalyze |> Option.defaultValue [] }
+
+[<EditorAnalyzer(StringLastIndexOfName, StringLastIndexOfShortDescription, HelpUri)>]
+let lastIndexOfEditorAnalyzer (ctx : EditorContext) : Async<Message list> =
+    async { return ctx.TypedTree |> Option.map lastIndexOfAnalyze |> Option.defaultValue [] }

@@ -12,6 +12,7 @@ There are multiple analyzers for various string comparison functions:
 - String.EndsWith Analyzer
 - String.StartsWith Analyzer
 - String.IndexOf Analyzer
+- String.LastIndexOf Analyzer
 
 ## Problem
 

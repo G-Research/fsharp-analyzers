@@ -21,7 +21,7 @@ type TestCases() =
 
     interface IEnumerable with
         member _.GetEnumerator () : IEnumerator =
-            [| "endswith" ; "indexof" ; "startswith" |]
+            [| "endswith" ; "indexof" ; "startswith" ; "lastindexof" |]
             |> Seq.collect (fun subFolder ->
                 let folder = Path.Combine (dataFolder, "string", subFolder)
                 Directory.EnumerateFiles (folder, "*.fs")
@@ -36,6 +36,7 @@ let findStringAnalyzerFor (fileName : string) =
         | "endswith" -> StringAnalyzer.endsWithCliAnalyzer
         | "startswith" -> StringAnalyzer.startsWithCliAnalyzer
         | "indexof" -> StringAnalyzer.indexOfCliAnalyzer
+        | "lastindexof" -> StringAnalyzer.lastIndexOfCliAnalyzer
         | unknown -> failwithf $"Unknown subfolder \"%s{unknown}\", please configure analyzer"
 
 [<TestCaseSource(typeof<TestCases>)>]
@@ -55,7 +56,7 @@ type NegativeTestCases() =
 
     interface IEnumerable with
         member _.GetEnumerator () : IEnumerator =
-            [| "endswith" ; "indexof" ; "startswith" |]
+            [| "endswith" ; "indexof" ; "startswith" ; "lastindexof" |]
             |> Seq.collect (fun subFolder ->
                 let folder = Path.Combine (dataFolder, "string", subFolder, "negative")
                 Directory.EnumerateFiles (folder, "*.fs")

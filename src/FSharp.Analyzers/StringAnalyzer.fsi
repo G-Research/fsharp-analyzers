@@ -49,3 +49,18 @@ val indexOfCliAnalyzer : ctx : CliContext -> Async<Message list>
 
 [<EditorAnalyzer(StringIndexOfName, StringIndexOfShortDescription, HelpUri)>]
 val indexOfEditorAnalyzer : ctx : EditorContext -> Async<Message list>
+
+[<Literal>]
+val StringLastIndexOfCode : string = "GRA-STRING-004"
+
+[<Literal>]
+val StringLastIndexOfName : string = "String.LastIndexOf Analyzer"
+
+[<Literal>]
+val StringLastIndexOfShortDescription : string = "Verifies the correct usage of System.String.LastIndexOf"
+
+[<CliAnalyzer(StringLastIndexOfName, StringLastIndexOfShortDescription, HelpUri)>]
+val lastIndexOfCliAnalyzer : ctx : CliContext -> Async<Message list>
+
+[<EditorAnalyzer(StringLastIndexOfName, StringLastIndexOfShortDescription, HelpUri)>]
+val lastIndexOfEditorAnalyzer : ctx : EditorContext -> Async<Message list>
