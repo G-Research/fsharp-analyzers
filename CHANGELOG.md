@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.16.0 - 2025-06-30
+
+### Added
+* StringAnalyzer now supports String.LastIndexOf. [#91](https://github.com/G-Research/fsharp-analyzers/pull/91)
+
 ## 0.15.0 - 2025-05-18
 
 ### Changed
