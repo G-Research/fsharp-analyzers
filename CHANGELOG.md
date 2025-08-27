@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.19.0 - 2025-08-27
+
+### Added
+* New analyzer, SyncBlockingAnalyzer, which bans the use of synchronous blocking methods like `Task.Wait`, unless specifically permitted per-line with a magic comment.
+
 ## 0.18.0 - 2025-08-27
 
 ### Changed
