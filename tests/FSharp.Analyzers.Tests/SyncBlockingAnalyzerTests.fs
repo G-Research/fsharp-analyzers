@@ -31,7 +31,7 @@ let SyncBlockingAnalyzerTests (fileName : string) =
         let! messages =
             File.ReadAllText fileName
             |> getContext projectOptions
-            |> SyncBlockingAnalyzer.syncBlockingAnalyzer
+            |> SyncBlockingAnalyzer.syncBlockingCliAnalyzer
 
         do! assertExpected fileName messages
     }
@@ -50,7 +50,7 @@ let NegativeTests (fileName : string) =
         let! messages =
             File.ReadAllText fileName
             |> getContext projectOptions
-            |> SyncBlockingAnalyzer.syncBlockingAnalyzer
+            |> SyncBlockingAnalyzer.syncBlockingCliAnalyzer
 
         Assert.That (messages, Is.Empty)
     }
