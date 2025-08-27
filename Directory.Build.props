@@ -21,7 +21,7 @@
         <PackageReleaseNotes>https://github.com/G-Research/fsharp-analyzers/blob/main/CHANGELOG.md</PackageReleaseNotes>
         <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
         <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-        <WarningsAsErrors>FS0025</WarningsAsErrors>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <WarnOn>1182;3390;$(WarnOn)</WarnOn>
         <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
         <RestoreLockedMode>false</RestoreLockedMode>
