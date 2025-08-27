@@ -7,7 +7,7 @@ type DisposableThing () =
         member _.Dispose() = ()
 
 let taskReturningFunc () =
-    // Note: disposed before returned task runs
+    // Note: disposed before returned workflow runs
     use t = new DisposableThing()
     task {
         return "hi"

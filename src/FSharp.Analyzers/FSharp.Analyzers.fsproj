@@ -15,6 +15,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Util.fs" />
+    <Compile Include="Comments.fs" />
     <Compile Include="StringAnalyzer.fsi" />
     <Compile Include="StringAnalyzer.fs" />
     <Compile Include="JsonSerializerOptionsAnalyzer.fs" />

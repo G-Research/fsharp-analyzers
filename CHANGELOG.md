@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.18.0 - 2025-08-27
+
+### Changed
+* The magic string for the DisposedBeforeAsyncRunAnalyzer has changed: it is now "disposed before returned workflow runs". [#94](https://github.com/G-Research/fsharp-analyzers/pull/94)
+
 ## 0.17.0 - 2025-07-12
 
 ### Changed
