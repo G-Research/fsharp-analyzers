@@ -19,8 +19,6 @@ let SwitchOffComment = "synchronous blocking call allowed"
 let problematicMethods =
     [
         "Microsoft.FSharp.Control.RunSynchronously" // This is how it appears in the TAST
-        "Microsoft.FSharp.Control.Async.RunSynchronously"
-        "Microsoft.FSharp.Control.FSharpAsync.RunSynchronously"
         "System.Threading.Tasks.Task.Wait"
         "System.Threading.Tasks.Task.WaitAll"
         "System.Threading.Tasks.Task.WaitAny"
@@ -56,10 +54,8 @@ let analyze (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults : F
                         let methodName =
                             if mfv.DisplayName.Contains '.' then
                                 mfv.DisplayName
-                            else if
-                                // Special handling for Async.RunSynchronously
-                                mfv.FullName = "Microsoft.FSharp.Control.RunSynchronously"
-                            then
+                            elif mfv.FullName = "Microsoft.FSharp.Control.RunSynchronously" then
+                                // Special handling for Async.RunSynchronously, which has a different name in the TAST
                                 "Async.RunSynchronously"
                             else
                                 // Get more context for better error messages
