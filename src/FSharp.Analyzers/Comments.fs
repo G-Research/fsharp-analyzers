@@ -17,6 +17,7 @@ let isSwitchedOffPerComment
     comments
     |> List.exists (fun c ->
         match c with
+        | CommentTrivia.BlockComment r
         | CommentTrivia.LineComment r ->
             if r.StartLine <> analyzerTriggeredOn.StartLine - 1 then
                 false
@@ -24,5 +25,4 @@ let isSwitchedOffPerComment
                 let lineOfComment = sourceText.GetLineString (r.StartLine - 1) // 0-based
 
                 lineOfComment.Contains (magicComment, StringComparison.OrdinalIgnoreCase)
-        | _ -> false
     )

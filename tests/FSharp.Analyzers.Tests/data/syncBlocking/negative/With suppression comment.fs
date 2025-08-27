@@ -10,7 +10,10 @@ let testAsyncRunSynchronouslyWithComment () =
 
 let testTaskWaitWithComment () =
     let t = Task.Run(fun () -> 42)
-    t.Wait() // synchronous blocking call allowed for testing
+    t
+    // ANALYZER: synchronous blocking call allowed for testing
+    |> fun x -> x.Wait()
+    // ANALYZER: synchronous blocking call allowed for testing
     t.Result
 
 let testTaskResultWithCommentAbove () =
@@ -26,4 +29,5 @@ let testWithBlockComment () =
 let testGetResultWithComment () =
     let t = Task.Run(fun () -> 42)
     let awaiter = t.GetAwaiter()
-    awaiter.GetResult() // synchronous blocking call allowed in main
+    // synchronous blocking call allowed in main
+    awaiter.GetResult()
