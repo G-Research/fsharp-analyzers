@@ -1,6 +1,7 @@
 module GR.FSharp.Analyzers.DisposedBeforeAsyncRunAnalyzer
 
 open System
+open FSharp.Analyzers.Comments
 open FSharp.Analyzers.SDK
 open FSharp.Analyzers.SDK.ASTCollecting
 open FSharp.Compiler.CodeAnalysis
@@ -65,31 +66,13 @@ let pathContainsComputationExpr (path : SyntaxVisitorPath) =
     )
 
 [<Literal>]
-let SwitchOffAsyncComment = "disposed before returned async runs"
-
-[<Literal>]
-let SwitchOffTaskComment = "disposed before returned task runs"
+let SwitchOffComment = "disposed before returned workflow runs"
 
 let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults : FSharpCheckFileResults) =
     let comments =
         match ast with
         | ParsedInput.ImplFile parsedImplFileInput -> parsedImplFileInput.Trivia.CodeComments
         | _ -> []
-
-    let isSwitchedOffPerComment (range : Range) =
-        comments
-        |> List.exists (fun c ->
-            match c with
-            | CommentTrivia.LineComment r ->
-                if r.StartLine <> range.StartLine - 1 then
-                    false
-                else
-                    let lineOfComment = sourceText.GetLineString (r.StartLine - 1) // 0-based
-
-                    lineOfComment.Contains (SwitchOffAsyncComment, StringComparison.OrdinalIgnoreCase)
-                    || lineOfComment.Contains (SwitchOffTaskComment, StringComparison.OrdinalIgnoreCase)
-            | _ -> false
-        )
 
     let uses = ResizeArray<range * string> ()
 
@@ -117,7 +100,13 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
                     match synExpr with
                     | SynExpr.LetOrUse (isUse = true ; bindings = [ binding ] ; body = body) ->
                         if
-                            not (isSwitchedOffPerComment binding.RangeOfBindingWithoutRhs)
+                            not (
+                                isSwitchedOffPerComment
+                                    SwitchOffComment
+                                    comments
+                                    sourceText
+                                    binding.RangeOfBindingWithoutRhs
+                            )
                             && hasAsyncOrTaskInBody body
                         then
                             match pathContainsAsyncOrTaskReturningFunc checkFileResults sourceText path with
