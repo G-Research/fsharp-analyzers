@@ -17,6 +17,7 @@ let SwitchOffComment = "synchronous blocking call allowed"
 
 let problematicMethods =
     [
+        "Microsoft.FSharp.Control.RunSynchronously"  // This is how it appears in the TAST
         "Microsoft.FSharp.Control.Async.RunSynchronously"
         "Microsoft.FSharp.Control.FSharpAsync.RunSynchronously"
         "System.Threading.Tasks.Task.Wait"
@@ -31,8 +32,8 @@ let problematicMethods =
 
 let problematicProperties =
     [
-        "System.Threading.Tasks.Task`1.Result"
-        "System.Threading.Tasks.ValueTask`1.Result"
+        "System.Threading.Tasks.Task.get_Result"  // Note: F# doesn't include `1 in FullName for generic type property getters
+        "System.Threading.Tasks.ValueTask.get_Result"  // Same here
     ]
     |> Set.ofList
 
@@ -67,31 +68,31 @@ let analyze (sourceText: ISourceText) (ast: ParsedInput) (checkFileResults: FSha
     let walker =
         { new TypedTreeCollectorBase() with
             override _.WalkCall _ (mfv: FSharpMemberOrFunctionOrValue) _ _ _ (m: range) =
+                
+                // Check for regular method calls
                 if problematicMethods.Contains mfv.FullName then
                     if not (isSwitchedOffPerComment sourceText comments m) then
                         let methodName =
                             if mfv.DisplayName.Contains(".") then
                                 mfv.DisplayName
                             else
-                                // Get more context for better error messages
-                                let parts = mfv.FullName.Split('.')
-                                if parts.Length >= 2 then
-                                    $"{parts.[parts.Length - 2]}.{parts.[parts.Length - 1]}"
+                                // Special handling for Async.RunSynchronously
+                                if mfv.FullName = "Microsoft.FSharp.Control.RunSynchronously" then
+                                    "Async.RunSynchronously"
                                 else
-                                    mfv.DisplayName
+                                    // Get more context for better error messages
+                                    let parts = mfv.FullName.Split('.')
+                                    if parts.Length >= 2 then
+                                        $"{parts.[parts.Length - 2]}.{parts.[parts.Length - 1]}"
+                                    else
+                                        mfv.DisplayName
                         violations.Add(m, "method", methodName)
-
-            override _.WalkFSharpFieldGet _ _ (field: FSharpField) =
-                // Handle Result property access
-                let fullName =
-                    match field.DeclaringEntity with
-                    | Some entity -> $"{entity.FullName}.{field.Name}"
-                    | None -> field.Name
-
-                if problematicProperties.Contains fullName then
-                    let range = field.DeclarationLocation
-                    if not (isSwitchedOffPerComment sourceText comments range) then
-                        violations.Add(range, "property", field.Name)
+                
+                // Check for property getters (Result property access)
+                elif problematicProperties.Contains mfv.FullName then
+                    if not (isSwitchedOffPerComment sourceText comments m) then
+                        // For property getters, use just the property name
+                        violations.Add(m, "property", "Result")
         }
 
     match checkFileResults.ImplementationFile with
