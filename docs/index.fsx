@@ -1,7 +1,7 @@
 (*** hide ***)
-#r "../src/FSharp.Analyzers/bin/Release/net6.0/FSharp.Compiler.Service.dll"
-#r "../src/FSharp.Analyzers/bin/Release/net6.0/FSharp.Analyzers.SDK.dll"
-#r "../src/FSharp.Analyzers/bin/Release/net6.0/G-Research.FSharp.Analyzers.dll"
+#r "../src/FSharp.Analyzers/bin/Release/net8.0/FSharp.Compiler.Service.dll"
+#r "../src/FSharp.Analyzers/bin/Release/net8.0/FSharp.Analyzers.SDK.dll"
+#r "../src/FSharp.Analyzers/bin/Release/net8.0/G-Research.FSharp.Analyzers.dll"
 
 (**
 # G-Research FSharp Analyzers
