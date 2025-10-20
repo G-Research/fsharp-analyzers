@@ -1,76 +1,76 @@
 # Changelog
 
-## 0.19.0 - 2025-10-20
+## [0.19.0] - 2025-10-20
 
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.33.1`. [#97](https://github.com/G-Research/fsharp-analyzers/pull/97)
 
-## 0.18.0 - 2025-08-27
+## [0.18.0] - 2025-08-27
 
 ### Changed
 * The magic string for the DisposedBeforeAsyncRunAnalyzer has changed: it is now "disposed before returned workflow runs". [#94](https://github.com/G-Research/fsharp-analyzers/pull/94)
 
-## 0.17.0 - 2025-07-12
+## [0.17.0] - 2025-07-12
 
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.32.0`. [#92](https://github.com/G-Research/fsharp-analyzers/pull/92)
 
-## 0.16.0 - 2025-06-30
+## [0.16.0] - 2025-06-30
 
 ### Added
 * StringAnalyzer now supports String.LastIndexOf. [#91](https://github.com/G-Research/fsharp-analyzers/pull/91)
 
-## 0.15.0 - 2025-05-18
+## [0.15.0] - 2025-05-18
 
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.31.0`. [#90](https://github.com/G-Research/fsharp-analyzers/pull/90)
 
-## 0.14.0 - 2025-04-01
+## [0.14.0] - 2025-04-01
 
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.30.0`. [#89](https://github.com/G-Research/fsharp-analyzers/pull/89)
 
-## 0.13.0 - 2025-02-14
+## [0.13.0] - 2025-02-14
 
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.29.0`. [#88](https://github.com/G-Research/fsharp-analyzers/pull/88)
 
-## 0.12.1 - 2024-01-08
+## [0.12.1] - 2024-01-08
 
 ### Fixed
 * VirtualCall analyzer suggests quickfix on Collections.Generic.List. [#86](https://github.com/G-Research/fsharp-analyzers/issues/86)
 
-## 0.12.0 - 2024-11-20
+## [0.12.0] - 2024-11-20
 
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.28.0`. [#85](https://github.com/G-Research/fsharp-analyzers/pull/85)
 
-## 0.11.0 - 2024-08-19
+## [0.11.0] - 2024-08-19
 
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.27.0`. [#51](https://github.com/G-Research/fsharp-analyzers/pull/84)
 
-## 0.10.0 - 2024-05-17
+## [0.10.0] - 2024-05-17
 
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.26.0`. [#51](https://github.com/G-Research/fsharp-analyzers/pull/83)
 
-## 0.9.3 - 2024-02-16
+## [0.9.3] - 2024-02-16
 
 ### Fixed
 * Fixed a false positive of LoggingTemplateMissingValuesAnalyzer. [#78](https://github.com/G-Research/fsharp-analyzers/issues/78)
 
-## 0.9.2 - 2024-02-16
+## [0.9.2] - 2024-02-16
 
 ### Fixed
 * Fixed a false negative of LoggingTemplateMissingValuesAnalyzer. [#79](https://github.com/G-Research/fsharp-analyzers/issues/79)
 
-## 0.9.1 - 2024-02-15
+## [0.9.1] - 2024-02-15
 
 ### Fixed
 * Fixed a false negative of DisposedBeforeAsyncRunAnalyzer. [#75](https://github.com/G-Research/fsharp-analyzers/issues/75)
 
-## 0.9.0 - 2024-02-15
+## [0.9.0] - 2024-02-15
 
 ### Removed
 
@@ -82,7 +82,7 @@
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.25.0`. [#51](https://github.com/G-Research/fsharp-analyzers/pull/67)
 
-## 0.8.0 - 2024-01-30
+## [0.8.0] - 2024-01-30
 
 ### Fixed
 * Add support for abbreviated list/array/set types to the VirtualCallAnalyzer. [#63](https://github.com/G-Research/fsharp-analyzers/pull/63)
@@ -93,7 +93,7 @@
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.24.0`. [#51](https://github.com/G-Research/fsharp-analyzers/pull/67)
 
-## 0.7.0 - 2024-01-10
+## [0.7.0] - 2024-01-10
 
 ### Fixed
 * Don't report FormattableStrings in TypedInterpolatedStringsAnalyzer. [#46](https://github.com/G-Research/fsharp-analyzers/pull/46)
@@ -107,7 +107,7 @@
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.23.0`. [#51](https://github.com/G-Research/fsharp-analyzers/pull/45)
 
-## 0.6.0 - 2023-12-20
+## [0.6.0] - 2023-12-20
 
 ### Added
 * Add TypedInterpolatedStringsAnalyzer. [#40](https://github.com/G-Research/fsharp-analyzers/pull/40)
@@ -115,18 +115,18 @@
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.22.0`. [#27](https://github.com/G-Research/fsharp-analyzers/pull/45)
 
-## 0.5.1 - 2023-12-06
+## [0.5.1] - 2023-12-06
 
 ### Fixed
 * Handle types without a FullName more gracefully. [#39](https://github.com/G-Research/fsharp-analyzers/pull/39)
 
-## 0.5.0 - 2023-12-04
+## [0.5.0] - 2023-12-04
 
 ### Added
 * Add ImmutableCollectionEquality analyzer. [#37](https://github.com/G-Research/fsharp-analyzers/pull/37)
 * Add LoggingArgFuncNotFullyApplied analyzer. [#38](https://github.com/G-Research/fsharp-analyzers/pull/38)
 
-## 0.4.0 - 2023-11-23
+## [0.4.0] - 2023-11-23
 
 ### Added
 * Add TypeAnnotateStringFunction analyzer. [#34](https://github.com/G-Research/fsharp-analyzers/pull/34)
@@ -134,18 +134,18 @@
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.21.0`. [#34](https://github.com/G-Research/fsharp-analyzers/pull/34)
 
-## 0.3.1 - 2023-11-15
+## [0.3.1] - 2023-11-15
 
 ### Changed
 * Reduced warnings in VirtualCallAnalyzer. [#31](https://github.com/G-Research/fsharp-analyzers/pull/31)
 * Update FSharp.Analyzers.SDK to `0.20.2`. [#32](https://github.com/G-Research/fsharp-analyzers/pull/32)
 
-## 0.3.0 - 2023-11-14
+## [0.3.0] - 2023-11-14
 
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.20.0`. [#27](https://github.com/G-Research/fsharp-analyzers/pull/29)
 
-## 0.2.0 - 2023-11-10
+## [0.2.0] - 2023-11-10
 
 ### Changed
 * Update FSharp.Analyzers.SDK to `0.18.0`. [#26](https://github.com/G-Research/fsharp-analyzers/pull/26)
