@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.20.0] - 2025-11-12
+
+### Changed
+- Update FSharp.Analyzers.SDK to `0.34.1`. [#98](https://github.com/G-Research/fsharp-analyzers/pull/98)
+
 ## [0.19.0] - 2025-10-20
 
 ### Changed
