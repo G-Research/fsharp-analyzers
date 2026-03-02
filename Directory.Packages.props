@@ -5,8 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- locking the version of F# Core as FCS does this anyway and in practise all will be using the same version -->
-    <PackageVersion Include="FSharp.Analyzers.SDK" Version="[0.35.0]" />
-    <PackageVersion Include="FSharp.Analyzers.SDK.Testing" Version="[0.35.0]" />
+    <PackageVersion Include="FSharp.Analyzers.SDK" Version="[0.36.0]" />
+    <PackageVersion Include="FSharp.Analyzers.SDK.Testing" Version="[0.36.0]" />
     <PackageVersion Include="FSharp.Core" Version="[10.0.101]" />
     <PackageVersion Include="FSharp.Compiler.Service" Version="[43.10.101]" />
     <PackageVersion Include="Ionide.KeepAChangelog.Tasks" Version="0.3.1" />
