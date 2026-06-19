@@ -98,7 +98,7 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
 
                 if not (pathContainsComputationExpr path) then
                     match synExpr with
-                    | SynExpr.LetOrUse synLetOrUse ->
+                    | SynExpr.LetOrUse synLetOrUse when synLetOrUse.IsUse ->
                         match synLetOrUse.Bindings with
                         | [ binding ] ->
                             if
