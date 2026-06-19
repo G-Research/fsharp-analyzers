@@ -80,7 +80,7 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
     let rec hasAsyncOrTaskInBody (body : SynExpr) =
         match body with
         | SynExpr.App (funcExpr = SynExpr.Ident (ident = ident)) -> ident.idText = "async" || ident.idText = "task"
-        | SynExpr.LetOrUse (body = body) -> hasAsyncOrTaskInBody body
+        | SynExpr.LetOrUse synLetOrUse -> hasAsyncOrTaskInBody synLetOrUse.Body
         | SynExpr.Sequential (expr2 = expr2) -> hasAsyncOrTaskInBody expr2
         | SynExpr.IfThenElse (thenExpr = thenExpr ; elseExpr = elseExpr) ->
             hasAsyncOrTaskInBody thenExpr
@@ -98,20 +98,23 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
 
                 if not (pathContainsComputationExpr path) then
                     match synExpr with
-                    | SynExpr.LetOrUse (isUse = true ; bindings = [ binding ] ; body = body) ->
-                        if
-                            not (
-                                isSwitchedOffPerComment
-                                    SwitchOffComment
-                                    comments
-                                    sourceText
-                                    binding.RangeOfBindingWithoutRhs
-                            )
-                            && hasAsyncOrTaskInBody body
-                        then
-                            match pathContainsAsyncOrTaskReturningFunc checkFileResults sourceText path with
-                            | Some ce -> uses.Add (binding.RangeOfBindingWithoutRhs, ce)
-                            | _ -> ()
+                    | SynExpr.LetOrUse synLetOrUse ->
+                        match synLetOrUse.Bindings with
+                        | [ binding ] ->
+                            if
+                                not (
+                                    isSwitchedOffPerComment
+                                        SwitchOffComment
+                                        comments
+                                        sourceText
+                                        binding.RangeOfBindingWithoutRhs
+                                )
+                                && hasAsyncOrTaskInBody synLetOrUse.Body
+                            then
+                                match pathContainsAsyncOrTaskReturningFunc checkFileResults sourceText path with
+                                | Some ce -> uses.Add (binding.RangeOfBindingWithoutRhs, ce)
+                                | _ -> ()
+                        | _ -> ()
                     | _ -> ()
         }
 
