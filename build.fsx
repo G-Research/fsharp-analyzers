@@ -3,6 +3,8 @@
 #r "nuget: Fun.Build, 1.1.18"
 #r "nuget: Humanizer.Core"
 
+#load "format.fsx"
+
 open System
 open System.Collections.Generic
 open System.IO
@@ -63,7 +65,7 @@ let analyzeStage =
 
 pipeline "Build" {
     restoreStage
-    stage "lint" { run "dotnet fantomas . --check" }
+    stage "lint" { run Format.checkFormat }
     buildStage
     stage "test" { run "dotnet test -c Release --no-build" }
     analyzeStage
@@ -79,6 +81,12 @@ pipeline "Analyze" {
     restoreStage
     buildStage
     analyzeStage
+
+    runIfOnlySpecified true
+}
+
+pipeline "Format" {
+    stage "Format" { run Format.format }
 
     runIfOnlySpecified true
 }
