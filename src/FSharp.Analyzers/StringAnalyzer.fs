@@ -67,7 +67,7 @@ let invalidStringFunctionUseAnalyzer
     invocations
     |> Seq.map (fun mFunctionName ->
         {
-            Type = $"String.{functionName} analyzer"
+            Type = $"String.%s{functionName} analyzer"
             Message = message
             Code = code
             Severity = severity
