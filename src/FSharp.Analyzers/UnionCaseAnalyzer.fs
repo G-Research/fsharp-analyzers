@@ -17,7 +17,7 @@ let findAllShadowingCases
     (sourceText : ISourceText)
     : (range * Fix) list
     =
-    let collector = ResizeArray<range * Fix> ()
+    let collector = ResizeArray<range * Fix>()
 
     let namesToWarnAbount =
         set

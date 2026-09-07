@@ -29,7 +29,7 @@ let analyzersProject =
 
 /// Every analyzer code (GRA-XXX-000) declared in the analyzer sources.
 let analyzerCodes () =
-    let codes = HashSet<string> ()
+    let codes = HashSet<string>()
 
     for file in Directory.EnumerateFiles (Path.GetDirectoryName analyzersProject, "*.fs") do
         for m in Regex.Matches (File.ReadAllText file, "\"(GRA-[A-Z0-9-]+)\"") do
@@ -138,7 +138,7 @@ pipeline "NewAnalyzer" {
     stage "Scaffold" {
         run (fun _ctx ->
             Console.Write "Enter analyzer name:"
-            let analyzerName = Console.ReadLine().Trim ()
+            let analyzerName = Console.ReadLine().Trim()
 
             let analyzerName =
                 if analyzerName.EndsWith ("Analyzer", StringComparison.Ordinal) then
@@ -184,7 +184,7 @@ let %s{camelCasedName} : Analyzer<CliContext> =
 
             addCompileItem "src/FSharp.Analyzers/FSharp.Analyzers.fsproj" analyzerName
 
-            let testFolderName = analyzerName.Replace("Analyzer", String.Empty).Camelize ()
+            let testFolderName = analyzerName.Replace("Analyzer", String.Empty).Camelize()
 
             let analyzerTestsFilePath =
                 __SOURCE_DIRECTORY__

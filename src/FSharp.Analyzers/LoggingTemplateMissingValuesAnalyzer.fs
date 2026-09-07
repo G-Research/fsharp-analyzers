@@ -44,7 +44,7 @@ and (|StringConst|_|) (e : FSharpExpr) =
     | _ -> None
 
 let analyze (typedTree : FSharpImplementationFileContents) =
-    let state = ResizeArray<range * string> ()
+    let state = ResizeArray<range * string>()
 
     let namesToWarnAbout =
         set

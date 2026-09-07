@@ -12,7 +12,7 @@ open FSharp.Compiler.Symbols.FSharpExprPatterns
 let Code = "GRA-JSONOPTS-001"
 
 let analyze (typedTree : FSharpImplementationFileContents) =
-    let state = ResizeArray<range> ()
+    let state = ResizeArray<range>()
 
     let namesToWarnAbount =
         set

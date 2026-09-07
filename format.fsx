@@ -95,7 +95,7 @@ let private formatXml (config : FileConfiguration) (path : string) =
 
     use buffer = new MemoryStream ()
     using (XmlWriter.Create (buffer, settings)) document.Save
-    UTF8Encoding(false).GetString (buffer.ToArray ())
+    UTF8Encoding(false).GetString(buffer.ToArray ())
 
 /// System.Text.Json on .NET 8 always indents with two spaces and offers no knob for it,
 /// so rescale the indentation afterwards. Every newline in JSON is structural, because a

@@ -12,7 +12,8 @@ val Name : string = "LoggingArgFuncNotFullyAppliedAnalyzer"
 val ShortDescription : string = "Checks if function arguments to ILogging methods are fully applied"
 
 [<Literal>]
-val HelpUri : string = "https://g-research.github.io/fsharp-analyzers/analyzers/LoggingArgFuncNotFullyAppliedAnalyzer.html"
+val HelpUri : string =
+    "https://g-research.github.io/fsharp-analyzers/analyzers/LoggingArgFuncNotFullyAppliedAnalyzer.html"
 
 [<CliAnalyzer(Name, ShortDescription, HelpUri)>]
 val loggingArgFuncNotFullyAppliedCliAnalyzer : ctx : CliContext -> Async<Message list>

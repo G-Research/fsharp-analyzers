@@ -48,7 +48,7 @@ let invalidStringFunctionUseAnalyzer
     (typedTree : FSharpImplementationFileContents)
     (typedArgumentPredicate : FSharpExpr list -> bool)
     =
-    let invocations = ResizeArray<range> ()
+    let invocations = ResizeArray<range>()
 
     let walker =
         { new TypedTreeCollectorBase() with

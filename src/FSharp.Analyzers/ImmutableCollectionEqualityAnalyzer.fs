@@ -45,7 +45,7 @@ let mkMessage typeName m =
     }
 
 let analyze (typedTree : FSharpImplementationFileContents) =
-    let invocations = ResizeArray<Message> ()
+    let invocations = ResizeArray<Message>()
 
     let walker =
         { new TypedTreeCollectorBase() with
