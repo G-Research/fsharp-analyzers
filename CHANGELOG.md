@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0] - 2026-09-05
+
+### Changed
+
+- *Breaking*: Target .NET 10. [#114](https://github.com/G-Research/fsharp-analyzers/pull/114)
+- Update FSharp.Analyzers.SDK to `0.38.0`. [#114](https://github.com/G-Research/fsharp-analyzers/pull/114)
+
 ## [0.23.0] - 2026-06-19
 
 ### Changed

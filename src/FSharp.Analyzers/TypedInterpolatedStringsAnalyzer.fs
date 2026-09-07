@@ -27,7 +27,7 @@ let analyze (parseTree : ParsedInput) (typedTree : FSharpImplementationFileConte
                 if
                     memberOrFunc.FullName = "System.Runtime.CompilerServices.FormattableStringFactory.Create"
                     && argExprs.Length = 2
-                    && argExprs.[0].Type.ErasedType.BasicQualifiedName = "System.String"
+                    && argExprs.[0].Type.ErasedType.BasicQualifiedName = Some "System.String"
                 then
                     formattableStrings.Add argExprs.[0].Range |> ignore
         }
