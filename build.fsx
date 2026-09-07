@@ -22,17 +22,14 @@ let restoreStage =
 let buildStage =
     stage "build" { run "dotnet build -c Release --no-restore -maxCpuCount" }
 
-let analyzersProject = "src/FSharp.Analyzers/FSharp.Analyzers.fsproj"
-
-let targetFramework (fsproj : string) =
-    let doc = XDocument.Load (__SOURCE_DIRECTORY__ </> fsproj)
-    (Seq.head (doc.Descendants (XName.Get "TargetFramework"))).Value
+let analyzersProject =
+    __SOURCE_DIRECTORY__ </> "src/FSharp.Analyzers/FSharp.Analyzers.fsproj"
 
 /// Every analyzer code (GRA-XXX-000) declared in the analyzer sources.
 let analyzerCodes () =
     let codes = HashSet<string> ()
 
-    for file in Directory.EnumerateFiles (__SOURCE_DIRECTORY__ </> Path.GetDirectoryName analyzersProject, "*.fs") do
+    for file in Directory.EnumerateFiles (Path.GetDirectoryName analyzersProject, "*.fs") do
         for m in Regex.Matches (File.ReadAllText file, "\"(GRA-[A-Z0-9-]+)\"") do
             codes.Add m.Groups.[1].Value |> ignore
 
@@ -42,15 +39,25 @@ let analyzerCodes () =
 /// The tool exits 0 on warnings, so every known code is escalated to an error to make findings fail the stage.
 let analyzeStage =
     stage "analyze" {
-        run (fun _ ->
-            let analyzersPath =
-                Path.GetDirectoryName analyzersProject
-                </> "bin/Release"
-                </> targetFramework analyzersProject
+        run (fun ctx ->
+            async {
+                // Ask MSBuild for the built assembly rather than searching bin/Release recursively:
+                // a stale output folder for an older target framework would make the tool fail to load.
+                let! targetPath =
+                    ctx.RunCommandCaptureOutput
+                        $"dotnet msbuild \"%s{analyzersProject}\" -getProperty:TargetPath -p:Configuration=Release"
 
-            let treatAsError = String.Join (" ", analyzerCodes ())
+                match targetPath with
+                | Error error -> return Error error
+                | Ok targetPath ->
 
-            $"dotnet fsharp-analyzers --project %s{analyzersProject} --analyzers-path %s{analyzersPath} --treat-as-error %s{treatAsError}"
+                let analyzersPath = Path.GetDirectoryName (targetPath.Trim ())
+                let treatAsError = analyzerCodes () |> String.concat " "
+
+                return!
+                    ctx.RunCommand
+                        $"dotnet fsharp-analyzers --project \"%s{analyzersProject}\" --analyzers-path \"%s{analyzersPath}\" --treat-as-error %s{treatAsError}"
+            }
         )
     }
 
