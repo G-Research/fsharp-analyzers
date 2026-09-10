@@ -4,9 +4,7 @@
 #r "nuget: Humanizer.Core"
 
 open System
-open System.Collections.Generic
 open System.IO
-open System.Text.RegularExpressions
 open System.Xml.Linq
 open Fun.Build
 open Humanizer
@@ -25,18 +23,8 @@ let buildStage =
 let analyzersProject =
     __SOURCE_DIRECTORY__ </> "src/FSharp.Analyzers/FSharp.Analyzers.fsproj"
 
-/// Every analyzer code (GRA-XXX-000) declared in the analyzer sources.
-let analyzerCodes () =
-    let codes = HashSet<string> ()
-
-    for file in Directory.EnumerateFiles (Path.GetDirectoryName analyzersProject, "*.fs") do
-        for m in Regex.Matches (File.ReadAllText file, "\"(GRA-[A-Z0-9-]+)\"") do
-            codes.Add m.Groups.[1].Value |> ignore
-
-    codes
-
 /// Runs the analyzers built by this repository over its own source. Requires buildStage to have run first.
-/// The tool exits 0 on warnings, so every known code is escalated to an error to make findings fail the stage.
+/// The tool exits 0 on warnings, so every GRA- code is escalated to an error to make findings fail the stage.
 let analyzeStage =
     stage "analyze" {
         run (fun ctx ->
@@ -52,11 +40,10 @@ let analyzeStage =
                 | Ok targetPath ->
 
                 let analyzersPath = Path.GetDirectoryName (targetPath.Trim ())
-                let treatAsError = analyzerCodes () |> String.concat " "
 
                 return!
                     ctx.RunCommand
-                        $"dotnet fsharp-analyzers --project \"%s{analyzersProject}\" --analyzers-path \"%s{analyzersPath}\" --treat-as-error %s{treatAsError}"
+                        $"dotnet fsharp-analyzers --project \"%s{analyzersProject}\" --analyzers-path \"%s{analyzersPath}\" --treat-as-error \"GRA-*\""
             }
         )
     }
