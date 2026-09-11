@@ -10,7 +10,7 @@
 // reason about. Nothing here merges anything: a human reads the release notes and presses the button.
 //
 //   dotnet fsi bump-sdk.fsx             the real thing, needs GH_TOKEN
-//   dotnet fsi bump-sdk.fsx --dry-run   edit the files and render the body, touch neither git nor GitHub
+//   dotnet fsi bump-sdk.fsx --dry-run   edit the files and render the body, write to neither git nor GitHub
 
 open System
 open System.Diagnostics
@@ -203,6 +203,23 @@ type Plan =
         Title : string
     }
 
+/// The number of the open pull request for a branch, if there is one.
+let private openPullRequestFor (branch : string) : int option =
+    ghOutput
+        [
+            "pr"
+            "list"
+            "--head"
+            branch
+            "--state"
+            "open"
+            "--json"
+            "number"
+            "--jq"
+            ".[0].number // empty"
+        ]
+    |> fun output -> if output = "" then None else Some (int output)
+
 /// Not a Result: nothing to do is not a failure. A release can be tagged minutes before its
 /// packages are indexed, and a red X in the Actions tab every time Ionide ships would teach
 /// everyone to ignore that tab. Tomorrow's run picks it up.
@@ -235,12 +252,19 @@ let private pendingBump () : Bump =
     | Some packageId -> NothingToDo $"%s{packageId} %s{version} is released on GitHub but not on NuGet yet."
     | None ->
 
-    Pending
+    let plan =
         {
             Version = version
             Branch = $"bump/analyzers-sdk-%s{version}"
             Title = $"Update %s{sdkPackage} to %s{version}"
         }
+
+    // One pull request per release, and once it is open the branch belongs to whoever is working
+    // on it. A maintainer adapting to an upstream API break commits onto it, and a run that
+    // started over would throw that away. Closing the pull request asks for a fresh one.
+    match openPullRequestFor plan.Branch with
+    | Some number -> NothingToDo $"#%i{number} is already open for %s{version}."
+    | None -> Pending plan
 
 // ---------------------------------------------------------------------------------------------
 // the version bump
@@ -499,7 +523,8 @@ let private commit (message : string) (paths : string list) =
     git [ "commit" ; "--message" ; message ]
 
 /// Force, because a run that failed after the push leaves the branch behind and the next run for
-/// the same version has to be able to start over.
+/// the same version has to be able to start over. It cannot land on a human's commits: an open
+/// pull request for this version is what pendingBump stops on.
 let private push (plan : Plan) =
     git [ "push" ; "--force" ; "origin" ; $"HEAD:refs/heads/%s{plan.Branch}" ]
 
@@ -524,26 +549,6 @@ let private openPullRequest (plan : Plan) : int =
     git [ "switch" ; "--force-create" ; plan.Branch ]
     commit plan.Title [ packagesProps ; toolManifest ]
     push plan
-
-    let existing =
-        ghOutput
-            [
-                "pr"
-                "list"
-                "--head"
-                plan.Branch
-                "--state"
-                "open"
-                "--json"
-                "number"
-                "--jq"
-                ".[0].number // empty"
-            ]
-
-    if existing <> "" then
-        printfn $"Reusing the open pull request #%s{existing} for %s{plan.Branch}."
-        int existing
-    else
 
     // gh refuses a label that does not exist, and this one is the bot's own.
     gh
