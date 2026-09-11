@@ -4,7 +4,8 @@
 
 #load "format.fsx"
 
-// Opens the daily Update FSharp.Analyzers.SDK" pull request, see .github/workflows/bump-analyzers-sdk.yml.
+// Opens the daily "Update FSharp.Analyzers.SDK" pull request.
+// See .github/workflows/bump-analyzers-sdk.yml.
 // Upstream releases usually carry an FCS bump along with them, which is more than Dependabot can
 // reason about. Nothing here merges anything: a human reads the release notes and presses the button.
 //
@@ -38,6 +39,7 @@ let repository = "G-Research/fsharp-analyzers"
 let baseBranch = "main"
 let sdkPackage = "FSharp.Analyzers.SDK"
 let testingPackage = "FSharp.Analyzers.SDK.Testing"
+let toolPackage = "fsharp-analyzers"
 
 /// Everything after the version bump itself talks to git or to GitHub. A dry run stops at the
 /// working tree, which is what you want when you are trying the script out locally.
@@ -221,11 +223,17 @@ let private pendingBump () : Bump =
 
     if newest <= current then
         NothingToDo $"%s{sdkPackage} is at %O{current}, the newest release is %s{version}."
-    elif not (List.contains newest (versionsOf sdkPackage)) then
-        NothingToDo $"%s{sdkPackage} %s{version} is released on GitHub but not on NuGet yet."
-    elif not (List.contains newest (versionsOf testingPackage)) then
-        NothingToDo $"%s{testingPackage} %s{version} is not on NuGet yet."
     else
+
+    // One release, three packages, indexed separately. The tool counts as much as the two
+    // libraries do, because CI restores it from the manifest this bump rewrites.
+    let missing =
+        [ sdkPackage ; testingPackage ; toolPackage ]
+        |> List.tryFind (fun packageId -> not (List.contains newest (versionsOf packageId)))
+
+    match missing with
+    | Some packageId -> NothingToDo $"%s{packageId} %s{version} is released on GitHub but not on NuGet yet."
+    | None ->
 
     Pending
         {

@@ -8,9 +8,17 @@ on:
     - cron: "23 6 * * *"
   workflow_dispatch:
 
+# A manual run and the scheduled one would otherwise race, both force-pushing the same branch
+# and both opening or closing pull requests. Queue rather than cancel, so a run that is halfway
+# through opening one is left to finish it.
+concurrency:
+  group: bump-analyzers-sdk
+  cancel-in-progress: false
+
 permissions:
   contents: write # to push the branch
-  pull-requests: write # to open and label it
+  pull-requests: write # to open it
+  issues: write # to create the automated label, which is an Issues API operation
   actions: write # to dispatch ci.yml on it
 
 jobs:
