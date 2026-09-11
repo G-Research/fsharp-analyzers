@@ -2,16 +2,17 @@
 
 #r "nuget: Fun.Build, 1.1.18"
 #r "nuget: Humanizer.Core"
+#r "nuget: Ionide.KeepAChangelog, 0.2.0"
 
 #load "format.fsx"
 
 open System
-open System.Collections.Generic
 open System.IO
-open System.Text.RegularExpressions
 open System.Xml.Linq
 open Fun.Build
 open Humanizer
+open Ionide.KeepAChangelog
+open Ionide.KeepAChangelog.Domain
 
 let (</>) a b = Path.Combine (a, b)
 
@@ -27,18 +28,8 @@ let buildStage =
 let analyzersProject =
     __SOURCE_DIRECTORY__ </> "src/FSharp.Analyzers/FSharp.Analyzers.fsproj"
 
-/// Every analyzer code (GRA-XXX-000) declared in the analyzer sources.
-let analyzerCodes () =
-    let codes = HashSet<string>()
-
-    for file in Directory.EnumerateFiles (Path.GetDirectoryName analyzersProject, "*.fs") do
-        for m in Regex.Matches (File.ReadAllText file, "\"(GRA-[A-Z0-9-]+)\"") do
-            codes.Add m.Groups.[1].Value |> ignore
-
-    codes
-
 /// Runs the analyzers built by this repository over its own source. Requires buildStage to have run first.
-/// The tool exits 0 on warnings, so every known code is escalated to an error to make findings fail the stage.
+/// The tool exits 0 on warnings, so every GRA- code is escalated to an error to make findings fail the stage.
 let analyzeStage =
     stage "analyze" {
         run (fun ctx ->
@@ -54,11 +45,10 @@ let analyzeStage =
                 | Ok targetPath ->
 
                 let analyzersPath = Path.GetDirectoryName (targetPath.Trim ())
-                let treatAsError = analyzerCodes () |> String.concat " "
 
                 return!
                     ctx.RunCommand
-                        $"dotnet fsharp-analyzers --project \"%s{analyzersProject}\" --analyzers-path \"%s{analyzersPath}\" --treat-as-error %s{treatAsError}"
+                        $"dotnet fsharp-analyzers --project \"%s{analyzersProject}\" --analyzers-path \"%s{analyzersPath}\" --treat-as-error \"GRA-*\""
             }
         )
     }
@@ -293,6 +283,115 @@ index:
             File.WriteAllText (documentationFilePath, documentationContent)
         )
     }
+
+    runIfOnlySpecified true
+}
+
+let packageId = "G-Research.FSharp.Analyzers"
+let packageOutput = __SOURCE_DIRECTORY__ </> "artifacts"
+
+/// The newest entry of CHANGELOG.md: its version, its date and its sections rendered as markdown.
+/// The release on GitHub is that entry, so the two cannot come to say different things.
+let latestChangelogEntry () : string * DateTime * string =
+    let changelog = FileInfo (__SOURCE_DIRECTORY__ </> "CHANGELOG.md")
+
+    let parsed =
+        match Parser.parseChangeLog changelog with
+        | Error error -> failwithf "Could not parse CHANGELOG.md: %A" error
+        | Ok result -> result
+
+    let version, date, data =
+        match parsed.Releases with
+        | [] -> failwith "CHANGELOG.md has no release entry."
+        | releases -> releases |> List.maxBy (fun (_, date, _) -> date)
+
+    let body =
+        match data with
+        | None -> failwith "The newest CHANGELOG.md entry has no sections."
+        | Some data ->
+
+        [
+            "Added", data.Added
+            "Changed", data.Changed
+            "Fixed", data.Fixed
+            "Deprecated", data.Deprecated
+            "Removed", data.Removed
+            "Security", data.Security
+            yield! Map.toList data.Custom
+        ]
+        |> List.choose (fun (header, lines) ->
+            if String.IsNullOrWhiteSpace lines then
+                None
+            else
+                Some $"### %s{header}\n%s{lines.Trim ()}"
+        )
+        |> String.concat "\n\n"
+
+    string version, date, body
+
+/// "September 10th Release", the title fantomas and telplin give their releases as well.
+let releaseTitle (date : DateTime) : string =
+    $"""%s{date.ToString "MMMM"} %s{date.Day.Ordinalize ()} Release"""
+
+/// Create the GitHub release for the newest changelog entry, unless it exists already. A rerun of
+/// the workflow, or a push that touches nothing in the changelog, then changes nothing.
+let createGithubRelease (ctx : Internal.StageContext) : Async<int> =
+    async {
+        let version, date, body = latestChangelogEntry ()
+        let tag = $"v%s{version}"
+
+        let! existing = ctx.RunCommandCaptureOutput $"gh release view %s{tag} --json tagName"
+
+        match existing with
+        | Ok _ ->
+            printfn $"Release %s{tag} already exists on GitHub, nothing to do."
+            return 0
+        | Error _ ->
+
+        let notes =
+            $"""# %s{version}
+
+%s{body}
+
+[https://www.nuget.org/packages/%s{packageId}/%s{version}](https://www.nuget.org/packages/%s{packageId}/%s{version})
+"""
+
+        let notesFile = Path.GetTempFileName ()
+        File.WriteAllText (notesFile, notes)
+        let package = packageOutput </> $"%s{packageId}.%s{version}.nupkg"
+        let prerelease = if version.Contains '-' then " --prerelease" else ""
+
+        let! result =
+            ctx.RunCommand
+                $"gh release create %s{tag} \"%s{package}\"%s{prerelease} --title \"%s{releaseTitle date}\" --notes-file \"%s{notesFile}\""
+
+        File.Delete notesFile
+
+        match result with
+        | Ok () ->
+            printfn $"Created GitHub release %s{tag}."
+            return 0
+        | Error error ->
+            eprintfn $"Could not create GitHub release %s{tag}: %s{error}"
+            return 1
+    }
+
+// Push the packed nupkg in `artifacts/` to NuGet, then create the matching GitHub release.
+// Stages run in order and the pipeline stops at the first failure, so no release is created
+// when the push fails. Needs NUGET_KEY and GH_TOKEN in the environment.
+pipeline "Release" {
+    stage "push" {
+        workingDir packageOutput
+
+        run (fun ctx ->
+            let apiKey = Environment.GetEnvironmentVariable "NUGET_KEY"
+
+            ctx.RunSensitiveCommand
+                $"dotnet nuget push {packageId}.*.nupkg --source https://api.nuget.org/v3/index.json --api-key {apiKey} --skip-duplicate"
+        )
+    }
+
+    stage "release" { run createGithubRelease }
 
     runIfOnlySpecified true
 }
