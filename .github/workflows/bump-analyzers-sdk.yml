@@ -1,0 +1,26 @@
+name: Bump FSharp.Analyzers.SDK
+
+# Everything this does lives in bump-sdk.fsx, which is runnable with --dry-run on a laptop.
+# The job only has to hand it a checkout, a .NET and a token.
+
+on:
+  schedule:
+    - cron: "23 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write # to push the branch
+  pull-requests: write # to open and label it
+  actions: write # to dispatch ci.yml on it
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+      - name: Bump FSharp.Analyzers.SDK
+        run: dotnet fsi bump-sdk.fsx
+        env:
+          GH_TOKEN: ${{ github.token }}
