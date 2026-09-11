@@ -29,8 +29,9 @@ let analyzersProject =
     __SOURCE_DIRECTORY__ </> "src/FSharp.Analyzers/FSharp.Analyzers.fsproj"
 
 /// The scripts that drive this repository are source too. Note that this is a weaker check than the
-/// one the project gets: a bare top-level expression in a script is missing from the typed tree the
-/// analyzers receive, so the TypedTree ones see almost nothing there.
+/// one the project gets: the typed tree the analyzers receive for a script is missing its top-level
+/// `do` and bare expressions, and every call to the `string` function, so a clean run here covers
+/// less ground than a clean run over the project does.
 /// See https://github.com/ionide/FSharp.Analyzers.SDK/issues/332
 let private trackedScripts () =
     Format.trackedFiles ()

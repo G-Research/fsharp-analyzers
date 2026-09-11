@@ -309,7 +309,7 @@ let private bumpVersions (plan : Plan) : Change list * string option =
                     To = string<NuGetVersion> target
                 }
             {
-                Package = "fsharp-analyzers"
+                Package = toolPackage
                 From = string<NuGetVersion>(readToolVersion manifest)
                 To = plan.Version
             }
