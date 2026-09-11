@@ -341,7 +341,7 @@ let latestChangelogEntry () : string * DateTime * string =
         )
         |> String.concat "\n\n"
 
-    string version, date, body
+    string<SemVersion.SemanticVersion> version, date, body
 
 /// "September 10th Release", the title fantomas and telplin give their releases as well.
 let releaseTitle (date : DateTime) : string =

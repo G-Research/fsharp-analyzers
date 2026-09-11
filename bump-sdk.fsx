@@ -305,12 +305,12 @@ let private bumpVersions (plan : Plan) : Change list * string option =
             for package, target in pins do
                 {
                     Package = package
-                    From = string (readPackageVersion props package)
-                    To = string target
+                    From = string<NuGetVersion>(readPackageVersion props package)
+                    To = string<NuGetVersion> target
                 }
             {
                 Package = "fsharp-analyzers"
-                From = string (readToolVersion manifest)
+                From = string<NuGetVersion>(readToolVersion manifest)
                 To = plan.Version
             }
         ]
@@ -598,7 +598,7 @@ let private closeSuperseded (pullRequest : int) =
         ]
     |> fun output -> output.Split ('\n', StringSplitOptions.RemoveEmptyEntries)
     |> Array.map (fun number -> number.Trim ())
-    |> Array.filter (fun number -> number <> string pullRequest)
+    |> Array.filter (fun number -> number <> string<int> pullRequest)
     |> Array.iter (fun number ->
         gh [ "pr" ; "comment" ; number ; "--body" ; $"Superseded by #%i{pullRequest}." ]
         gh [ "pr" ; "close" ; number ; "--delete-branch" ]
@@ -617,7 +617,7 @@ let private finishPullRequest (plan : Plan) (pullRequest : int) (body : string) 
 
     commit "Add the changelog entry" [ changelogFile ]
     push plan
-    gh [ "pr" ; "edit" ; string pullRequest ; "--body-file" ; file ]
+    gh [ "pr" ; "edit" ; string<int> pullRequest ; "--body-file" ; file ]
     File.Delete file
 
     // Events authenticated with GITHUB_TOKEN do not create workflow runs, so opening the pull
