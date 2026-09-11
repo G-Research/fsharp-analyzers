@@ -130,7 +130,7 @@ let constructFix (origRange : Range) (origSource : string) (fixedModuleName : st
     }
 
 let analyze (sourceText : ISourceText) (typedTree : FSharpImplementationFileContents) =
-    let state = ResizeArray<string * string * range * Fix> ()
+    let state = ResizeArray<string * string * range * Fix>()
 
     let walker =
         { new TypedTreeCollectorBase() with

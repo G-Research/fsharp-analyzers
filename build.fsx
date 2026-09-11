@@ -4,6 +4,8 @@
 #r "nuget: Humanizer.Core"
 #r "nuget: Ionide.KeepAChangelog, 0.2.0"
 
+#load "format.fsx"
+
 open System
 open System.IO
 open System.Xml.Linq
@@ -53,7 +55,7 @@ let analyzeStage =
 
 pipeline "Build" {
     restoreStage
-    stage "lint" { run "dotnet fantomas . --check" }
+    stage "lint" { run Format.checkFormat }
     buildStage
     stage "test" { run "dotnet test -c Release --no-build" }
     analyzeStage
@@ -69,6 +71,12 @@ pipeline "Analyze" {
     restoreStage
     buildStage
     analyzeStage
+
+    runIfOnlySpecified true
+}
+
+pipeline "Format" {
+    stage "Format" { run Format.format }
 
     runIfOnlySpecified true
 }
@@ -120,7 +128,7 @@ pipeline "NewAnalyzer" {
     stage "Scaffold" {
         run (fun _ctx ->
             Console.Write "Enter analyzer name:"
-            let analyzerName = Console.ReadLine().Trim ()
+            let analyzerName = Console.ReadLine().Trim()
 
             let analyzerName =
                 if analyzerName.EndsWith ("Analyzer", StringComparison.Ordinal) then
@@ -166,7 +174,7 @@ let %s{camelCasedName} : Analyzer<CliContext> =
 
             addCompileItem "src/FSharp.Analyzers/FSharp.Analyzers.fsproj" analyzerName
 
-            let testFolderName = analyzerName.Replace("Analyzer", String.Empty).Camelize ()
+            let testFolderName = analyzerName.Replace("Analyzer", String.Empty).Camelize()
 
             let analyzerTestsFilePath =
                 __SOURCE_DIRECTORY__

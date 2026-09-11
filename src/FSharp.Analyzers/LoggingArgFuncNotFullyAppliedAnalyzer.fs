@@ -11,7 +11,7 @@ open FSharp.Compiler.Text
 let Code = "GRA-LOGARGFUNCFULLAPP-001"
 
 let analyze (typedTree : FSharpImplementationFileContents) =
-    let state = ResizeArray<range> ()
+    let state = ResizeArray<range>()
 
     let namesToWarnAbout =
         set

@@ -1,52 +1,50 @@
 <Project>
-    <PropertyGroup>
-        <!-- Set up version and package release note generation from this changelog. -->
-        <ChangelogFile>$(MSBuildThisFileDirectory)CHANGELOG.md</ChangelogFile>
-        <!-- Common packaging properties for all packages in this repo -->
-        <Company>G-Research</Company>
-        <Authors>David Schaefer, Florian Verdonck</Authors>
-        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <Description>
+  <PropertyGroup>
+    <!-- Set up version and package release note generation from this changelog. -->
+    <ChangelogFile>$(MSBuildThisFileDirectory)CHANGELOG.md</ChangelogFile>
+    <!-- Common packaging properties for all packages in this repo -->
+    <Company>G-Research</Company>
+    <Authors>David Schaefer, Florian Verdonck</Authors>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>
             F# analyzers used within G-Research.
         </Description>
-        <Copyright>Copyright G-Research © $([System.DateTime]::UtcNow.Year)</Copyright>
-        <PackageTags>F#, fsharp, analyzers, fsharp-analyzer</PackageTags>
-        <EmbedUntrackedSources>true</EmbedUntrackedSources>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <DebugType>embedded</DebugType>
-        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-        <PackageProjectUrl>https://g-research.github.io/fsharp-analyzers/</PackageProjectUrl>
-        <PackageReleaseNotes>https://github.com/G-Research/fsharp-analyzers/blob/main/CHANGELOG.md</PackageReleaseNotes>
-        <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
-        <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <WarnOn>1182;3390;$(WarnOn)</WarnOn>
-        <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
-        <RestoreLockedMode>false</RestoreLockedMode>
-        <NoWarn>NU1603;NETSDK1057</NoWarn>
-        <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
-        <!-- https://www.gresearch.co.uk/blog/article/improve-nuget-restores-with-static-graph-evaluation/ -->
-        <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
-        <ServerGarbageCollection>true</ServerGarbageCollection>
-        <LangVersion>preview</LangVersion>
-        <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen</OtherFlags>
-        <!-- Set to true and adjust the path to your local repo if you want to use that instead of the nuget packages -->
-        <UseLocalAnalyzersSDK>false</UseLocalAnalyzersSDK>
-        <LocalAnalyzersSDKRepo>../../../FSharp.Analyzers.SDK</LocalAnalyzersSDKRepo>
-    </PropertyGroup>
-
-    <PropertyGroup>
-        <FsDocsLogoSource>img/logo.svg</FsDocsLogoSource>
-        <FsDocsLicenseLink>https://github.com/G-Research/fsharp-analyzers/blob/main/LICENSE</FsDocsLicenseLink>
-        <FsDocsReleaseNotesLink>https://github.com/G-Research/fsharp-analyzers/blob/main/CHANGELOG.md</FsDocsReleaseNotesLink>
-        <RepositoryUrl>https://github.com/G-Research/fsharp-analyzers</RepositoryUrl>
-    </PropertyGroup>
-
-    <ItemGroup Condition="'$(IsPackable)' == 'true'">
-        <None Include="$(MSBuildThisFileDirectory)README.md" Visible="false" Pack="true" PackagePath=""/>
-        <PackageReference Include="Ionide.KeepAChangelog.Tasks" PrivateAssets="all"/>
-        <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all"/>
-    </ItemGroup>
+    <Copyright>Copyright G-Research © $([System.DateTime]::UtcNow.Year)</Copyright>
+    <PackageTags>F#, fsharp, analyzers, fsharp-analyzer</PackageTags>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <DebugType>embedded</DebugType>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://g-research.github.io/fsharp-analyzers/</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/G-Research/fsharp-analyzers/blob/main/CHANGELOG.md</PackageReleaseNotes>
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarnOn>1182;3390;$(WarnOn)</WarnOn>
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <RestoreLockedMode>false</RestoreLockedMode>
+    <NoWarn>NU1603;NETSDK1057</NoWarn>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+    <!-- https://www.gresearch.co.uk/blog/article/improve-nuget-restores-with-static-graph-evaluation/ -->
+    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <LangVersion>preview</LangVersion>
+    <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen</OtherFlags>
+    <!-- Set to true and adjust the path to your local repo if you want to use that instead of the nuget packages -->
+    <UseLocalAnalyzersSDK>false</UseLocalAnalyzersSDK>
+    <LocalAnalyzersSDKRepo>../../../FSharp.Analyzers.SDK</LocalAnalyzersSDKRepo>
+  </PropertyGroup>
+  <PropertyGroup>
+    <FsDocsLogoSource>img/logo.svg</FsDocsLogoSource>
+    <FsDocsLicenseLink>https://github.com/G-Research/fsharp-analyzers/blob/main/LICENSE</FsDocsLicenseLink>
+    <FsDocsReleaseNotesLink>https://github.com/G-Research/fsharp-analyzers/blob/main/CHANGELOG.md</FsDocsReleaseNotesLink>
+    <RepositoryUrl>https://github.com/G-Research/fsharp-analyzers</RepositoryUrl>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(IsPackable)' == 'true'">
+    <None Include="$(MSBuildThisFileDirectory)README.md" Visible="false" Pack="true" PackagePath="" />
+    <PackageReference Include="Ionide.KeepAChangelog.Tasks" PrivateAssets="all" />
+    <PackageReference Include="DotNet.ReproducibleBuilds" PrivateAssets="all" />
+  </ItemGroup>
 </Project>

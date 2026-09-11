@@ -22,7 +22,7 @@ let (|StringFunctionExpr|_|) =
     | _ -> None
 
 let analyze (sourceText : ISourceText) (parseTree : ParsedInput) (typedTree : FSharpImplementationFileContents) =
-    let messages = ResizeArray<Message> ()
+    let messages = ResizeArray<Message>()
 
     let tryFindSynExprApp (m : range) =
         let visitor =

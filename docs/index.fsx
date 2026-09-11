@@ -38,9 +38,7 @@ And the [G-Research.FSharp.Analyzers](https://www.nuget.org/packages/G-Research.
 *)
 
 (*** hide ***)
-typeof<GR.FSharp.Analyzers.TypeAnnotateStringFunctionAnalyzer.StringApplicationResult>.Assembly
-    .GetName()
-    .Version
+typeof<GR.FSharp.Analyzers.TypeAnnotateStringFunctionAnalyzer.StringApplicationResult>.Assembly.GetName().Version
 |> fun v ->
     $"""
 <pre class="fssnip highlighted"><code>&lt;PackageReference Include=&quot;G-Research.FSharp.Analyzers&quot; Version=&quot;%i{v.Major}.%i{v.Minor}.%i{v.Revision}&quot;&gt;

@@ -74,7 +74,7 @@ let collectUses (sourceText : ISourceText) (ast : ParsedInput) (checkFileResults
         | ParsedInput.ImplFile parsedImplFileInput -> parsedImplFileInput.Trivia.CodeComments
         | _ -> []
 
-    let uses = ResizeArray<range * string> ()
+    let uses = ResizeArray<range * string>()
 
     // Note: not tailrecursive
     let rec hasAsyncOrTaskInBody (body : SynExpr) =

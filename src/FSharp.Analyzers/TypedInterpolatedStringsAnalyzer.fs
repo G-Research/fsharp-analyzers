@@ -17,7 +17,7 @@ let specifierRegex =
     Regex (@"\%(\+|\-)?\d*\.?\d*(b|s|c|d|i|u|x|X|o|B|e|E|f|F|g|G|M|O|A)$")
 
 let analyze (parseTree : ParsedInput) (typedTree : FSharpImplementationFileContents) =
-    let messages = ResizeArray<Message> ()
+    let messages = ResizeArray<Message>()
     // Formattable strings needs to be skipped https://learn.microsoft.com/en-us/dotnet/api/system.formattablestring?view=net-8.0
     let formattableStrings = HashSet Range.comparer
 

@@ -9,7 +9,8 @@ val Code : string = "GRA-VIRTUALCALL-001"
 val Name : string = "VirtualCall Analyzer"
 
 [<Literal>]
-val ShortDescription : string = "Checks if calls of Seq functions can be replaced with functions from the collection modules"
+val ShortDescription : string =
+    "Checks if calls of Seq functions can be replaced with functions from the collection modules"
 
 [<Literal>]
 val HelpUri : string = "https://g-research.github.io/fsharp-analyzers/analyzers/VirtualCallAnalyzer.html"

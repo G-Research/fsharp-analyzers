@@ -21,4 +21,4 @@ type ISourceText with
             |> fun sb ->
                 let lastLine = x.GetLineString (range.EndLine - 1)
 
-                sb.Append(lastLine.Substring (0, range.EndColumn)).ToString ()
+                sb.Append(lastLine.Substring (0, range.EndColumn)).ToString()
