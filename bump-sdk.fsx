@@ -575,7 +575,7 @@ let private openPullRequest (plan : Plan) : int =
                 "--title"
                 plan.Title
                 "--body"
-                "Writing the details, the next commit fills this in."
+                "Writing the details, the next commit fills this in. If this is still all you see, the run that opened this pull request did not finish: close it and the next run will open a fresh one."
                 "--label"
                 "dependencies"
                 "--label"
