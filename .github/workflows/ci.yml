@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - main
+  # A pull request opened with GITHUB_TOKEN does not start a workflow run, so
+  # bump-analyzers-sdk.yml dispatches this one on its branch instead.
+  workflow_dispatch:
 
 permissions:
   contents: read

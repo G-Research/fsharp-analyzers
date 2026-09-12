@@ -28,6 +28,21 @@ let buildStage =
 let analyzersProject =
     __SOURCE_DIRECTORY__ </> "src/FSharp.Analyzers/FSharp.Analyzers.fsproj"
 
+/// The scripts that drive this repository are source too. Note that this is a weaker check than the
+/// one the project gets: the typed tree the analyzers receive for a script is missing its top-level
+/// `do` and bare expressions, and every call to the `string` function, so a clean run here covers
+/// less ground than a clean run over the project does.
+/// See https://github.com/ionide/FSharp.Analyzers.SDK/issues/332
+let private trackedScripts () =
+    Format.trackedFiles ()
+    |> Array.choose (fun path ->
+        if path.EndsWith (".fsx", StringComparison.Ordinal) then
+            Some $"\"%s{path}\""
+        else
+            None
+    )
+    |> String.concat " "
+
 /// Runs the analyzers built by this repository over its own source. Requires buildStage to have run first.
 /// The tool exits 0 on warnings, so every GRA- code is escalated to an error to make findings fail the stage.
 let analyzeStage =
@@ -48,7 +63,7 @@ let analyzeStage =
 
                 return!
                     ctx.RunCommand
-                        $"dotnet fsharp-analyzers --project \"%s{analyzersProject}\" --analyzers-path \"%s{analyzersPath}\" --treat-as-error \"GRA-*\""
+                        $"dotnet fsharp-analyzers --project \"%s{analyzersProject}\" --script %s{trackedScripts ()} --analyzers-path \"%s{analyzersPath}\" --treat-as-error \"GRA-*\""
             }
         )
     }
@@ -327,7 +342,7 @@ let latestChangelogEntry () : string * DateTime * string =
         )
         |> String.concat "\n\n"
 
-    string version, date, body
+    string<SemVersion.SemanticVersion> version, date, body
 
 /// "September 10th Release", the title fantomas and telplin give their releases as well.
 let releaseTitle (date : DateTime) : string =
