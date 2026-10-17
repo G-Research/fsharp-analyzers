@@ -39,7 +39,7 @@ let private fantomas (arguments : string) =
 
 /// Only the files git knows about, which keeps obj, bin and output out of the picture
 /// without a second ignore list to maintain.
-let private trackedFiles () =
+let trackedFiles () =
     processOutput "git" "ls-files"
     |> fun output -> output.Split ('\n', StringSplitOptions.RemoveEmptyEntries)
     |> Array.map (fun path -> Path.Combine (repositoryRoot, path.Trim ()))
