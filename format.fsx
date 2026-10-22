@@ -163,4 +163,4 @@ let checkFormat _ =
 
         failwith $"%i{unformatted.Length} file(s) need formatting, run: dotnet fsi build.fsx -p Format"
 
-    fantomas ". --check"
+    fantomas "check ."
