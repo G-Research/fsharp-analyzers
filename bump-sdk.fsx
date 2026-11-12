@@ -49,13 +49,15 @@ let dryRun = Array.contains "--dry-run" fsi.CommandLineArgs
 // running other programs
 // ---------------------------------------------------------------------------------------------
 
-/// ArgumentList rather than a command string, so a pull request title never has to be quoted.
+/// Runs a program in the repository root and fails when it exits non-zero. Answers with what it
+/// wrote to standard output when `redirect` is set, and with "" when it is not.
 let private start (fileName : string) (arguments : string list) (redirect : bool) =
     printfn $"""> %s{fileName} %s{String.concat " " arguments}"""
 
     let startInfo =
         ProcessStartInfo (fileName, WorkingDirectory = repositoryRoot, RedirectStandardOutput = redirect)
 
+    // ArgumentList rather than a command string, so a pull request title never has to be quoted.
     List.iter startInfo.ArgumentList.Add arguments
     use proc = Process.Start startInfo
     let output = if redirect then proc.StandardOutput.ReadToEnd () else ""
@@ -91,8 +93,7 @@ let private cache = new SourceCacheContext ()
 
 let private versionsOf (packageId : string) : NuGetVersion list =
     packages.GetAllVersionsAsync (packageId, cache, NullLogger.Instance, CancellationToken.None)
-    |> Async.AwaitTask
-    |> Async.RunSynchronously
+    |> _.Result
     |> List.ofSeq
 
 /// The framework the analyzers are built for, which decides which dependency group applies. Asked
@@ -109,8 +110,7 @@ let private targetFramework =
 let private dependencyPins (version : NuGetVersion) : (NuGetVersion * NuGetVersion) option =
     let info =
         packages.GetDependencyInfoAsync (sdkPackage, version, cache, NullLogger.Instance, CancellationToken.None)
-        |> Async.AwaitTask
-        |> Async.RunSynchronously
+        |> _.Result
 
     if isNull (box info) then
         None
@@ -137,9 +137,10 @@ let private dependencyPins (version : NuGetVersion) : (NuGetVersion * NuGetVersi
 // the files the bot edits
 // ---------------------------------------------------------------------------------------------
 
-/// Deliberately a string replacement rather than an XML round-trip: the diff has to be the four
-/// attribute values that changed and nothing else.
+/// The `<PackageVersion>` element for a package, with its version captured on its own.
 let private packageVersionRegex (packageId : string) =
+    // Deliberately a string replacement rather than an XML round-trip: the diff has to be the four
+    // attribute values that changed and nothing else.
     Regex
         $"""(?<prefix><PackageVersion\s+Include="%s{Regex.Escape packageId}"\s+Version=")(?<version>[^"]*)(?<suffix>")"""
 
@@ -371,9 +372,14 @@ let private sectionEnd (lines : ResizeArray<string>) (start : int) =
 
     index
 
-/// Every SDK bump this repository has shipped was a minor, whatever else rode along with it.
+/// Every SDK bump this repository has shipped was a minor, whatever else rode along with it. That
+/// only holds before 1.0: after it, an FCS bump is likely a major, and a human picks the version.
 let private nextReleaseVersion (released : string) =
     let parts = released.Split '.'
+
+    if parts.[0] <> "0" then
+        failwith $"CHANGELOG.md is at %s{released}, and past 1.0 a minor bump may be wrong. Pick the version by hand."
+
     $"%s{parts.[0]}.%i{int parts.[1] + 1}.0"
 
 let private appendToChangedSection (lines : ResizeArray<string>) (sectionStart : int) (entry : string) =
