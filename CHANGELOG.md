@@ -6,6 +6,10 @@
 
 - Update FSharp.Analyzers.SDK to `0.43.0`. [#126](https://github.com/G-Research/fsharp-analyzers/pull/126)
 
+### Fixed
+
+- TypedInterpolatedStringsAnalyzer: read the format specifier from the new `SynInterpolationFormatting` node, so typed holes such as `%i{42}` are no longer reported. [#126](https://github.com/G-Research/fsharp-analyzers/pull/126)
+
 ## [0.27.0] - 2026-11-12
 
 ### Changed
