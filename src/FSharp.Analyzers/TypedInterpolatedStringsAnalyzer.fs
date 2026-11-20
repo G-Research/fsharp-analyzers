@@ -1,7 +1,6 @@
 module GR.FSharp.Analyzers.TypedInterpolatedStringsAnalyzer
 
 open System.Collections.Generic
-open System.Text.RegularExpressions
 open FSharp.Analyzers.SDK
 open FSharp.Analyzers.SDK.ASTCollecting
 open FSharp.Analyzers.SDK.TASTCollecting
@@ -11,10 +10,6 @@ open FSharp.Compiler.Text
 
 [<Literal>]
 let Code = "GRA-INTERPOLATED-001"
-
-/// See https://learn.microsoft.com/en-us/dotnet/fsharp/language-reference/plaintext-formatting#format-specifiers-for-printf
-let specifierRegex =
-    Regex (@"\%(\+|\-)?\d*\.?\d*(b|s|c|d|i|u|x|X|o|B|e|E|f|F|g|G|M|O|A)$")
 
 let analyze (parseTree : ParsedInput) (typedTree : FSharpImplementationFileContents) =
     let messages = ResizeArray<Message>()
@@ -40,22 +35,20 @@ let analyze (parseTree : ParsedInput) (typedTree : FSharpImplementationFileConte
                 match expr with
                 | SynExpr.InterpolatedString (contents = contents) when not (formattableStrings.Contains expr.Range) ->
                     contents
-                    |> List.pairwise
-                    |> List.iter (fun (p1, p2) ->
-                        match p1, p2 with
-                        | SynInterpolatedStringPart.String (value = s),
-                          SynInterpolatedStringPart.FillExpr (fillExpr = e) ->
-                            if not (isNull s) && not (specifierRegex.IsMatch s) then
-                                messages.Add
-                                    {
-                                        Type = "TypedInterpolatedStringsAnalyzer"
-                                        Message =
-                                            "Interpolated hole expression without format detected. Use prefix with the correct % to enforce type safety."
-                                        Code = Code
-                                        Severity = Severity.Warning
-                                        Range = e.Range
-                                        Fixes = []
-                                    }
+                    |> List.iter (fun part ->
+                        match part with
+                        | SynInterpolatedStringPart.FillExpr (
+                            fillExpr = e ; formatting = SynInterpolationFormatting.DotNet _) ->
+                            messages.Add
+                                {
+                                    Type = "TypedInterpolatedStringsAnalyzer"
+                                    Message =
+                                        "Interpolated hole expression without format detected. Use prefix with the correct % to enforce type safety."
+                                    Code = Code
+                                    Severity = Severity.Warning
+                                    Range = e.Range
+                                    Fixes = []
+                                }
                         | _ -> ()
                     )
                 | _ -> ()
